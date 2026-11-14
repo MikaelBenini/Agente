@@ -1,5 +1,6 @@
 // Pesquisa depois do atendimento: criada no fechamento da comanda, enviada pelo worker uma
 // hora depois e respondida pela conversa do bot (packages/shared/src/bot.ts).
+import { temNaConta } from './assinatura.js';
 import {
   PESQUISA_ATRASO_MIN,
   PESQUISA_INTERVALO_DIAS,
@@ -95,6 +96,7 @@ export async function iniciarPesquisa(
       return { tipo: 'pular', motivo } as const;
     };
     if (a.comanda.status !== 'fechada') return cancelar('comanda reaberta ou cancelada');
+    if (!(await temNaConta(tx, 'avaliacoes'))) return cancelar('pesquisa fora do plano');
     if (!a.cliente.consentimentoMsg) return cancelar('cliente não quer receber mensagens');
     if (agora >= a.expiraEm) return cancelar('passou do prazo');
     const conexao = a.unidade.botConexao;

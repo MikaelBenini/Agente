@@ -51,11 +51,11 @@ describe('decidirEtapaParada (admin F1d)', () => {
     expect(decidirEtapaParada({ ...base, status: 'cancelada' })).toEqual({ acao: 'nada' });
   });
 
-  it('pagamento não gera este e-mail; WhatsApp só em plano com o bot', () => {
-    const em = (etapa: 'pagamento' | 'whatsapp', plano: 'basico' | 'pro') =>
+  it('pagamento não gera este e-mail; WhatsApp vale em todo plano (avisos do agendamento)', () => {
+    const em = (etapa: 'pagamento' | 'whatsapp', plano: 'agenda' | 'basico' | 'pro') =>
       decidirEtapaParada({ ...base, etapa, plano, guardada: { ...base.guardada, etapa } });
     expect(em('pagamento', 'pro')).toEqual({ acao: 'nada' });
-    expect(em('whatsapp', 'basico')).toEqual({ acao: 'nada' });
+    expect(em('whatsapp', 'agenda')).toEqual({ acao: 'avisar', passo: 'whatsapp' });
     expect(em('whatsapp', 'pro')).toEqual({ acao: 'avisar', passo: 'whatsapp' });
   });
 });

@@ -24,7 +24,7 @@ import {
 } from '@pente-fino/shared';
 import type { Response } from 'express';
 import { z } from 'zod';
-import { Papeis } from '../auth/decoradores.js';
+import { Papeis, ExigeRecurso } from '../auth/decoradores.js';
 import { BancoService } from '../comum/banco.service.js';
 import { Contexto } from '../comum/contexto.js';
 import { Erros } from '../comum/erros.js';
@@ -82,8 +82,12 @@ export class RelatorioService {
 
     const r = await this.banco.daConta(async (tx) => {
       const conta = await tx.conta.findUniqueOrThrow({ where: { id: Contexto.usuario().contaId } });
-      const verLucro = temRecurso(conta.plano, 'lucroReal');
-      const verBarbeiros = temRecurso(conta.plano, 'fichaProfissional');
+      const verLucro = temRecurso(conta.plano, 'lucroReal', conta.automacoesContratadas);
+      const verBarbeiros = temRecurso(
+        conta.plano,
+        'fichaProfissional',
+        conta.automacoesContratadas,
+      );
       // Todas as visitas até o fim do mês: "novo" é quem veio pela primeira vez na vida.
       const visitas = (
         await tx.comanda.findMany({
@@ -380,6 +384,8 @@ export class RelatorioService {
 
 @ApiTags('Indicadores e metas')
 @ApiBearerAuth()
+// Plano Agenda: comanda, caixa, despesas e resultados vêm do Básico em diante.
+@ExigeRecurso('operacao')
 @Controller('relatorio')
 export class RelatorioController {
   constructor(@Inject(RelatorioService) private readonly servico: RelatorioService) {}

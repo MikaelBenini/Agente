@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { itemDaRota, menuEmGrupos, menuPara } from './menu.js';
+import { itemDaRota, menuDoPlano, menuEmGrupos, menuPara } from './menu.js';
 
 const rotulos = (papeis: Parameters<typeof menuPara>[0]) => menuPara(papeis).map((i) => i.rotulo);
 
@@ -88,5 +88,22 @@ describe('menu por papel', () => {
   it('acha o item pela rota, inclusive subrotas', () => {
     expect(itemDaRota('/comandas/019a')?.id).toBe('comandas');
     expect(itemDaRota('/comandasx')).toBeUndefined();
+  });
+});
+
+describe('menuDoPlano (Plano Agenda)', () => {
+  it('o Agenda fica sem comanda, caixa, resultados, financeiro e comissões', () => {
+    const ids = menuDoPlano(menuPara(['dono']), 'agenda', true).map((i) => i.id);
+    for (const fora of ['dia', 'comandas', 'caixa', 'resultados', 'financeiro', 'comissoes'])
+      expect(ids).not.toContain(fora);
+    expect(ids).toEqual(
+      expect.arrayContaining(['inicio', 'agenda', 'clientes', 'equipe', 'bot', 'pagina']),
+    );
+  });
+
+  it('do Básico em diante o menu continua o mesmo', () => {
+    const dono = menuPara(['dono']);
+    expect(menuDoPlano(dono, 'basico')).toEqual(dono);
+    expect(menuDoPlano(dono, 'premium')).toEqual(dono);
   });
 });

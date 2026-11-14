@@ -24,6 +24,7 @@ import {
   Prisma,
   type Transacao,
   estadoAssinatura,
+  temNaConta,
   paginasDeBarbeariaNoGoogle,
 } from '@pente-fino/db';
 import {
@@ -68,6 +69,7 @@ import {
   type DominioPublico,
   type SitePublico,
   type TipoEndereco,
+  automacoesAParte,
 } from '@pente-fino/shared';
 import type { Request, Response } from 'express';
 import { randomBytes, randomUUID } from 'node:crypto';
@@ -237,6 +239,7 @@ export class PublicoController {
             nome: d.barbearia,
             plano: d.plano,
             ciclo: d.ciclo,
+            automacoesContratadas: d.automacoes && automacoesAParte(d.plano),
             status: 'teste',
             testeAte,
             precosDesde: new Date(`${dataLocal(new Date())}T00:00:00Z`),
@@ -394,7 +397,7 @@ export class PublicoController {
         })(),
         lembretesWhatsapp: !!(await numeroDosLembretes(tx, u.id, u.regrasAgendamento)),
         linkWhatsappAgendar: await linkAgendarPelaConversa(tx, u.id, u.regrasAgendamento),
-        listaEspera: temRecurso((await estadoAssinatura(tx)).plano, 'listaEspera'),
+        listaEspera: await temNaConta(tx, 'listaEspera'),
         outrasUnidades: (
           await tx.unidade.findMany({
             where: {
@@ -689,7 +692,7 @@ export class PublicoController {
         !!(await tx.cliente.findUnique({ where: { id: c.clienteId } }))?.consentimentoMsg;
       const podeAntecipar =
         aceita &&
-        temRecurso((await estadoAssinatura(tx)).plano, 'listaEspera') &&
+        (await temNaConta(tx, 'listaEspera')) &&
         !!primeiroPossivel &&
         deveOferecerAntecipar({
           livres: livresAntes,
@@ -748,7 +751,7 @@ export class PublicoController {
       const estado = await estadoAssinatura(tx);
       if (estado.somenteLeitura)
         throw Erros.conflito('Indisponível no momento. Fale com a barbearia.');
-      if (!temRecurso(estado.plano, 'listaEspera'))
+      if (!temRecurso(estado.plano, 'listaEspera', estado.automacoes))
         throw Erros.conflito('Esta barbearia não usa lista de espera. Tente outro dia.');
       await duracaoDosServicos(tx, d.servicoIds).catch(() => {
         throw Erros.naoEncontrado('Serviço não encontrado.');

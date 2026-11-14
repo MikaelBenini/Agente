@@ -18,6 +18,8 @@ import {
   type CupomNaTela,
   type EventoDaAuditoria,
   type PublicoAviso,
+  NOME_PLANO,
+  PLANOS,
 } from '@pente-fino/shared';
 import { Botao, Campo, CampoTexto, Selecao } from '@pente-fino/ui';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -925,11 +927,6 @@ function EditorModelo({ m }: { m: ModeloEmailNaTela }) {
   );
 }
 
-const NOMES_PLANOS: Record<'basico' | 'pro' | 'premium', string> = {
-  basico: 'Básico',
-  pro: 'Pro',
-  premium: 'Premium',
-};
 const reais = (centavos: number) => (centavos / 100).toFixed(2).replace('.', ',');
 
 /** Planos e preços: tabelas com vigência; quem já assinou segue na tabela que contratou. */
@@ -1002,7 +999,13 @@ export function PrecosAdmin({ onIrPara }: { onIrPara: (aba: string) => void }) {
               <Tabela rotulo="Tabelas de preço">
                 <thead>
                   <tr className="border-b border-borda">
-                    {['Vale desde', 'Básico', 'Pro', 'Premium', 'Unidade extra', ''].map((c) => (
+                    {[
+                      'Vale desde',
+                      ...PLANOS.map((p) => NOME_PLANO[p]),
+                      'Unidade extra',
+                      'Automações',
+                      '',
+                    ].map((c) => (
                       <th key={c} scope="col" className={th}>
                         {c}
                       </th>
@@ -1025,7 +1028,7 @@ export function PrecosAdmin({ onIrPara }: { onIrPara: (aba: string) => void }) {
                           </span>
                         )}
                       </th>
-                      {(['basico', 'pro', 'premium'] as const).map((p) => (
+                      {PLANOS.map((p) => (
                         <td key={p} className={`${td} tabular-nums`}>
                           R$ {reais(t.planos[p].mensal)} · anual {reais(t.planos[p].anualPorMes)}
                         </td>
@@ -1033,6 +1036,9 @@ export function PrecosAdmin({ onIrPara }: { onIrPara: (aba: string) => void }) {
                       <td className={`${td} tabular-nums`}>
                         R$ {reais(t.unidadeExtra.mensal)} · anual{' '}
                         {reais(t.unidadeExtra.anualPorMes)}
+                      </td>
+                      <td className={`${td} tabular-nums`}>
+                        R$ {reais(t.automacoes.mensal)} · anual {reais(t.automacoes.anualPorMes)}
                       </td>
                       <td className={td}>
                         {t.desde > hoje && (
@@ -1074,12 +1080,14 @@ function NovaTabela({
   const [desde, setDesde] = useState(hoje);
   const [valores, setValores] = useState(() => {
     const v: Record<string, string> = {};
-    for (const p of ['basico', 'pro', 'premium'] as const) {
+    for (const p of PLANOS) {
       v[`${p}.mensal`] = reais(base.planos[p].mensal);
       v[`${p}.anualPorMes`] = reais(base.planos[p].anualPorMes);
     }
     v['extra.mensal'] = reais(base.unidadeExtra.mensal);
     v['extra.anualPorMes'] = reais(base.unidadeExtra.anualPorMes);
+    v['automacoes.mensal'] = reais(base.automacoes.mensal);
+    v['automacoes.anualPorMes'] = reais(base.automacoes.anualPorMes);
     return v;
   });
   const ler = (k: string) => lerMoeda(valores[k] ?? '') ?? 0;
@@ -1111,12 +1119,14 @@ function NovaTabela({
         />
       </div>
       <div className="grid gap-3 sm:grid-cols-4">
-        {(['basico', 'pro', 'premium'] as const).flatMap((p) => [
-          campo(`${p}.mensal`, `${NOMES_PLANOS[p]} mensal (R$)`),
-          campo(`${p}.anualPorMes`, `${NOMES_PLANOS[p]} anual, por mês (R$)`),
+        {PLANOS.flatMap((p) => [
+          campo(`${p}.mensal`, `${NOME_PLANO[p]} mensal (R$)`),
+          campo(`${p}.anualPorMes`, `${NOME_PLANO[p]} anual, por mês (R$)`),
         ])}
         {campo('extra.mensal', 'Unidade extra mensal (R$)')}
         {campo('extra.anualPorMes', 'Unidade extra anual, por mês (R$)')}
+        {campo('automacoes.mensal', 'Automações mensal (R$)')}
+        {campo('automacoes.anualPorMes', 'Automações anual, por mês (R$)')}
       </div>
       <Salvar
         rotulo="Salvar tabela"
@@ -1129,8 +1139,9 @@ function NovaTabela({
             metodo: 'PUT',
             corpo: {
               desde,
-              planos: { basico: plano('basico'), pro: plano('pro'), premium: plano('premium') },
+              planos: Object.fromEntries(PLANOS.map((p) => [p, plano(p)])),
               unidadeExtra: plano('extra'),
+              automacoes: plano('automacoes'),
             },
           });
           await onSalvo();

@@ -17,7 +17,7 @@ import {
 } from '@pente-fino/shared';
 import { z } from 'zod';
 import { Auditada, auditar } from '../auditoria/auditoria.js';
-import { Papeis } from '../auth/decoradores.js';
+import { Papeis, ExigeRecurso } from '../auth/decoradores.js';
 import { BancoService } from '../comum/banco.service.js';
 import { Contexto } from '../comum/contexto.js';
 import { Erros } from '../comum/erros.js';
@@ -42,6 +42,8 @@ const FORMAS: FormaPagamento[] = ['dinheiro', 'pix', 'debito', 'credito', 'clube
 
 @ApiTags('Caixa')
 @ApiBearerAuth()
+// Plano Agenda: comanda, caixa, despesas e resultados vêm do Básico em diante.
+@ExigeRecurso('operacao')
 @Controller('caixa')
 export class CaixaController {
   constructor(

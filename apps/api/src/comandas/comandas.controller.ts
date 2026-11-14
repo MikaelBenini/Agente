@@ -30,7 +30,7 @@ import {
 import type { Response } from 'express';
 import { z } from 'zod';
 import { Auditada } from '../auditoria/auditoria.js';
-import { Papeis } from '../auth/decoradores.js';
+import { Papeis, ExigeRecurso, LivreDoPlano } from '../auth/decoradores.js';
 import { TODOS } from '../comum/escopo.js';
 import { Consulta, Corpo } from '../comum/validacao.js';
 import { ComandasService } from './comandas.service.js';
@@ -46,6 +46,9 @@ const impressaoSchema = z.object({
 
 @ApiTags('Comandas')
 @ApiBearerAuth()
+// Plano Agenda: lançar, receber e fechar vêm do Básico em diante; começar, confirmar, "não
+// veio" e cancelar ficam livres (são o dia a dia da agenda).
+@ExigeRecurso('operacao', { soEscrita: true })
 @Controller('comandas')
 export class ComandasController {
   constructor(@Inject(ComandasService) private readonly servico: ComandasService) {}
@@ -130,6 +133,7 @@ export class ComandasController {
     return this.servico.removerItem(id, itemId);
   }
 
+  @LivreDoPlano()
   @Post(':id/iniciar')
   @Papeis(...TODOS)
   @HttpCode(HttpStatus.OK)
@@ -138,6 +142,7 @@ export class ComandasController {
     return this.servico.iniciar(id);
   }
 
+  @LivreDoPlano()
   @Post(':id/confirmar')
   @Papeis(...TODOS)
   @HttpCode(HttpStatus.OK)
@@ -146,6 +151,7 @@ export class ComandasController {
     return this.servico.confirmar(id);
   }
 
+  @LivreDoPlano()
   @Post(':id/nao-veio')
   @Papeis(...TODOS)
   @Auditada()
@@ -155,6 +161,7 @@ export class ComandasController {
     return this.servico.naoVeio(id);
   }
 
+  @LivreDoPlano()
   @Post(':id/desfazer-nao-veio')
   @Papeis(...TODOS)
   @Auditada()
@@ -176,6 +183,7 @@ export class ComandasController {
     return this.servico.fechar(id, d);
   }
 
+  @LivreDoPlano()
   @Post(':id/cancelar')
   @Papeis('dono', 'gestor', 'recepcao')
   @Auditada()

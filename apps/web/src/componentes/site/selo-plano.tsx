@@ -4,12 +4,12 @@
 import { NOME_PLANO, RECURSOS, type PlanoConta, type Recurso } from '@pente-fino/shared';
 import { cn } from '@pente-fino/ui';
 
-const TEXTO: Record<Exclude<PlanoConta, 'basico'>, string> = {
+const TEXTO: Record<Exclude<PlanoConta, 'agenda' | 'basico'>, string> = {
   pro: 'Pro e Premium',
   premium: 'Premium',
 };
 
-/** Recurso vem desde o Básico: nada a mostrar. */
+/** Recurso vem desde o Agenda ou o Básico: nada a mostrar. */
 export function SeloPlano({
   recurso,
   plano,
@@ -21,7 +21,7 @@ export function SeloPlano({
   className?: string;
 }) {
   const desde = plano ?? (recurso ? RECURSOS[recurso].desde : 'basico');
-  if (desde === 'basico') return null;
+  if (desde === 'agenda' || desde === 'basico') return null;
   return (
     <span
       className={cn(

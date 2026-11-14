@@ -409,6 +409,18 @@ PR, mergeado quando o CI passar (autorização do dono para os próximos):
 - [ ] **Plano Agenda** (pedido do dono em 13/11; respostas P14 a P16 em 13/11): plano de entrada,
   barato, para trazer barbearia nova pelo preço e pela busca do Google ("agenda para barbeiro",
   "agenda online para barbearia"). Decisões (o dono pediu "pense por mim" nos detalhes):
+  - **Decisão do dono em 14/11 (WhatsApp e Automações):** todo plano conecta o WhatsApp para os
+    avisos do agendamento (antes, o Básico não conectava). As Automações (mais R$ 10 por mês)
+    podem ser contratadas no Agenda e no Básico; do Pro em diante já vêm incluídas, então o
+    retorno e o aniversário passam do Premium para o Pro. Assim ninguém perde nada ao subir de
+    plano;
+  - **entregas:**
+    - [x] **núcleo** (14/11): plano, preços, limites, Automações à parte, regra do cupom,
+      cobrança, troca de plano, o que a API barra, o worker sem bot e o menu sem as telas do
+      Básico;
+    - [ ] **revenda conforme a necessidade:** cadeado no menu, telas "Experimentar 7 dias" e os
+      convites (abaixo); o Início do Agenda com os números da agenda;
+    - [ ] **divulgação:** cartão do Agenda em `/planos`, página de vendas e página de busca;
   - **Agenda, R$ 10 por mês** (anual R$ 99 por ano, sai R$ 8,25 por mês), com o mesmo teste
     grátis dos outros planos; 1 unidade e até 2 barbeiros;
   - entra: agenda de cada barbeiro, bloqueios e folgas, cadastro de clientes, o link de

@@ -1,5 +1,6 @@
 // O bot do WhatsApp no banco: o que o motor precisa saber da unidade, o atendimento de uma
 // mensagem recebida e o envio das respostas. Usado pela API (simulador, webhook) e pelo worker.
+import { temNaConta } from './assinatura.js';
 import {
   dataLocal,
   dataParaBanco,
@@ -417,6 +418,7 @@ export async function responderComAgenda(
 export type ResultadoAtendimento =
   | { tipo: 'sem_conexao' }
   | { tipo: 'repetida' }
+  | { tipo: 'sem_bot' }
   | {
       tipo: 'respondida';
       contaId: string;
@@ -555,6 +557,9 @@ export async function atenderMensagem(
 
         const u = await unidadeDoBot(tx, unidadeId);
         if (!u) return { tipo: 'sem_conexao' } as const;
+        // Sem as Automações (Agenda ou Básico sem contratar), o WhatsApp só manda os avisos do
+        // agendamento: a mensagem fica em Conversas e o bot não responde sozinho.
+        if (!(await temNaConta(tx, 'bot'))) return { tipo: 'sem_bot' } as const;
         const salva = await tx.botSessao.findUnique({
           where: { unidadeId_telefone: { unidadeId, telefone: evento.telefone } },
         });

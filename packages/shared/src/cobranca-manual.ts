@@ -38,6 +38,8 @@ export function proximaCobrancaManual(d: {
   /** Tabela que a conta contratou (o preço novo da administração não muda quem já assina). */
   tabela?: TabelaPrecosPlanos;
   descontoBp?: number;
+  /** Automações contratadas à parte (Agenda e Básico). */
+  automacoes?: boolean;
   /** A administração mandou começar a cobrar nesta data. */
   cobrarAPartirDe?: string | null;
   /** Sem cobrança até esta data (inclusive). */
@@ -62,6 +64,13 @@ export function proximaCobrancaManual(d: {
     vencimento,
     periodoInicio: vencimento,
     periodoFim: fimDoPeriodo(vencimento, d.ciclo),
-    valor: valorDaCobranca(d.plano, d.ciclo, Math.max(1, d.unidades), d.tabela, d.descontoBp),
+    valor: valorDaCobranca(
+      d.plano,
+      d.ciclo,
+      Math.max(1, d.unidades),
+      d.tabela,
+      d.descontoBp,
+      d.automacoes ?? false,
+    ),
   };
 }

@@ -16,6 +16,7 @@ import {
   LIMITE_AUTOMACOES_DIA,
   preencher,
   RESPOSTA_ATE_H,
+  temRecurso,
   variantesTelefone,
   type Automacao,
   type NumerosAutomacao,
@@ -66,6 +67,8 @@ export async function rodarAutomacoes(
     const conta = await tx.conta.findUniqueOrThrow({ where: { id: contaId } });
     const config = lerAutomacoes(conta.automacoes);
     if (!config.retorno && !config.aniversario && !config.avisoClube) return [];
+    // Plano sem as Automações (Agenda ou Básico sem contratar): nada sai.
+    if (!temRecurso(conta.plano, 'automacoes', conta.automacoesContratadas)) return [];
     const hoje = dataLocal(agora);
     const mensagens = await mensagensDoBot(tx);
 

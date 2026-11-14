@@ -189,7 +189,7 @@ export function metricasDaPlataforma(d: {
   >;
   const receita = {
     mrr: 0,
-    porPlano: { basico: 0, pro: 0, premium: 0 } as Record<PlanoConta, number>,
+    porPlano: { agenda: 0, basico: 0, pro: 0, premium: 0 } as Record<PlanoConta, number>,
     porForma: { automatica: 0, manual: 0 },
     pagantes: 0,
   };

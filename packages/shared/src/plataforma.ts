@@ -4,7 +4,7 @@ import { documentoValido } from './assinatura.js';
 import { z } from 'zod';
 import type { EtapaFunil } from './funil.js';
 import type { SaudeConta } from './saude-conta.js';
-import type { Ciclo, PlanoConta } from './planos.js';
+import { PLANOS, type Ciclo, type PlanoConta } from './planos.js';
 
 export const PAPEIS_PLATAFORMA = ['admin', 'vendedor', 'suporte', 'financeiro'] as const;
 export type PapelPlataforma = (typeof PAPEIS_PLATAFORMA)[number];
@@ -148,7 +148,7 @@ const motivo = z
 const diaISO = z.iso.date({ error: 'Data inválida.' });
 
 export const mudarPlanoContaSchema = z.object({
-  plano: z.enum(['basico', 'pro', 'premium']),
+  plano: z.enum(PLANOS),
   ciclo: z.enum(['mensal', 'anual']),
   motivo,
 });
@@ -290,7 +290,7 @@ export const venderContaSchema = z.object({
       .nullable()
       .default(null),
   }),
-  plano: z.enum(['basico', 'pro', 'premium']),
+  plano: z.enum(PLANOS),
   ciclo: z.enum(['mensal', 'anual']),
   /** Dias de uso antes de pagar (0 = paga hoje; o vendedor registra o pagamento em seguida). */
   diasTeste: z.number().int().min(0).max(60).default(14),

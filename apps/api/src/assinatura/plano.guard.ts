@@ -13,7 +13,10 @@ const LEITURA = new Set(['GET', 'HEAD', 'OPTIONS']);
 /** Recursos por plano (@ExigeRecurso): sem o plano, 403 "recurso_do_plano" com o convite. */
 @Injectable()
 export class PlanoGuard implements CanActivate {
-  private readonly guardados = new Map<string, { ate: number; plano: PlanoConta }>();
+  private readonly guardados = new Map<
+    string,
+    { ate: number; plano: PlanoConta; automacoes: boolean }
+  >();
 
   constructor(
     private readonly reflector: Reflector,
@@ -30,21 +33,27 @@ export class PlanoGuard implements CanActivate {
     if (!exige) return true;
     if (exige.soEscrita && LEITURA.has(ctx.switchToHttp().getRequest<Request>().method))
       return true;
-    const plano = await this.plano(usuario.contaId);
-    if (!temRecurso(plano, exige.recurso))
+    const { plano, automacoes } = await this.plano(usuario.contaId);
+    if (!temRecurso(plano, exige.recurso, automacoes))
       throw Erros.recursoDoPlano(textoRecursoBloqueado(exige.recurso, plano));
     return true;
   }
 
-  async plano(contaId: string): Promise<PlanoConta> {
+  /** O plano da conta e as Automações contratadas à parte (guardados por 15 s). */
+  async plano(contaId: string): Promise<{ plano: PlanoConta; automacoes: boolean }> {
     const agora = Date.now();
     const guardado = this.guardados.get(contaId);
-    if (guardado && guardado.ate > agora) return guardado.plano;
+    if (guardado && guardado.ate > agora) return guardado;
     const conta = await this.banco.daConta((tx) =>
-      tx.conta.findFirstOrThrow({ select: { plano: true } }),
+      tx.conta.findFirstOrThrow({ select: { plano: true, automacoesContratadas: true } }),
     );
-    this.guardados.set(contaId, { ate: agora + VALIDADE_MS, plano: conta.plano });
-    return conta.plano;
+    const valor = {
+      ate: agora + VALIDADE_MS,
+      plano: conta.plano,
+      automacoes: conta.automacoesContratadas,
+    };
+    this.guardados.set(contaId, valor);
+    return valor;
   }
 
   /** Depois de trocar de plano, vale na hora. */

@@ -2,7 +2,7 @@
 // link do passo que falta. Uma vez por etapa; a rotina guarda a etapa e desde quando está nela.
 import { DEFINICAO_PASSOS, type PassoInicial } from './ajuda.js';
 import type { EtapaFunil } from './funil.js';
-import { temRecurso, type PlanoConta } from './planos.js';
+import type { PlanoConta } from './planos.js';
 
 /** Etapas do funil que viram e-mail, com o passo do tutorial (título, porquê e tela). */
 export const PASSO_DA_ETAPA: Partial<Record<EtapaFunil, PassoInicial>> = {
@@ -31,8 +31,8 @@ export type DecisaoEtapa =
 
 /**
  * O que fazer com uma conta agora. Só conta em teste ou ativa e não interna. A etapa de
- * pagamento não gera este e-mail (a cobrança tem os próprios avisos), e o WhatsApp só para
- * plano que tem o bot.
+ * pagamento não gera este e-mail (a cobrança tem os próprios avisos). O WhatsApp vale para todo
+ * plano: os avisos do agendamento saem por ele.
  */
 export function decidirEtapaParada(d: {
   etapa: EtapaFunil | null;
@@ -47,7 +47,6 @@ export function decidirEtapaParada(d: {
   if (!d.guardada || d.guardada.etapa !== d.etapa) return { acao: 'guardar', etapa: d.etapa };
   const passo = PASSO_DA_ETAPA[d.etapa];
   if (!passo || d.guardada.avisadoEm) return { acao: 'nada' };
-  if (passo === 'whatsapp' && !temRecurso(d.plano, 'bot')) return { acao: 'nada' };
   const parada = d.agora.getTime() - Date.parse(d.guardada.desde);
   return parada >= DIAS_PARADA * 86_400_000 ? { acao: 'avisar', passo } : { acao: 'nada' };
 }

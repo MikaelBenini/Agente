@@ -10,6 +10,7 @@ import {
   LIMITES_PLANO,
   NOME_PLANO,
   valorDaCobranca,
+  automacoesAParte,
   type AssinarEntrada,
   type CobrancaExterna,
   conferirTrocaDePlano,
@@ -64,6 +65,10 @@ interface PagamentoParaAvisar {
   valor: string;
   periodo: string;
 }
+
+/** Texto da assinatura no Asaas: "Pente Fino Agenda + Automações (mensal)". */
+const descricaoDaAssinatura = (plano: PlanoConta, ciclo: string, automacoes: boolean) =>
+  `Pente Fino ${NOME_PLANO[plano]}${automacoes ? ' + Automações' : ''} (${ciclo})`;
 
 @Injectable()
 export class CobrancaService {
@@ -130,14 +135,27 @@ export class CobrancaService {
       }),
     );
     const tabelaHoje = await this.precos.vigente(dataLocal(new Date()));
+    const automacoes = d.automacoes && automacoesAParte(d.plano);
+    // Plano Agenda: o cupom só vale com as Automações juntas (decisão do dono em 13/11).
+    if (d.cupom?.trim() && d.plano === 'agenda' && !automacoes)
+      throw Erros.validacao([
+        { campo: 'cupom', mensagem: 'No plano Agenda, o cupom vale só com as Automações juntas.' },
+      ]);
     const desconto = await this.descontoAoAssinar(conta, d.cupom);
     const assinatura = await this.externo(() =>
       this.provedor.criarAssinatura({
         cliente: clienteId,
-        valor: valorDaCobranca(d.plano, d.ciclo, unidades, tabelaHoje, desconto.descontoBp),
+        valor: valorDaCobranca(
+          d.plano,
+          d.ciclo,
+          unidades,
+          tabelaHoje,
+          desconto.descontoBp,
+          automacoes,
+        ),
         ciclo: d.ciclo,
         vencimento: dataLocal(new Date()),
-        descricao: `Pente Fino ${NOME_PLANO[d.plano]} (${d.ciclo})`,
+        descricao: descricaoDaAssinatura(d.plano, d.ciclo, automacoes),
         referencia: conta.id,
       }),
     );
@@ -149,6 +167,7 @@ export class CobrancaService {
           asaasAssinaturaId: assinatura.id,
           plano: d.plano,
           ciclo: d.ciclo,
+          automacoesContratadas: automacoes,
           cupom: desconto.cupom,
           descontoBp: desconto.descontoBp,
           // Assinar é contrato: vale a tabela de hoje.
@@ -163,6 +182,7 @@ export class CobrancaService {
         depois: {
           plano: d.plano,
           ciclo: d.ciclo,
+          automacoes,
           assinatura: assinatura.id,
           notaFiscal: nota,
           cupom: desconto.cupom,
@@ -216,8 +236,8 @@ export class CobrancaService {
     }
   }
 
-  /** Uso da conta e prévia da troca para o plano escolhido. */
-  async previaTroca(para: PlanoConta): Promise<PreviaTrocaPlano> {
+  /** Uso da conta e prévia da troca para o plano escolhido (e as Automações à parte). */
+  async previaTroca(para: PlanoConta, automacoes?: boolean): Promise<PreviaTrocaPlano> {
     return this.banco.daConta(async (tx) => {
       const conta = await tx.conta.findFirstOrThrow();
       const hoje = dataLocal(new Date());
@@ -238,6 +258,8 @@ export class CobrancaService {
         tabelaAtual: await this.precos.vigente(conta.precosDesde),
         tabelaNova: await this.precos.vigente(dataLocal(new Date())),
         descontoBp: conta.descontoBp,
+        automacoes: conta.automacoesContratadas,
+        automacoesNovo: automacoes ?? conta.automacoesContratadas,
       });
     });
   }
@@ -246,12 +268,15 @@ export class CobrancaService {
    * O dono troca de plano: subir vale na hora; descer só se a conta cabe no plano novo. Com
    * assinatura no Asaas, o valor novo vale também para as cobranças em aberto.
    */
-  async trocarPlano(para: PlanoConta): Promise<PreviaTrocaPlano> {
-    const previa = await this.previaTroca(para);
-    if (previa.de === para) throw Erros.conflito(`A conta já está no plano ${NOME_PLANO[para]}.`);
+  async trocarPlano(para: PlanoConta, pedidas?: boolean): Promise<PreviaTrocaPlano> {
+    const previa = await this.previaTroca(para, pedidas);
+    const conta = await this.banco.daConta((tx) => tx.conta.findFirstOrThrow());
+    // Do Pro em diante as Automações vêm no plano: a parte contratada deixa de existir.
+    const automacoes = (pedidas ?? conta.automacoesContratadas) && automacoesAParte(para);
+    if (previa.de === para && automacoes === conta.automacoesContratadas)
+      throw Erros.conflito(`A conta já está no plano ${NOME_PLANO[para]}.`);
     if (previa.bloqueios.length)
       throw Erros.requisicaoInvalida('limite_plano', previa.bloqueios.join(' '));
-    const conta = await this.banco.daConta((tx) => tx.conta.findFirstOrThrow());
     const ciclo = conta.ciclo ?? 'mensal';
     if (conta.asaasAssinaturaId) {
       const unidades = await this.banco.daConta((tx) =>
@@ -260,8 +285,8 @@ export class CobrancaService {
       const tabelaHoje = await this.precos.vigente(dataLocal(new Date()));
       await this.externo(() =>
         this.provedor.atualizarAssinatura(conta.asaasAssinaturaId!, {
-          valor: valorDaCobranca(para, ciclo, unidades, tabelaHoje, conta.descontoBp),
-          descricao: `Pente Fino ${NOME_PLANO[para]} (${ciclo})`,
+          valor: valorDaCobranca(para, ciclo, unidades, tabelaHoje, conta.descontoBp, automacoes),
+          descricao: descricaoDaAssinatura(para, ciclo, automacoes),
         }),
       );
     }
@@ -269,14 +294,18 @@ export class CobrancaService {
       await tx.conta.update({
         where: { id: conta.id },
         // Trocar de plano é contrato novo: vale a tabela de hoje.
-        data: { plano: para, precosDesde: this.precos.hoje() },
+        data: {
+          plano: para,
+          automacoesContratadas: automacoes,
+          precosDesde: this.precos.hoje(),
+        },
       });
       await auditar(tx, {
         entidade: 'conta',
         entidadeId: conta.id,
         acao: 'trocar_plano',
-        antes: { plano: previa.de },
-        depois: { plano: para, perdas: previa.perdas },
+        antes: { plano: previa.de, automacoes: conta.automacoesContratadas },
+        depois: { plano: para, automacoes, perdas: previa.perdas },
       });
     });
     this.planos.esquecer(conta.id);

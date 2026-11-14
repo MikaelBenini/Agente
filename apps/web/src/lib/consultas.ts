@@ -52,13 +52,14 @@ import {
   TABELA_PADRAO,
   temRecurso,
   type Recurso,
+  type PlanoConta,
   type TabelaPrecosPlanos,
 } from '@pente-fino/shared';
 
 export interface ContaResumo {
   id: string;
   nome: string;
-  plano: 'basico' | 'pro' | 'premium';
+  plano: PlanoConta;
   ciclo: 'mensal' | 'anual';
   status: string;
   /** Fim do teste grátis (ISO), quando a conta está em teste. */
@@ -415,17 +416,18 @@ export function useAvaliacoes(unidade: string | null, de: string, ate: string) {
 
 /** O plano da conta tem o recurso? (false enquanto carrega: não chama a API do recurso.) */
 function useLiberado(r: Recurso): boolean {
-  const plano = useSituacaoConta().data?.plano;
-  return plano !== undefined && temRecurso(plano, r);
+  const situacao = useSituacaoConta().data;
+  return situacao !== undefined && temRecurso(situacao.plano, r, situacao.automacoes);
 }
 
 export const chaveAssinatura = ['assinatura'] as const;
 
 /** Situação da conta para o aviso do painel (todos os papéis); revê a cada 5 minutos. */
-export const useSituacaoConta = () =>
+export const useSituacaoConta = (ativo = true) =>
   useQuery({
     queryKey: [...chaveAssinatura, 'situacao'],
     queryFn: () => api<EstadoDaConta>('conta/situacao'),
+    enabled: ativo,
     refetchInterval: 5 * 60_000,
     staleTime: 60_000,
   });

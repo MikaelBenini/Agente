@@ -16,8 +16,10 @@ let barbeiro: Cliente;
 const hoje = new Date().toISOString().slice(0, 10);
 const http = () => request(app.getHttpServer());
 
-async function mudarPlano(plano: PlanoConta) {
-  await naConta(prisma, a.contaId, (tx) => tx.conta.updateMany({ data: { plano } }));
+async function mudarPlano(plano: PlanoConta, automacoesContratadas = false) {
+  await naConta(prisma, a.contaId, (tx) =>
+    tx.conta.updateMany({ data: { plano, automacoesContratadas } }),
+  );
   // O plano fica guardado 15 s na API: um app novo lê na hora.
   await app.close();
   app = await criarApp();
@@ -46,6 +48,87 @@ const bloqueado = (r: request.Response) => {
 };
 
 describe('recursos por plano', () => {
+  it('Agenda: comanda, caixa, despesas e relatório ficam no Básico; a agenda e o WhatsApp, não', async () => {
+    await mudarPlano('agenda');
+    const situacao = (await dono.get('/conta/situacao').expect(200)).body as EstadoDaConta;
+    expect(situacao).toMatchObject({ plano: 'agenda', automacoes: false });
+    expect(bloqueado(await dono.get(`/despesas?mes=${hoje.slice(0, 7)}`))).toBe(
+      'Comanda, caixa do dia, despesas e resultados do mês: faz parte do plano Básico. Seu plano é o Agenda; mude de plano para usar.',
+    );
+    bloqueado(await dono.get(`/relatorio/mes?mes=${hoje.slice(0, 7)}`));
+    bloqueado(await dono.get(`/comissoes?de=${hoje}&ate=${hoje}`));
+    bloqueado(await dono.post('/comandas', {}));
+    // A agenda continua: ler comandas do dia e cancelar não são barrados pelo plano.
+    await dono.get(`/comandas?data=${hoje}&unidadeId=${a.unidadeA}`).expect(200);
+    const cancelar = await dono.post(`/comandas/00000000-0000-0000-0000-000000000000/cancelar`, {
+      motivo: 'teste',
+    });
+    expect(cancelar.body?.erro?.codigo).not.toBe('recurso_do_plano');
+    // O WhatsApp conecta em todo plano (avisos do agendamento); o bot, só com as Automações.
+    const conectar = await dono.post(`/bot/conexao/${a.unidadeA}`, {});
+    expect(conectar.body?.erro?.codigo).not.toBe('recurso_do_plano');
+    expect(bloqueado(await dono.put('/bot/menu', {}))).toMatch(/vem com as Automações/);
+  });
+
+  it('Agenda com as Automações: o bot e a lista de espera liberam; a comanda, não', async () => {
+    await mudarPlano('agenda', true);
+    const menu = await dono.put('/bot/menu', {});
+    expect(menu.body?.erro?.codigo).not.toBe('recurso_do_plano');
+    await dono.get(`/espera?unidadeId=${a.unidadeA}&dia=${hoje}`).expect(200);
+    bloqueado(await dono.post('/comandas', {}));
+  });
+
+  it('Agenda: troca de plano com as Automações e a regra do cupom', async () => {
+    await mudarPlano('agenda');
+    const previa = (await dono.get('/conta/plano/previa?plano=agenda&automacoes=true').expect(200))
+      .body as { sobe: boolean; valorAtual: number; valorNovo: number };
+    expect(previa).toMatchObject({ sobe: true, valorAtual: 1000, valorNovo: 2000 });
+    // Com 2 unidades ativas, o Agenda (1 unidade) barra a troca.
+    expect(
+      (await dono.put('/conta/plano', { plano: 'agenda', automacoes: true }).expect(400)).body.erro
+        .codigo,
+    ).toBe('limite_plano');
+    // Cabendo no plano (1 unidade, até 2 barbeiros), liga.
+    const sobrando = await naConta(prisma, a.contaId, async (tx) => {
+      const unidades = await tx.unidade.findMany({
+        where: { ativa: true, id: { not: a.unidadeA } },
+        select: { id: true },
+      });
+      const profissionais = (
+        await tx.profissional.findMany({ where: { ativo: true }, select: { id: true } })
+      ).slice(2);
+      await tx.unidade.updateMany({
+        where: { id: { in: unidades.map((u) => u.id) } },
+        data: { ativa: false },
+      });
+      await tx.profissional.updateMany({
+        where: { id: { in: profissionais.map((x) => x.id) } },
+        data: { ativo: false },
+      });
+      return { unidades, profissionais };
+    });
+    await dono.put('/conta/plano', { plano: 'agenda', automacoes: true }).expect(200);
+    expect(((await dono.get('/conta/situacao').expect(200)).body as EstadoDaConta).automacoes).toBe(
+      true,
+    );
+    // Mesmo plano, mesmas Automações: nada a mudar.
+    await dono.put('/conta/plano', { plano: 'agenda', automacoes: true }).expect(409);
+    // Do Pro em diante, as Automações vêm no plano: a parte contratada sai.
+    await dono.put('/conta/plano', { plano: 'pro' }).expect(200);
+    const conta = await naConta(prisma, a.contaId, (tx) => tx.conta.findFirstOrThrow());
+    expect(conta.automacoesContratadas).toBe(false);
+    await naConta(prisma, a.contaId, async (tx) => {
+      await tx.unidade.updateMany({
+        where: { id: { in: sobrando.unidades.map((u) => u.id) } },
+        data: { ativa: true },
+      });
+      await tx.profissional.updateMany({
+        where: { id: { in: sobrando.profissionais.map((x) => x.id) } },
+        data: { ativo: true },
+      });
+    });
+  });
+
   it('Básico: os do Pro respondem 403 com o convite; ler o clube continua livre', async () => {
     await mudarPlano('basico');
     expect(((await dono.get('/conta/situacao').expect(200)).body as EstadoDaConta).plano).toBe(
@@ -111,7 +194,9 @@ describe('recursos por plano', () => {
     await dono.get(`/canais?de=${hoje}&ate=${hoje}`).expect(200);
     bloqueado(await dono.get(`/rede?de=${hoje}&ate=${hoje}`));
     bloqueado(await dono.get(`/lucratividade?de=${hoje}&ate=${hoje}`));
-    bloqueado(await dono.put('/bot/automacoes', {}));
+    // As Automações vêm no Pro (decisão do dono em 14/11).
+    const auto = await dono.put('/bot/automacoes', {});
+    expect(auto.body?.erro?.codigo).not.toBe('recurso_do_plano');
   });
 
   it('Premium: tudo liberado', async () => {
