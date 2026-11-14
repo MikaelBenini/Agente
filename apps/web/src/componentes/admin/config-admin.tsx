@@ -113,6 +113,7 @@ function Formularios({ c }: { c: ConfiguracaoPublica }) {
   const [taxaClube, setTaxaClube] = useState(
     (c.clubeOnline.taxaBp / 100).toLocaleString('pt-BR', { maximumFractionDigits: 2 }),
   );
+  const [whatsapp, setWhatsapp] = useState(c.contatoSite.whatsapp);
   const atualizar = () => cliente.invalidateQueries({ queryKey: ['admin', 'configuracoes'] });
 
   return (
@@ -280,6 +281,35 @@ function Formularios({ c }: { c: ConfiguracaoPublica }) {
               metodo: 'PUT',
               corpo: { taxaBp: Number.isFinite(pct) ? Math.round(pct * 100) : -1 },
             });
+            await atualizar();
+          }}
+        />
+      </section>
+      <section
+        aria-labelledby="titulo-contato-site"
+        className="flex flex-col gap-3 rounded-lg border border-borda bg-superficie p-4"
+      >
+        <h2 id="titulo-contato-site" className="text-lg font-semibold">
+          WhatsApp comercial do site
+        </h2>
+        <p className="text-sm text-tinta-suave">
+          Aparece no rodapé e no fim da página de vendas, com a mensagem pronta. Os cliques contam
+          em &ldquo;Visitantes da página de vendas&rdquo;. Vazio tira o WhatsApp do site.
+        </p>
+        <div className="max-w-xs">
+          <Campo
+            id="contato-site-whatsapp"
+            rotulo="WhatsApp com DDD"
+            inputMode="tel"
+            autoComplete="off"
+            value={whatsapp}
+            onChange={(e) => setWhatsapp(e.target.value)}
+          />
+        </div>
+        <Salvar
+          rotulo="Salvar WhatsApp"
+          enviar={async () => {
+            await adminApi('configuracoes/contato-site', { metodo: 'PUT', corpo: { whatsapp } });
             await atualizar();
           }}
         />

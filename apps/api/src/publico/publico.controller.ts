@@ -58,6 +58,7 @@ import {
   type Sessao,
   type UnidadePublica,
   lerConfiguracaoPublica,
+  type ContatoSite,
   type TabelaPrecosPlanos,
   temRecurso,
   CORES_SITE,
@@ -182,6 +183,13 @@ export class PublicoController {
   @ApiOperation({ summary: 'Preços dos planos que valem hoje (site e cadastro)' })
   async precos(): Promise<TabelaPrecosPlanos> {
     return this.precosServico.vigente(dataLocal(new Date()));
+  }
+
+  @Get('contato')
+  @Publico()
+  @ApiOperation({ summary: 'WhatsApp comercial do site de vendas (rodapé e fim da página)' })
+  async contato(): Promise<ContatoSite> {
+    return lerConfiguracaoPublica(await configuracaoDoSistema(this.banco.prisma)).contatoSite;
   }
 
   @Get('cupom/:codigo')
