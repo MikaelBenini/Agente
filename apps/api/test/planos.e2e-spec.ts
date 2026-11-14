@@ -70,6 +70,25 @@ describe('recursos por plano', () => {
     expect(bloqueado(await dono.put('/bot/menu', {}))).toMatch(/vem com as Automações/);
   });
 
+  it('Agenda: a agenda do mês no Início e o Básico por 7 dias, uma vez só', async () => {
+    await mudarPlano('agenda');
+    const r = (await dono.get(`/resumo/agenda?mes=${hoje.slice(0, 7)}`).expect(200)).body as {
+      marcados: number;
+      atendidos: number;
+    };
+    expect(r.marcados).toBeGreaterThanOrEqual(r.atendidos);
+    bloqueado(await dono.get(`/despesas?mes=${hoje.slice(0, 7)}`));
+    // O barbeiro não experimenta: é decisão do dono.
+    await barbeiro.post('/conta/experimentar', {}).expect(403);
+    const estado = (await dono.post('/conta/experimentar', {}).expect(200)).body as EstadoDaConta;
+    expect(estado.experimentaAte).not.toBeNull();
+    await dono.get(`/despesas?mes=${hoje.slice(0, 7)}`).expect(200);
+    await dono.post('/conta/experimentar', {}).expect(409);
+    await naConta(prisma, a.contaId, (tx) =>
+      tx.conta.updateMany({ data: { experimentaBasicoAte: null } }),
+    );
+  });
+
   it('Agenda com as Automações: o bot e a lista de espera liberam; a comanda, não', async () => {
     await mudarPlano('agenda', true);
     const menu = await dono.put('/bot/menu', {});

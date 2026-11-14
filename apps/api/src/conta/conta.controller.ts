@@ -2,6 +2,8 @@ import { Controller, Get, HttpCode, HttpStatus, Inject, Patch, Post, Put } from 
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { estadoAssinatura } from '@pente-fino/db';
 import {
+  DIAS_EXPERIMENTAR,
+  podeExperimentar,
   assinarSchema,
   contaSchema,
   LIMITES_PLANO,
@@ -24,6 +26,8 @@ import {
   type LiberarSuporteEntrada,
 } from '@pente-fino/shared';
 import { Auditada, auditar } from '../auditoria/auditoria.js';
+import { PlanoGuard } from '../assinatura/plano.guard.js';
+import { Erros } from '../comum/erros.js';
 import { LivreSemAssinatura, Papeis } from '../auth/decoradores.js';
 import { CobrancaService } from '../cobranca/cobranca.service.js';
 import { PrecosService } from '../comum/precos.service.js';
@@ -40,6 +44,7 @@ export class ContaController {
     @Inject(BancoService) private readonly banco: BancoService,
     @Inject(CobrancaService) private readonly cobranca: CobrancaService,
     @Inject(PrecosService) private readonly precos: PrecosService,
+    @Inject(PlanoGuard) private readonly planos: PlanoGuard,
   ) {}
 
   @Get('situacao')
@@ -160,6 +165,38 @@ export class ContaController {
   })
   trocarPlano(@Corpo(trocarPlanoSchema) d: TrocarPlanoEntrada): Promise<PreviaTrocaPlano> {
     return this.cobranca.trocarPlano(d.plano, d.automacoes);
+  }
+
+  @Post('experimentar')
+  @Papeis('dono')
+  @Auditada()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Plano Agenda: experimentar os recursos do Básico por 7 dias (uma vez por conta)',
+  })
+  async experimentar(): Promise<EstadoDaConta> {
+    const contaId = Contexto.usuario().contaId;
+    const estado = await this.banco.daConta(async (tx) => {
+      const conta = await tx.conta.findFirstOrThrow();
+      if (!podeExperimentar(conta.plano, conta.experimentaBasicoAte))
+        throw Erros.conflito(
+          conta.plano === 'agenda'
+            ? 'A conta já experimentou o Básico. Para usar de novo, mude de plano em Assinatura.'
+            : 'O seu plano já traz esses recursos.',
+        );
+      const ate = new Date(Date.now() + DIAS_EXPERIMENTAR * 86_400_000);
+      await tx.conta.update({ where: { id: conta.id }, data: { experimentaBasicoAte: ate } });
+      await auditar(tx, {
+        entidade: 'conta',
+        entidadeId: conta.id,
+        acao: 'experimentar_basico',
+        antes: null,
+        depois: { ate: ate.toISOString() },
+      });
+      return estadoAssinatura(tx);
+    });
+    this.planos.esquecer(contaId);
+    return estado;
   }
 
   @Post('assinatura/conferir')

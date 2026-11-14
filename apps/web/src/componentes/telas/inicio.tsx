@@ -4,7 +4,9 @@ import { formatarMoeda, formatarNumero } from '@pente-fino/shared';
 import { ChevronRight } from 'lucide-react';
 import { BarraMeta } from '@pente-fino/ui';
 import Link from 'next/link';
-import { useIndicadores, useMetas } from '@/lib/consultas';
+import { planoDosRecursos } from '@pente-fino/shared';
+import { useIndicadores, useMetas, useSituacaoConta } from '@/lib/consultas';
+import { InicioAgenda } from '../inicio-agenda';
 import { useEstadoConfiguracao } from './configuracao-inicial';
 import { limitesDoMes, mesAtual, nomeDoMes } from '@/lib/periodo';
 import { useApp } from '../contexto-app';
@@ -21,6 +23,11 @@ export function TelaInicio() {
   const indicadores = useIndicadores(unidadeAtiva, de, ate);
   const metas = useMetas(unidadeAtiva, mes);
   const nomeUnidade = (id: string) => unidades.find((u) => u.id === id)?.nome ?? '';
+  // Plano Agenda (sem a experiência do Básico): a agenda do mês no lugar do faturamento.
+  const situacao = useSituacaoConta().data;
+  const soAgenda =
+    !!situacao &&
+    planoDosRecursos(situacao.plano, situacao.experimentaAte, new Date()) === 'agenda';
 
   return (
     <div className="flex flex-col gap-8">
@@ -40,8 +47,29 @@ export function TelaInicio() {
           </span>
         </Link>
       )}
-      <PainelHoje />
+      <PainelHoje soAgenda={soAgenda} />
       {configuracao.data?.configurada !== false && <PrimeirosPassos />}
+      {soAgenda && situacao ? (
+        <InicioAgenda situacao={situacao} />
+      ) : (
+        <InicioDoMes metas={metas} indicadores={indicadores} nomeUnidade={nomeUnidade} />
+      )}
+    </div>
+  );
+}
+
+/** "O mês": metas e indicadores (do Básico em diante). */
+function InicioDoMes({
+  metas,
+  indicadores,
+  nomeUnidade,
+}: {
+  metas: ReturnType<typeof useMetas>;
+  indicadores: ReturnType<typeof useIndicadores>;
+  nomeUnidade: (id: string) => string;
+}) {
+  return (
+    <>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-xl font-semibold">O mês</h2>
         <Link
@@ -93,6 +121,6 @@ export function TelaInicio() {
           />
         )}
       </Estado>
-    </div>
+    </>
   );
 }

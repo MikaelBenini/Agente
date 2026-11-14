@@ -48,6 +48,10 @@ export interface EstadoDaConta extends EstadoAssinatura {
   plano: PlanoConta;
   /** Automações contratadas à parte (Agenda e Básico); do Pro em diante já vêm no plano. */
   automacoes: boolean;
+  /** "Experimentar 7 dias" no Agenda: os recursos do Básico até esta data (ISO); null = nunca. */
+  experimentaAte: string | null;
+  /** Quando a conta foi criada (ISO): o convite do Agenda espera 30 dias. */
+  contaDesde: string;
 }
 
 const dias = (de: DataISO, ate: DataISO) =>

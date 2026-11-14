@@ -50,7 +50,7 @@ import type {
 } from '@pente-fino/shared';
 import {
   TABELA_PADRAO,
-  temRecurso,
+  recursoDaConta,
   type Recurso,
   type PlanoConta,
   type TabelaPrecosPlanos,
@@ -417,7 +417,7 @@ export function useAvaliacoes(unidade: string | null, de: string, ate: string) {
 /** O plano da conta tem o recurso? (false enquanto carrega: não chama a API do recurso.) */
 function useLiberado(r: Recurso): boolean {
   const situacao = useSituacaoConta().data;
-  return situacao !== undefined && temRecurso(situacao.plano, r, situacao.automacoes);
+  return situacao !== undefined && recursoDaConta(situacao, r);
 }
 
 export const chaveAssinatura = ['assinatura'] as const;

@@ -249,6 +249,8 @@ model Conta {
   /// Automações contratadas à parte (Agenda e Básico): bot, lista de espera, pesquisa, retorno e
   /// aniversário. Do Pro em diante já vêm no plano.
   automacoesContratadas   Boolean       @default(false) @map("automacoes_contratadas")
+  /// "Experimentar 7 dias" no Agenda: os recursos do Básico até esta data (uma vez por conta).
+  experimentaBasicoAte    DateTime?     @map("experimenta_basico_ate") @db.Timestamptz(3)
   status                  StatusConta   @default(teste)
   /// Esconde o telefone do cliente na tela do barbeiro (docs: matriz de permissões).
   ocultarTelefoneBarbeiro Boolean       @default(true) @map("ocultar_telefone_barbeiro")

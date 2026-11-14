@@ -11,6 +11,8 @@ export interface ContextoApp {
   /** Papéis que valem na unidade ativa. */
   papeis: Papel[];
   menu: ItemMenu[];
+  /** Plano Agenda: telas do Básico, no menu com cadeado (só dono e gestor). */
+  bloqueados?: ItemMenu[];
   /** Pode trocar de unidade (tem mais de uma opção)? */
   podeTrocarUnidade: boolean;
 }
