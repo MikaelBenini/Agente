@@ -7,6 +7,15 @@ produção (`https://seupentefino.com.br`). Detalhes técnicos e o porquê de ca
 
 ## [Não publicado]
 
+### Adicionado (foto da unidade no fundo do link de agendamento)
+
+- No visual do link de agendamento (Minha página), a foto de capa ganhou a opção **"No fundo da página inteira"**: a foto da unidade fica atrás de tudo, com uma camada escura por cima para o texto continuar legível. "No topo da página" continua como antes.
+
+### Mudado (página de vendas atualizada)
+
+- Destaques da página inicial com o que entrou nos últimos meses: sinal adiantado, preço por barbeiro, despesas fixas e preço livre; o lembrete no WhatsApp aparece sem selo, porque vem em todos os planos.
+- Capturas de tela novas das telas atuais (Financeiro, Resultados, Agenda, Serviços e produtos e o app do barbeiro no celular), geradas por um teste próprio a partir da demonstração.
+
 ### Adicionado (comparativo com mais sistemas)
 
 - Três sistemas novos no comparativo, com a página oficial e a data da consulta (14/11): **GENDA**, **Barbeiro.app** e **BestBarbers**. Cada um tem a própria página (`/comparativo/...`), com onde ele é melhor e onde o Pente Fino é melhor, e todos entram na tabela de "Como escolher o sistema".
