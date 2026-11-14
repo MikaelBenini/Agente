@@ -14,7 +14,7 @@ produção (`https://seupentefino.com.br`). Detalhes técnicos e o porquê de ca
 ### Mudado (página de vendas atualizada)
 
 - Destaques da página inicial com o que entrou nos últimos meses: sinal adiantado, preço por barbeiro, despesas fixas e preço livre; o lembrete no WhatsApp aparece sem selo, porque vem em todos os planos.
-- Capturas de tela novas das telas atuais (Financeiro, Resultados, Agenda, Serviços e produtos e o app do barbeiro no celular), geradas por um teste próprio a partir da demonstração.
+- Capturas de tela novas do Financeiro, dos Resultados do mês e de Serviços e produtos (outubro fechado da demonstração), geradas por um teste próprio.
 
 ### Adicionado (comparativo com mais sistemas)
 

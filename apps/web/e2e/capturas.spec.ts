@@ -1,5 +1,5 @@
 import { mkdir } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 import { expect, test, type Browser, type Page } from '@playwright/test';
 import sharp from 'sharp';
 
@@ -10,12 +10,12 @@ import sharp from 'sharp';
 //   CAPTURAS=1 E2E_PORTA_WEB=3100 E2E_PORTA_API=3101 pnpm --filter @pente-fino/web test:e2e e2e/capturas.spec.ts --project=computador
 test.skip(!process.env.CAPTURAS, 'só com CAPTURAS=1');
 
-const PASTA = fileURLToPath(new URL('../public/site/', import.meta.url));
+const PASTA = join(__dirname, '..', 'public', 'site') + '/';
 
 async function entrar(browser: Browser, email: string, celular: boolean): Promise<Page> {
   const contexto = await browser.newContext({
-    viewport: celular ? { width: 390, height: 664 } : { width: 800, height: 500 },
-    deviceScaleFactor: 2,
+    viewport: celular ? { width: 390, height: 664 } : { width: 1600, height: 1000 },
+    deviceScaleFactor: celular ? 2 : 1,
     colorScheme: 'dark',
     storageState: {
       cookies: [],
@@ -37,8 +37,15 @@ async function entrar(browser: Browser, email: string, celular: boolean): Promis
 }
 
 /** Grava a captura e a versão com metade da largura. */
-async function gravar(page: Page, nome: string, largura: number, altura: number) {
+async function gravar(
+  page: Page,
+  nome: string,
+  largura: number,
+  altura: number,
+  rolar = 0,
+) {
   await page.waitForLoadState('networkidle');
+  if (rolar) await page.mouse.wheel(0, rolar);
   await page.waitForTimeout(800);
   const png = await page.screenshot({ fullPage: false });
   await mkdir(PASTA, { recursive: true });
@@ -54,19 +61,23 @@ async function gravar(page: Page, nome: string, largura: number, altura: number)
 test('capturas do computador (dono)', async ({ browser }) => {
   test.setTimeout(120_000);
   const page = await entrar(browser, 'dono@demo.pentefino.dev', false);
-  await page.setViewportSize({ width: 800, height: 422 });
+  await page.setViewportSize({ width: 1600, height: 844 });
+  // Mês anterior, já fechado: o mês corrente pela metade engana (as fixas já entraram).
   await page.goto('/financeiro');
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  await page.getByRole('button', { name: 'Mês anterior' }).first().click();
   await gravar(page, 'financeiro', 1600, 844);
   await page.goto('/resultados');
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  await page.getByRole('button', { name: 'Mês anterior' }).first().click();
   await gravar(page, 'metas', 1600, 844);
-  await page.setViewportSize({ width: 800, height: 500 });
+  await page.setViewportSize({ width: 1600, height: 1000 });
   await page.goto('/agenda');
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   await gravar(page, 'agenda', 1600, 1000);
   await page.goto('/resultados?aba=itens');
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  await page.getByRole('button', { name: 'Mês anterior' }).first().click();
   await gravar(page, 'lucro-produtos', 1600, 1000);
 });
 
@@ -76,8 +87,12 @@ test('capturas do celular (barbeiro)', async ({ browser }) => {
   await page.goto('/desempenho');
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   await gravar(page, 'celular-desempenho', 780, 1328);
+  // A comanda só sai se o barbeiro tiver uma hoje; senão fica a captura anterior.
   await page.goto('/comandas');
-  await page.locator('a[href*="/comandas?id="]').first().click();
-  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-  await gravar(page, 'celular-comanda', 780, 1328);
+  const comanda = page.locator('a[href*="/comandas?id="]').first();
+  if (await comanda.isVisible({ timeout: 5000 }).catch(() => false)) {
+    await comanda.click();
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await gravar(page, 'celular-comanda', 780, 1328);
+  }
 });
