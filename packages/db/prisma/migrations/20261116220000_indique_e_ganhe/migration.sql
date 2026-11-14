@@ -69,6 +69,7 @@ DECLARE
   v_indicador indicador%ROWTYPE;
   v_primeiro timestamptz;
 BEGIN
+  PERFORM set_config('app.conta_id', NEW.conta_id::text, true);
   IF NEW.status = 'cancelada' AND OLD IS NOT NULL AND OLD.status = 'paga' THEN
     UPDATE comissao_indicacao SET cancelada_em = now()
      WHERE fatura_id = NEW.id AND paga_em IS NULL AND aplicada_em IS NULL AND cancelada_em IS NULL;
@@ -107,3 +108,18 @@ REVOKE ALL ON FUNCTION comissao_da_fatura() FROM PUBLIC;
 CREATE TRIGGER fatura_comissao_indicacao
   AFTER INSERT OR UPDATE OF status, paga_em ON fatura_assinatura
   FOR EACH ROW EXECUTE FUNCTION comissao_da_fatura();
+
+-- Painel do indicador: quantas barbearias entraram pelo link (em teste e pagantes), sem expor
+-- os dados delas para a administração além do número.
+CREATE FUNCTION indicadas_do_codigo(p_codigo text)
+  RETURNS TABLE (em_teste integer, pagantes integer)
+  LANGUAGE sql
+  SECURITY DEFINER
+  SET search_path = public, pg_temp
+  AS $$
+    SELECT count(*) FILTER (WHERE status = 'teste')::int,
+           count(*) FILTER (WHERE status = 'ativa')::int
+      FROM conta WHERE indicado_por = p_codigo;
+$$;
+REVOKE ALL ON FUNCTION indicadas_do_codigo(text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION indicadas_do_codigo(text) TO pente_fino_plataforma;
