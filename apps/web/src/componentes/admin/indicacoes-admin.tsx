@@ -29,6 +29,17 @@ export function IndicacoesAdmin() {
       setErro(e instanceof ErroApi ? e.message : 'Não deu certo.');
     }
   }
+  async function aplicar(i: IndicadorNaAdmin) {
+    setErro(null);
+    setOk(null);
+    try {
+      await adminApi(`indicacoes/comissoes/${i.mesesPendentes[0]}/aplicar`, { corpo: {} });
+      setOk(`Mês grátis de ${i.nome} marcado como aplicado.`);
+      await cliente.invalidateQueries({ queryKey: CHAVE });
+    } catch (e) {
+      setErro(e instanceof ErroApi ? e.message : 'Não deu certo.');
+    }
+  }
   return (
     <section aria-labelledby="titulo-indicacoes" className="flex flex-col gap-3">
       <h2 id="titulo-indicacoes" className="text-2xl font-semibold">
@@ -82,6 +93,11 @@ export function IndicacoesAdmin() {
                       {i.resumo.podeReceber && (
                         <Botao variante="secundario" onClick={() => pagar(i)}>
                           Marcar Pix pago
+                        </Botao>
+                      )}
+                      {i.mesesPendentes.length > 0 && (
+                        <Botao variante="secundario" onClick={() => aplicar(i)}>
+                          Marcar mês aplicado ({i.mesesPendentes.length})
                         </Botao>
                       )}
                     </td>

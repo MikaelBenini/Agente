@@ -144,4 +144,6 @@ export interface IndicadorNaAdmin {
   cliente: boolean;
   indicadas: number;
   resumo: ResumoIndicador;
+  /** Meses grátis liberados e ainda não aplicados na assinatura (ids das comissões). */
+  mesesPendentes: string[];
 }

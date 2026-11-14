@@ -200,6 +200,9 @@ export class IndicacaoService {
       cliente: !!i.contaId,
       indicadas: new Set(i.comissoes.map((c) => c.contaId)).size,
       resumo: resumoDoIndicador(i.comissoes.map(comissaoNaTela), agora),
+      mesesPendentes: i.comissoes
+        .filter((c) => c.tipo === 'mes' && !c.aplicadaEm && !c.canceladaEm && c.liberaEm <= agora)
+        .map((c) => c.id),
     }));
   }
 
