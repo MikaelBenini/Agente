@@ -459,8 +459,19 @@ PR, mergeado quando o CI passar (autorização do dono para os próximos):
   atualização da página de vendas). Referência de estilo: o blog do próprio dono
   (`navalhago.app/blog`); aproveitar as ideias e o jeito de escrever, sempre com a identidade
   do Pente Fino (nome, cores, marca e textos próprios, nada copiado ao pé da letra):
-  - **"Indique e ganhe"**: programa de indicação (quem indica e quem chega ganham; regras a
-    decidir com o dono: desconto, mês grátis ou crédito, e quando vale);
+  - **"Indique e ganhe"** (regras decididas pelo dono em 14/11, depois de estudar o programa do
+    site de referência):
+    - **qualquer pessoa** pode indicar, não só barbeiro: quem tem amigo barbeiro, fornecedor,
+      influenciador; cadastro grátis de indicador, com link próprio;
+    - quem indica ganha **20% de cada mensalidade paga pela barbearia indicada, durante os 12
+      primeiros meses dela**;
+    - quem já é cliente pode trocar o Pix por **meses grátis**: 1 mês por indicada que pagar;
+    - a barbearia indicada entra pelo link com **30 dias de teste** (em vez de 14);
+    - pagamento: a comissão libera **30 dias depois** do pagamento da indicada (prazo de
+      estorno); Pix **uma vez por mês**, a partir de **R$ 50** acumulados, com CPF e chave Pix
+      cadastrados; a administração paga e marca como pago;
+    - entra num lote próprio (cadastro do indicador, link, comissões, painel e a tela da
+      administração);
   - **dores do barbeiro**: "Se você se identifica com qualquer um desses problemas..." com a
     lista das dores e, ao lado de cada uma, o que o sistema faz para resolver ("feito para o dia
     a dia da cadeira, não para escritório");
@@ -533,10 +544,8 @@ Responda embaixo de cada pergunta, no espaço depois de "Resposta:". Quando eu l
 levo para a lista e apago a pergunta daqui.
 **Não escreva senhas, tokens nem chaves aqui:** este arquivo vai para o git.
 
-**P13. Rodapé e Contato:** sem o CNPJ, combinado. Faltam o nome que aparece (o nome da empresa
-MEI ou só "Pente Fino"), a cidade e as redes sociais (Instagram e outras, se houver).
-
-Resposta:
+**P13. Rodapé e Contato:** respondida em 14/11: Cascavel/PR, Instagram @nossopentefino e CNPJ
+61.775.956/0001-50 (já no rodapé). Falta só o nome da empresa (razão social), se quiser mostrar.
 
 
 
