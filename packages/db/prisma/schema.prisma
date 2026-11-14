@@ -2003,7 +2003,7 @@ model Indicador {
   codigo    String   @unique
   tokenHash String   @unique @map("token_hash")
   /// Dono que já é cliente (pode trocar o Pix por meses grátis).
-  contaId   String?  @unique @map("conta_id") @db.Uuid
+  contaId   String?  @unique @map("conta_cliente_id") @db.Uuid
   /// "pix" ou "meses".
   recebe    String   @default("pix")
   ativo     Boolean  @default(true)
@@ -2018,7 +2018,7 @@ model Indicador {
 model ComissaoIndicacao {
   id          String    @id @default(dbgenerated("uuidv7()")) @db.Uuid
   indicadorId String    @map("indicador_id") @db.Uuid
-  contaId     String    @map("conta_id") @db.Uuid
+  contaId     String    @map("conta_indicada_id") @db.Uuid
   faturaId    String    @unique @map("fatura_id") @db.Uuid
   /// "pix" ou "mes".
   tipo        String

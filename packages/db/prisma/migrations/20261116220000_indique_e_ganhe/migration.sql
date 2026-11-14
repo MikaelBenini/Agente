@@ -15,7 +15,7 @@ CREATE TABLE "indicador" (
     "chave_pix" TEXT,
     "codigo" TEXT NOT NULL,
     "token_hash" TEXT NOT NULL,
-    "conta_id" UUID,
+    "conta_cliente_id" UUID,
     "recebe" TEXT NOT NULL DEFAULT 'pix',
     "ativo" BOOLEAN NOT NULL DEFAULT true,
     "criado_em" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -28,7 +28,7 @@ CREATE TABLE "indicador" (
 CREATE TABLE "comissao_indicacao" (
     "id" UUID NOT NULL DEFAULT uuidv7(),
     "indicador_id" UUID NOT NULL,
-    "conta_id" UUID NOT NULL,
+    "conta_indicada_id" UUID NOT NULL,
     "fatura_id" UUID NOT NULL,
     "tipo" TEXT NOT NULL,
     "valor" INTEGER NOT NULL,
@@ -46,7 +46,7 @@ CREATE TABLE "comissao_indicacao" (
 CREATE UNIQUE INDEX "indicador_email_key" ON "indicador"("email");
 CREATE UNIQUE INDEX "indicador_codigo_key" ON "indicador"("codigo");
 CREATE UNIQUE INDEX "indicador_token_hash_key" ON "indicador"("token_hash");
-CREATE UNIQUE INDEX "indicador_conta_id_key" ON "indicador"("conta_id");
+CREATE UNIQUE INDEX "indicador_conta_cliente_id_key" ON "indicador"("conta_cliente_id");
 CREATE UNIQUE INDEX "comissao_indicacao_fatura_id_key" ON "comissao_indicacao"("fatura_id");
 CREATE INDEX "comissao_indicacao_indicador_id_idx" ON "comissao_indicacao"("indicador_id");
 
@@ -54,7 +54,7 @@ CREATE INDEX "comissao_indicacao_indicador_id_idx" ON "comissao_indicacao"("indi
 ALTER TABLE "comissao_indicacao" ADD CONSTRAINT "comissao_indicacao_indicador_id_fkey" FOREIGN KEY ("indicador_id") REFERENCES "indicador"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 REVOKE ALL ON indicador, comissao_indicacao FROM pente_fino_aplicacao;
-GRANT SELECT, INSERT, UPDATE ON indicador, comissao_indicacao TO pente_fino_plataforma;
+GRANT SELECT, INSERT, UPDATE, DELETE ON indicador, comissao_indicacao TO pente_fino_plataforma;
 
 -- A fatura ficou paga: cria a comissão de quem indicou (uma por fatura). Estornada (cancelada)
 -- antes de pagar a comissão: a comissão é cancelada. Roda como dono da função: vale para o
@@ -70,33 +70,33 @@ DECLARE
   v_primeiro timestamptz;
 BEGIN
   PERFORM set_config('app.conta_id', NEW.conta_id::text, true);
-  IF NEW.status = 'cancelada' AND OLD IS NOT NULL AND OLD.status = 'paga' THEN
+  IF NEW.status = 'cancelada' AND TG_OP = 'UPDATE' AND OLD.status = 'paga' THEN
     UPDATE comissao_indicacao SET cancelada_em = now()
      WHERE fatura_id = NEW.id AND paga_em IS NULL AND aplicada_em IS NULL AND cancelada_em IS NULL;
     RETURN NEW;
   END IF;
-  IF NEW.status <> 'paga' OR NEW.paga_em IS NULL OR (OLD IS NOT NULL AND OLD.status = 'paga') THEN
+  IF NEW.status <> 'paga' OR NEW.paga_em IS NULL OR (TG_OP = 'UPDATE' AND OLD.status = 'paga') THEN
     RETURN NEW;
   END IF;
   SELECT indicado_por INTO v_codigo FROM conta WHERE id = NEW.conta_id;
   IF v_codigo IS NULL THEN RETURN NEW; END IF;
   SELECT * INTO v_indicador FROM indicador WHERE codigo = v_codigo AND ativo;
-  IF NOT FOUND OR v_indicador.conta_id = NEW.conta_id THEN RETURN NEW; END IF;
+  IF NOT FOUND OR v_indicador.conta_cliente_id = NEW.conta_id THEN RETURN NEW; END IF;
   SELECT min(paga_em) INTO v_primeiro FROM fatura_assinatura
    WHERE conta_id = NEW.conta_id AND status = 'paga' AND paga_em IS NOT NULL;
   v_primeiro := least(coalesce(v_primeiro, NEW.paga_em), NEW.paga_em);
-  IF v_indicador.recebe = 'meses' AND v_indicador.conta_id IS NOT NULL THEN
+  IF v_indicador.recebe = 'meses' AND v_indicador.conta_cliente_id IS NOT NULL THEN
     -- Cliente que troca por meses: 1 mês grátis por indicada, no primeiro pagamento dela.
     IF NOT EXISTS (SELECT 1 FROM comissao_indicacao
-                    WHERE indicador_id = v_indicador.id AND conta_id = NEW.conta_id) THEN
-      INSERT INTO comissao_indicacao (indicador_id, conta_id, fatura_id, tipo, valor, libera_em)
+                    WHERE indicador_id = v_indicador.id AND conta_indicada_id = NEW.conta_id) THEN
+      INSERT INTO comissao_indicacao (indicador_id, conta_indicada_id, fatura_id, tipo, valor, libera_em)
       VALUES (v_indicador.id, NEW.conta_id, NEW.id, 'mes', 0, NEW.paga_em + interval '30 days')
       ON CONFLICT (fatura_id) DO NOTHING;
     END IF;
     RETURN NEW;
   END IF;
   IF NEW.paga_em >= v_primeiro + interval '12 months' THEN RETURN NEW; END IF;
-  INSERT INTO comissao_indicacao (indicador_id, conta_id, fatura_id, tipo, valor, libera_em)
+  INSERT INTO comissao_indicacao (indicador_id, conta_indicada_id, fatura_id, tipo, valor, libera_em)
   VALUES (v_indicador.id, NEW.conta_id, NEW.id, 'pix', round(NEW.valor * 0.2)::int,
           NEW.paga_em + interval '30 days')
   ON CONFLICT (fatura_id) DO NOTHING;
