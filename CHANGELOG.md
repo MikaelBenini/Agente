@@ -21,6 +21,26 @@ produção (`https://seupentefino.com.br`). Detalhes técnicos e o porquê de ca
 - O convite de retorno, a mensagem de aniversário e o aviso do clube passam a vir no Pro (antes, só no Premium).
 - Descer de plano com o WhatsApp conectado não pede mais para desconectar.
 
+### Adicionado (visitantes da página de vendas)
+
+- Na administração, a aba Vendas ganhou o quadro "Visitantes da página de vendas", de hoje ou dos últimos 7 dias:
+  - o funil: entrou, rolou até a metade, viu os planos e foi ao cadastro;
+  - até onde rolaram a página (25%, 50%, 75% e 100%);
+  - em que clicaram (planos, cadastro, WhatsApp, vídeo e chat);
+  - de onde vieram (campanha ou site de origem);
+  - as visitas por dia e quantas são de quem veio pela primeira vez.
+- A medição é nossa e sem dado pessoal: um número anônimo por visita, que some ao fechar a aba. "Primeira vez" só conta para quem aceitou os cookies, e quem liga o "não rastrear" do navegador fica de fora.
+- Os eventos com mais de 90 dias saem na limpeza diária ("Visitas à página de vendas" na Saúde do sistema).
+
+### Adicionado (busca global)
+
+- Novo botão "Procurar" no menu (e na barra de cima, no celular), que também abre com Ctrl+K (⌘K no Mac). Numa caixa só, acha:
+  - uma tela pelo nome ou por uma palavra do dia a dia ("despesa" leva ao Financeiro, "site" à Minha página);
+  - um cliente pelo nome ou pelo telefone;
+  - uma comanda de hoje pelo nome do cliente.
+- As setas escolhem, Enter abre e Esc fecha. Só aparecem as telas que o papel da pessoa abre.
+- Correção: abrir um cliente pela busca com a tela de Clientes já aberta agora abre a ficha dele.
+
 ### Adicionado (modo recepção)
 
 - A tela de Comandas ganhou o botão "Modo recepção", para o monitor do balcão. Em letra grande, mostra a fila do dia:
