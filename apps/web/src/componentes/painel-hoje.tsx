@@ -51,7 +51,11 @@ function Cartao({ rotulo, valor, detalhe }: { rotulo: string; valor: string; det
   );
 }
 
-export function PainelHoje() {
+/**
+ * soAgenda (Plano Agenda): sem dinheiro, meta, caixa nem comanda, que vêm do Básico; ficam os
+ * horários de hoje, as pendências da agenda e os próximos clientes.
+ */
+export function PainelHoje({ soAgenda = false }: { soAgenda?: boolean }) {
   const { unidadeAtiva, unidades, papeis } = useApp();
   const [agora] = useState(() => new Date());
   const hoje = dataLocal(agora);
@@ -68,7 +72,7 @@ export function PainelHoje() {
   const resumo = useResumoDia(unidadeAtiva, hoje, null);
   const resumoMes = useResumoMes(unidadeAtiva, mes, null);
   const metas = useMetas(unidadeAtiva, mes);
-  const caixa = useCaixa(unidadeUnica, hoje);
+  const caixa = useCaixa(soAgenda ? null : unidadeUnica, hoje);
   const conversas = useConversas(unidadeAtiva ?? 'todas', gestao);
   const bot = useBot(gestao);
   const avaliacoes = useAvaliacoes(unidadeAtiva, de, ate);
@@ -83,7 +87,7 @@ export function PainelHoje() {
     .filter((u) => u.conexao?.caiuEm && u.conexao.status !== 'conectado')
     .filter((u) => !unidadeUnica || u.id === unidadeUnica)
     .map((u) => u.nome);
-  const pendencias = pendenciasDoDia({
+  const todas = pendenciasDoDia({
     totais: t,
     caixa: caixa.data
       ? { situacao: caixa.data.situacao, divergencia: caixa.data.divergencia }
@@ -100,6 +104,10 @@ export function PainelHoje() {
           .map((u) => u.nome)
       : [],
   });
+
+  const pendencias = soAgenda
+    ? todas.filter((p) => !/^\/(comandas|caixa|dia|resultados|financeiro)\b/.test(p.rota))
+    : todas;
 
   // Meta de faturamento do mês (somada quando são várias unidades).
   const metasFat = (metas.data ?? []).filter((m) => m.tipo === 'faturamento');
@@ -130,20 +138,24 @@ export function PainelHoje() {
         <h2 id="titulo-hoje" className="text-xl font-semibold">
           Hoje
         </h2>
-        <Link
-          href="/dia"
-          className="flex min-h-11 items-center gap-1 text-sm font-semibold text-tinta-suave underline underline-offset-4 hover:text-tinta"
-        >
-          Ver o dia completo <ArrowRight aria-hidden className="size-4" />
-        </Link>
+        {!soAgenda && (
+          <Link
+            href="/dia"
+            className="flex min-h-11 items-center gap-1 text-sm font-semibold text-tinta-suave underline underline-offset-4 hover:text-tinta"
+          >
+            Ver o dia completo <ArrowRight aria-hidden className="size-4" />
+          </Link>
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-        <Cartao
-          rotulo="Entrou hoje"
-          valor={formatarMoeda(t.faturamento)}
-          detalhe={`Ainda vai entrar ${formatarMoeda(t.valorEmAberto)} · ticket ${formatarMoeda(t.ticketMedio)}`}
-        />
+        {!soAgenda && (
+          <Cartao
+            rotulo="Entrou hoje"
+            valor={formatarMoeda(t.faturamento)}
+            detalhe={`Ainda vai entrar ${formatarMoeda(t.valorEmAberto)} · ticket ${formatarMoeda(t.ticketMedio)}`}
+          />
+        )}
         <Cartao
           rotulo="Atendidos"
           valor={`${formatarNumero(t.fechadas)} de ${formatarNumero(t.marcados)}`}
@@ -154,7 +166,7 @@ export function PainelHoje() {
           valor={formatarFracao(t.ocupacao.fracao, 0)}
           detalhe={`${Math.round(t.ocupacao.agendadoMin / 60)} h marcadas de ${Math.round(t.ocupacao.disponivelMin / 60)} h`}
         />
-        {metasFat.length === 0 && outrasMetas ? (
+        {soAgenda ? null : metasFat.length === 0 && outrasMetas ? (
           <Cartao rotulo="Metas do mês" valor={outrasMetas.valor} detalhe={outrasMetas.detalhe} />
         ) : (
           <Cartao

@@ -1,7 +1,7 @@
 // Situação da assinatura da conta atual (dentro de naConta): base do bloqueio só para consulta.
 import {
   situacaoAssinatura,
-  temRecurso,
+  recursoDaConta,
   type EstadoDaConta,
   type Recurso,
 } from '@pente-fino/shared';
@@ -18,6 +18,8 @@ export async function estadoAssinatura(
       cortesiaAte: true,
       plano: true,
       automacoesContratadas: true,
+      experimentaBasicoAte: true,
+      criadoEm: true,
     },
   });
   const faturas = await tx.faturaAssinatura.findMany({
@@ -31,13 +33,29 @@ export async function estadoAssinatura(
     faturas.map((f) => ({ status: f.status, vencimento: f.vencimento.toISOString().slice(0, 10) })),
     agora,
   );
-  return { ...situacao, plano: conta.plano, automacoes: conta.automacoesContratadas };
+  return {
+    ...situacao,
+    plano: conta.plano,
+    automacoes: conta.automacoesContratadas,
+    experimentaAte: conta.experimentaBasicoAte?.toISOString() ?? null,
+    contaDesde: conta.criadoEm.toISOString(),
+  };
 }
 
 /** A conta atual (dentro de naConta) tem o recurso, com as Automações contratadas à parte? */
 export async function temNaConta(tx: Prisma.TransactionClient, r: Recurso): Promise<boolean> {
   const conta = await tx.conta.findFirst({
-    select: { plano: true, automacoesContratadas: true },
+    select: { plano: true, automacoesContratadas: true, experimentaBasicoAte: true },
   });
-  return !!conta && temRecurso(conta.plano, r, conta.automacoesContratadas);
+  return (
+    !!conta &&
+    recursoDaConta(
+      {
+        plano: conta.plano,
+        automacoes: conta.automacoesContratadas,
+        experimentaAte: conta.experimentaBasicoAte,
+      },
+      r,
+    )
+  );
 }

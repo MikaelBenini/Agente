@@ -7,6 +7,9 @@ import {
   diasDeTrabalho,
   fazAniversario,
   instanteLocal,
+  resumoDaAgenda,
+  ultimoDiaDe,
+  type ResumoDaAgenda,
   proximoAtendimento,
   resumoPorDia,
   situacaoNoDia,
@@ -349,6 +352,37 @@ export class ResumoService {
         caixaAnterior: caixa ? { data: dataTexto(caixa.data), unidade: caixa.unidade.nome } : null,
         comandasParadas,
       };
+    });
+  }
+
+  /**
+   * Plano Agenda: os números da agenda do mês para o Início, no lugar do faturamento (marcados,
+   * atendidos, faltas, cancelados, clientes novos e marcados pelo próprio cliente).
+   */
+  async agenda(mes: string, unidadeId?: string): Promise<ResumoDaAgenda> {
+    if (unidadeId) exigirUnidade(unidadeId, GESTAO);
+    const de = instanteLocal(`${mes}-01`, 0);
+    const ate = instanteLocal(ultimoDiaDe(mes), 24 * 60);
+    return this.banco.daConta(async (tx) => {
+      const filtro = unidadeId ? { unidadeId } : filtroUnidade(GESTAO);
+      const horarios = await tx.agendamento.findMany({
+        where: { ...filtro, inicio: { gte: de, lt: ate } },
+        select: {
+          status: true,
+          inicio: true,
+          origem: true,
+          cliente: { select: { criadoEm: true } },
+        },
+      });
+      return resumoDaAgenda(
+        horarios.map((h) => ({
+          status: h.status,
+          inicio: h.inicio.toISOString(),
+          origem: h.origem,
+          clienteNovo: !!h.cliente && h.cliente.criadoEm >= de,
+        })),
+        new Date(),
+      );
     });
   }
 }

@@ -30,6 +30,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ComandaExemplo } from '@/componentes/comanda-exemplo';
 import { CalculadoraSobra } from '@/componentes/site/calculadora-sobra';
+import { BotaoWhatsappSite } from '@/componentes/site/whatsapp-site';
 import { CartoesPlanos } from '@/componentes/site/cartoes-planos';
 import { BotaoVideo } from '@/componentes/site/botao-video';
 import { Depoimentos } from '@/componentes/site/depoimentos';
@@ -720,7 +721,10 @@ export default function Pagina() {
             {DIAS_TESTE} dias grátis, sem cartão. Configuração guiada e importação da sua planilha:
             dá para atender no mesmo dia.
           </p>
-          <LinkCadastro grande>Criar conta grátis</LinkCadastro>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <LinkCadastro grande>Criar conta grátis</LinkCadastro>
+            <BotaoWhatsappSite />
+          </div>
         </div>
       </section>
     </>

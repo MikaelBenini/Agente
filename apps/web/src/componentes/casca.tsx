@@ -5,6 +5,7 @@ import {
   menuDoPlano,
   menuEmGrupos,
   menuPara,
+  planoDosRecursos,
   type AvisoGeral as AvisoGeralTipo,
   type ItemMenu,
 } from '@pente-fino/shared';
@@ -48,10 +49,11 @@ import { useTema } from '@/lib/tema';
 import { Contexto, nomeDaUnidade, useApp, type ContextoApp } from './contexto-app';
 import { ICONES_MENU } from './icones-menu';
 import { Marca } from './marca';
+import { ConhecerBasico } from './telas/conhecer-basico';
 import { abrirBusca, BuscaGlobal } from './busca-global';
 
 /** Telas que qualquer papel abre, mesmo fora do menu. */
-const LIVRES = ['/app', '/unidade', '/perfil'];
+const LIVRES = ['/app', '/unidade', '/perfil', '/conhecer'];
 
 /** Admin F5: a equipe do Pente Fino está vendo o painel com a permissão do dono, só para ler. */
 function FaixaSuporte({ nome, ate }: { nome: string; ate: string }) {
@@ -86,14 +88,23 @@ export function Casca({ children }: { children: ReactNode }) {
     if (ativa === null) return null;
     const papeis = papeisAtivos(usuario.data, ativa);
     const naConta = usuario.data.papeis.some((p) => p.unidadeId === null);
+    const completo = menuPara(papeis);
+    // Plano Agenda: o que vem do Básico sai do menu; dono e gestor veem com cadeado.
+    const menu = situacao
+      ? menuDoPlano(
+          completo,
+          planoDosRecursos(situacao.plano, situacao.experimentaAte, new Date()),
+          situacao.automacoes,
+        )
+      : completo;
+    const gestao = papeis.some((p) => p === 'dono' || p === 'gestor');
     return {
       usuario: usuario.data,
       unidades: unidades.data,
       unidadeAtiva: ativa,
       papeis,
-      menu: situacao
-        ? menuDoPlano(menuPara(papeis), situacao.plano, situacao.automacoes)
-        : menuPara(papeis),
+      menu,
+      bloqueados: gestao ? completo.filter((i) => !menu.includes(i)) : [],
       podeTrocarUnidade: unidades.data.length + (naConta ? 1 : 0) > 1,
     };
   }, [usuario.data, unidades.data, guardada, situacao]);
@@ -166,7 +177,15 @@ export function Casca({ children }: { children: ReactNode }) {
             id="conteudo"
             className="mx-auto w-full max-w-6xl flex-1 px-[max(1rem,env(safe-area-inset-left))] pt-6 pr-[max(1rem,env(safe-area-inset-right))] pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-8 lg:pb-12"
           >
-            {semAcesso ? <SemAcesso /> : children}
+            {semAcesso ? (
+              contexto.bloqueados?.some((i) => i.id === item.id) ? (
+                <ConhecerBasico tela={item.id} />
+              ) : (
+                <SemAcesso />
+              )
+            ) : (
+              children
+            )}
           </main>
         </div>
         <MenuInferior />
@@ -294,6 +313,33 @@ function MenuLateral() {
             </ul>
           </div>
         ))}
+        {!!c.bloqueados?.length && (
+          <div className="flex flex-col gap-1">
+            <p
+              id="menu-no-basico"
+              className="px-3 text-[0.7rem] font-semibold uppercase tracking-wider text-tinta-fraca"
+            >
+              No plano Básico
+            </p>
+            <ul className="flex flex-col gap-0.5" aria-labelledby="menu-no-basico">
+              {c.bloqueados.map((item) => {
+                const Icone = ICONES_MENU[item.id];
+                return (
+                  <li key={item.id}>
+                    <Link
+                      href={`/conhecer?tela=${item.id}`}
+                      className="flex min-h-11 items-center gap-3 rounded-md px-3 text-[0.95rem] font-medium text-tinta-fraca hover:bg-superficie-2 hover:text-tinta focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-foco"
+                    >
+                      <Icone aria-hidden className="size-5" strokeWidth={1.75} />
+                      {item.rotulo}
+                      <Lock aria-label="no plano Básico" className="ml-auto size-4" />
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
       </nav>
       <BlocoUsuario />
     </aside>

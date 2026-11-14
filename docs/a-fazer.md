@@ -418,8 +418,9 @@ PR, mergeado quando o CI passar (autorização do dono para os próximos):
     - [x] **núcleo** (14/11): plano, preços, limites, Automações à parte, regra do cupom,
       cobrança, troca de plano, o que a API barra, o worker sem bot e o menu sem as telas do
       Básico;
-    - [ ] **revenda conforme a necessidade:** cadeado no menu, telas "Experimentar 7 dias" e os
-      convites (abaixo); o Início do Agenda com os números da agenda;
+    - [x] **revenda conforme a necessidade** (14/11): cadeado no menu, tela do Básico com
+      "Experimentar 7 dias" (uma vez por conta), convites no Início e nos limites, o Início do
+      Agenda com os números da agenda;
     - [ ] **divulgação:** cartão do Agenda em `/planos`, página de vendas e página de busca;
   - **Agenda, R$ 10 por mês** (anual R$ 99 por ano, sai R$ 8,25 por mês), com o mesmo teste
     grátis dos outros planos; 1 unidade e até 2 barbeiros;

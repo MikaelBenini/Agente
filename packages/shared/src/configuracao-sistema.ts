@@ -58,6 +58,24 @@ export const configTesteSchema = z.object({
 });
 export type ConfigTeste = z.infer<typeof configTesteSchema>;
 
+/** WhatsApp comercial do Pente Fino (pedido do dono em 14/11): o padrão até a administração trocar. */
+export const WHATSAPP_COMERCIAL_PADRAO = '5545991540729';
+
+/**
+ * Contato do site de vendas: o WhatsApp comercial (link no rodapé e botão no fim da página).
+ * Só dígitos com o 55; vazio tira o WhatsApp do site.
+ */
+export const contatoSiteSchema = z.object({
+  whatsapp: z
+    .string()
+    .transform((t) => t.replace(/\D/g, ''))
+    .transform((d) => (d.length === 10 || d.length === 11 ? `55${d}` : d))
+    .pipe(
+      z.string().regex(/^(\d{12,13})?$/, { error: 'Informe o WhatsApp com DDD (ou deixe vazio).' }),
+    ),
+});
+export type ContatoSite = z.infer<typeof contatoSiteSchema>;
+
 /** O que a aplicação lê (configuracao_do_sistema()). */
 export interface ConfiguracaoPublica {
   avisoGeral: AvisoGeral | null;
@@ -70,6 +88,8 @@ export interface ConfiguracaoPublica {
   clubeOnline: ConfigClubeOnline;
   /** Nota fiscal das mensalidades do Pente Fino (emitida pelo Asaas). */
   notaFiscal: ConfigNotaFiscal;
+  /** WhatsApp comercial do site de vendas. */
+  contatoSite: ContatoSite;
 }
 
 export function lerConfiguracaoPublica(json: unknown): ConfiguracaoPublica {
@@ -80,6 +100,7 @@ export function lerConfiguracaoPublica(json: unknown): ConfiguracaoPublica {
     precos?: unknown;
     clube_online?: unknown;
     nota_fiscal?: unknown;
+    contato_site?: unknown;
   };
   const aviso = avisoGeralSchema.safeParse(o.aviso_geral);
   const teste = configTesteSchema.safeParse(o.teste ?? {});
@@ -90,6 +111,7 @@ export function lerConfiguracaoPublica(json: unknown): ConfiguracaoPublica {
     tabelasPreco: lerTabelasPreco(o.precos),
     clubeOnline: lerConfigClubeOnline(o.clube_online),
     notaFiscal: lerConfigNotaFiscal(o.nota_fiscal),
+    contatoSite: lerContatoSite(o.contato_site),
   };
 }
 
@@ -296,4 +318,10 @@ export function smtpParaTela(json: unknown): SmtpNaTela | null {
   if (!r.success) return null;
   const { senhaCifrada, ...resto } = r.data;
   return { ...resto, temSenha: !!senhaCifrada };
+}
+
+/** Contato do site; sem nada gravado, vale o WhatsApp padrão do Pente Fino. */
+export function lerContatoSite(json: unknown): ContatoSite {
+  const r = contatoSiteSchema.safeParse(json);
+  return r.success ? r.data : { whatsapp: WHATSAPP_COMERCIAL_PADRAO };
 }

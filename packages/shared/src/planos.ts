@@ -37,7 +37,30 @@ export function verificarLimite(
   if (emUso < limite) return null;
   const nome =
     recurso === 'unidades' ? (limite === 1 ? 'unidade' : 'unidades') : 'profissionais ativos';
-  return `O plano ${NOME_PLANO[plano]} permite ${limite} ${nome}. Para adicionar mais, mude para um plano maior.`;
+  return `O plano ${NOME_PLANO[plano]} permite ${limite} ${nome}. ${conviteDoLimite(plano, recurso)}`;
+}
+
+/**
+ * Revenda conforme a necessidade (Plano Agenda): o convite aponta o plano que resolve, com o que
+ * ele traz a mais, em vez de um "mude para um plano maior" genérico.
+ */
+export function conviteDoLimite(plano: PlanoConta, recurso: keyof LimitesPlano): string {
+  if (recurso === 'unidades')
+    return 'Para a segunda unidade, o plano é o Premium, com o painel da rede e o preço por unidade.';
+  const proximo = PLANOS.find(
+    (p) => LIMITES_PLANO[p].profissionais > LIMITES_PLANO[plano].profissionais,
+  );
+  if (!proximo) return 'Para adicionar mais, fale com o suporte.';
+  const cabem = Number.isFinite(LIMITES_PLANO[proximo].profissionais)
+    ? `cabem até ${LIMITES_PLANO[proximo].profissionais} barbeiros`
+    : 'os barbeiros são ilimitados';
+  const extra =
+    proximo === 'basico'
+      ? ', e você passa a ver quanto sobra: comanda, caixa e comissões'
+      : proximo === 'pro'
+        ? ', com metas, clube e o ranking dos barbeiros'
+        : ', com várias unidades e o lucro de cada uma';
+  return `No ${NOME_PLANO[proximo]} ${cabem}${extra}.`;
 }
 
 // ─── Venda dos planos (docs/documentacao-do-produto.md, seção 7) ──────────
