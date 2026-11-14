@@ -14,6 +14,7 @@ export const ROTAS_DO_APP = [
   'comissoes',
   'configuracao-inicial',
   'configuracoes',
+  'conhecer',
   'conversas',
   'desempenho',
   'dia',
