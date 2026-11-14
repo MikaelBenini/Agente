@@ -452,6 +452,25 @@ PR, mergeado quando o CI passar (autorização do dono para os próximos):
 
 - [ ] **N5** Página "Sobre": perguntar ao dono quem faz o Pente Fino, por que existe e de qual
   cidade, e escrever junto com ele
+- [ ] **Página de vendas nova, seções e conteúdo** (pedido do dono em 14/11, junto com a
+  atualização da página de vendas). Referência de estilo: o blog do próprio dono
+  (`navalhago.app/blog`); aproveitar as ideias e o jeito de escrever, sempre com a identidade
+  do Pente Fino (nome, cores, marca e textos próprios, nada copiado ao pé da letra):
+  - **"Indique e ganhe"**: programa de indicação (quem indica e quem chega ganham; regras a
+    decidir com o dono: desconto, mês grátis ou crédito, e quando vale);
+  - **dores do barbeiro**: "Se você se identifica com qualquer um desses problemas..." com a
+    lista das dores e, ao lado de cada uma, o que o sistema faz para resolver ("feito para o dia
+    a dia da cadeira, não para escritório");
+  - **antes e depois** com o sistema;
+  - **"Tudo que a barbearia precisa"**: o que o sistema oferece, em blocos;
+  - **aba Recursos**: uma página com tudo o que o sistema faz;
+  - **comparativo com todos os sistemas do mercado hoje** (amplia o comparativo atual com os
+    concorrentes, com fontes e data da consulta);
+  - **depoimentos em carrossel**, com aba própria na administração: o dono cola o link do
+    Instagram, o sistema puxa a foto e o nome do perfil, o dono escreve o que a pessoa disse
+    sobre o sistema e escolhe a data; os depoimentos passam em carrossel na página de vendas
+    (conferir o que o Instagram permite puxar sem login; sem isso, o dono sobe a foto);
+  - **rodapé melhor** nas páginas do site;
 - [ ] **Atualizar a página de vendas** (pedido do dono em 12/11, por último): textos e telas da
   página inicial, de `/planos` e do comparativo com tudo o que foi feito (clube no resultado,
   preço livre, despesas fixas, catálogo por unidade, preço por barbeiro, sinal, comissões no

@@ -18,9 +18,13 @@ const EQUIPES = [1, 3, 5] as const;
 
 const dataBr = (iso: string) => iso.split('-').reverse().join('/');
 
+// Os concorrentes são sistemas completos (comanda, caixa, comissão): o Agenda, que é só a
+// agenda, fica fora desta comparação.
+const COMPLETOS = PLANOS.filter((p) => p !== 'agenda');
+
 /** Plano mais barato do Pente Fino que cabe a equipe, com o preço mensal. */
 function penteFinoPara(n: number) {
-  const plano = PLANOS.find((p) => LIMITES_PLANO[p].profissionais >= n) ?? 'premium';
+  const plano = COMPLETOS.find((p) => LIMITES_PLANO[p].profissionais >= n) ?? 'premium';
   return `${formatarMoeda(precoPorMes(plano, 'mensal'))} (${NOME_PLANO[plano]})`;
 }
 
@@ -187,7 +191,7 @@ export function PaginaComparativo({ c }: { c: Concorrente }) {
             linhas={[
               [
                 'Como cobra',
-                `Por plano: ${PLANOS.map((p) => `${NOME_PLANO[p]} ${formatarMoeda(precoPorMes(p, 'mensal'))}`).join(', ')} no mensal, com desconto no anual.`,
+                `Por plano: ${COMPLETOS.map((p) => `${NOME_PLANO[p]} ${formatarMoeda(precoPorMes(p, 'mensal'))}`).join(', ')} no mensal, com desconto no anual.`,
                 c.comoCobra,
               ],
               ...EQUIPES.map((n) => [

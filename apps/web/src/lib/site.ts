@@ -12,15 +12,19 @@ const reais = (centavos: number) => (centavos / 100).toFixed(2);
  * Preços para o Google (briefing do site, B4), da mesma tabela que a página mostra: a faixa vai
  * do menor anual por mês ao maior mensal, e cada plano tem o mensal e o anual por mês.
  */
+// O Agenda entra quando ganhar a apresentação própria no site (entrega de divulgação): o Google
+// não pode ver um preço que a página não mostra.
+const NO_SITE = PLANOS.filter((p) => p !== 'agenda');
+
 export function ofertasJsonLd() {
-  const precos = PLANOS.flatMap((p) => [precoPorMes(p, 'anual'), precoPorMes(p, 'mensal')]);
+  const precos = NO_SITE.flatMap((p) => [precoPorMes(p, 'anual'), precoPorMes(p, 'mensal')]);
   return {
     '@type': 'AggregateOffer',
     priceCurrency: 'BRL',
     lowPrice: reais(Math.min(...precos)),
     highPrice: reais(Math.max(...precos)),
-    offerCount: PLANOS.length,
-    offers: PLANOS.map((p) => ({
+    offerCount: NO_SITE.length,
+    offers: NO_SITE.map((p) => ({
       '@type': 'Offer',
       name: `Plano ${NOME_PLANO[p]}`,
       priceCurrency: 'BRL',
