@@ -33,7 +33,7 @@ import { CalculadoraSobra } from '@/componentes/site/calculadora-sobra';
 import { BotaoWhatsappSite } from '@/componentes/site/whatsapp-site';
 import { CartoesPlanos } from '@/componentes/site/cartoes-planos';
 import { BotaoVideo } from '@/componentes/site/botao-video';
-import { Depoimentos } from '@/componentes/site/depoimentos';
+import { CarrosselDepoimentos } from '@/componentes/site/carrossel-depoimentos';
 import {
   BotaoTesteOferta,
   LinkCadastro,
@@ -679,7 +679,7 @@ export default function Pagina() {
         </div>
       </section>
 
-      <Depoimentos />
+      <CarrosselDepoimentos />
 
       <section aria-labelledby="precos" className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-24">
         <div className="mb-10 flex flex-col items-center gap-3 text-center">
