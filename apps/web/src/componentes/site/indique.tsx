@@ -11,6 +11,7 @@ import {
 } from '@pente-fino/shared';
 import { Botao, Campo } from '@pente-fino/ui';
 import { useQuery } from '@tanstack/react-query';
+import { useSearchParams } from 'next/navigation';
 import { Copy } from 'lucide-react';
 import { useState } from 'react';
 import { api, ErroApi } from '@/lib/api';
@@ -122,6 +123,11 @@ export function CadastroIndicador() {
       </Botao>
     </form>
   );
+}
+
+/** O painel aberto pelo link secreto (?t=). */
+export function PainelPeloLink() {
+  return <PainelDoIndicador token={useSearchParams().get('t') ?? ''} />;
 }
 
 /** O painel de quem indica: indicadas, comissões e o que vem no próximo Pix. */
