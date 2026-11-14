@@ -374,3 +374,15 @@ test('F6: visitante abre o chat, deixa o contato e a dúvida e entra na fila', a
       .getByRole('list', { name: 'Mensagens' }),
   ).toContainText('O teste grátis precisa de cartão?');
 });
+
+test('WhatsApp comercial: link no rodapé e botão no fim da página, com a mensagem pronta', async ({
+  page,
+}) => {
+  await page.goto('/');
+  const rodape = page.getByRole('contentinfo').getByRole('link', { name: 'WhatsApp' });
+  await expect(rodape).toHaveAttribute('href', /^https:\/\/wa\.me\/\d{12,13}\?text=/);
+  await expect(page.getByRole('link', { name: 'Falar no WhatsApp' })).toHaveAttribute(
+    'href',
+    /^https:\/\/wa\.me\/\d{12,13}\?text=Oi/,
+  );
+});

@@ -29,6 +29,8 @@ import {
 import {
   avisoGeralSchema,
   configClubeOnlineSchema,
+  contatoSiteSchema,
+  type ContatoSite,
   configTesteSchema,
   type ConfigClubeOnline,
   FILA_WHATSAPP_SAIDA,
@@ -438,6 +440,17 @@ export class AdminConfigController {
     @IpDaRequisicao() ip: string | null,
   ): Promise<void> {
     await this.gravar('clube_online', d, a, ip);
+  }
+
+  @Put('configuracoes/contato-site')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'WhatsApp comercial do site de vendas (vazio tira do site)' })
+  async contatoSite(
+    @Corpo(contatoSiteSchema) d: ContatoSite,
+    @AdminAtual() a: AdminAutenticado,
+    @IpDaRequisicao() ip: string | null,
+  ): Promise<void> {
+    await this.gravar('contato_site', d, a, ip);
   }
 
   @Get('configuracoes/smtp')

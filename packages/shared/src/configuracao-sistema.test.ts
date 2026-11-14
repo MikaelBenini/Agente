@@ -3,6 +3,9 @@ import {
   avisoGeralSchema,
   avisoVigente,
   contaNoPublico,
+  contatoSiteSchema,
+  lerContatoSite,
+  WHATSAPP_COMERCIAL_PADRAO,
   descreverPublico,
   lerConfiguracaoPublica,
   ipInterno,
@@ -28,6 +31,7 @@ describe('configurações do sistema', () => {
       tabelasPreco: [TABELA_PADRAO],
       clubeOnline: { taxaBp: 100 },
       notaFiscal: NOTA_FISCAL_PADRAO,
+      contatoSite: { whatsapp: WHATSAPP_COMERCIAL_PADRAO },
     });
     expect(lerConfiguracaoPublica({ teste: { dias: 999 } }).teste.dias).toBe(DIAS_TESTE);
   });
@@ -120,5 +124,16 @@ describe('aviso segmentado (admin F8)', () => {
       'plano Pro e Premium · em teste',
     );
     expect(descreverPublico({ contas: ['a', 'b'] })).toBe('2 contas escolhidas');
+  });
+});
+
+describe('contato do site (WhatsApp comercial)', () => {
+  it('sem nada gravado vale o número padrão; com DDD ganha o 55; vazio tira', () => {
+    expect(lerContatoSite(undefined)).toEqual({ whatsapp: WHATSAPP_COMERCIAL_PADRAO });
+    expect(contatoSiteSchema.parse({ whatsapp: '(45) 99154-0729' })).toEqual({
+      whatsapp: '5545991540729',
+    });
+    expect(contatoSiteSchema.parse({ whatsapp: '' })).toEqual({ whatsapp: '' });
+    expect(contatoSiteSchema.safeParse({ whatsapp: '123' }).success).toBe(false);
   });
 });

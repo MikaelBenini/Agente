@@ -17,6 +17,10 @@ produção (`https://seupentefino.com.br`). Detalhes técnicos e o porquê de ca
   - quem paga as Automações vê a conta do Básico.
 - O aviso de limite aponta o plano que resolve: o 3º barbeiro leva ao Básico, e a 2ª unidade, ao Premium.
 
+### Adicionado (WhatsApp comercial no site)
+
+- Na administração, em Configurações, o campo "WhatsApp comercial do site": o número aparece no rodapé das páginas e no botão "Falar no WhatsApp" do fim da página de vendas, com a mensagem pronta. Os cliques contam no quadro "Visitantes da página de vendas". Vazio tira o WhatsApp do site.
+
 ### Adicionado (plano Agenda)
 
 - Plano novo, o **Agenda**: R$ 10 por mês (R$ 99 no ano), com 1 unidade e até 2 barbeiros. Traz a agenda, o link de agendamento, o site da barbearia, o cadastro de clientes e os avisos no WhatsApp da barbearia (confirmação, lembrete e remarcar).

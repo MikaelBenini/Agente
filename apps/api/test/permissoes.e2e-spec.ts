@@ -23,6 +23,7 @@ const PUBLICAS = new Set([
   'GET /publico/agendamento/:slug/cliente', // exige o token do link do bot
   'GET /publico/agendamento/:slug/horarios',
   'GET /publico/clube/:slug',
+  'GET /publico/contato', // WhatsApp comercial do site de vendas
   'GET /publico/cupom/:codigo',
   'GET /publico/horario/:token',
   'GET /publico/horario/:token/horarios',

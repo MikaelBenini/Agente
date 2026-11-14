@@ -2,7 +2,8 @@ import { cacheLife } from 'next/cache';
 import Link from 'next/link';
 import { PAGINAS_BUSCA } from '@/conteudo/paginas-busca';
 import { CALCULADORAS } from './pagina-calculadora';
-import { EMPRESA, linkWhatsappComercial } from '@/lib/contato';
+import { EMPRESA } from '@/lib/contato';
+import { LinkWhatsappRodape } from './whatsapp-site';
 import { EMAIL_CONTATO } from '@/lib/site';
 import { Marca } from '../marca';
 
@@ -96,28 +97,15 @@ async function Ano() {
   return new Date().getFullYear();
 }
 
-/** WhatsApp e redes (briefing do site, C3): só o que o dono preencheu em lib/contato.ts. */
+/** WhatsApp (da administração) e redes (briefing do site, C3, em lib/contato.ts). */
 function Contato() {
-  const whatsapp = linkWhatsappComercial();
   const redes = [
     { rotulo: 'Instagram', href: EMPRESA.instagram },
     { rotulo: 'YouTube', href: EMPRESA.youtube },
   ].filter((r) => r.href);
-  if (!whatsapp && redes.length === 0) return null;
   return (
     <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
-      {whatsapp && (
-        <li>
-          <a
-            href={whatsapp}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex min-h-9 items-center text-tinta underline underline-offset-4"
-          >
-            WhatsApp
-          </a>
-        </li>
-      )}
+      <LinkWhatsappRodape />
       {redes.map((r) => (
         <li key={r.rotulo}>
           <a
