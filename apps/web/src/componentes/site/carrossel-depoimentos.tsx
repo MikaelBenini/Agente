@@ -60,6 +60,7 @@ export function CarrosselDepoimentos() {
         <blockquote className="text-xl leading-relaxed sm:text-2xl">“{d.texto}”</blockquote>
         <figcaption className="flex items-center gap-4">
           {d.foto ? (
+            // eslint-disable-next-line @next/next/no-img-element -- foto da API, já reduzida (240 px)
             <img
               src={d.foto}
               alt=""

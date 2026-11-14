@@ -194,6 +194,7 @@ function ItemDepoimento({ d, onMudou }: { d: DepoimentoNaTela; onMudou: () => Pr
     <li className="flex flex-col gap-2 rounded-lg border border-borda bg-superficie p-4">
       <div className="flex items-start gap-3">
         {d.foto ? (
+          // eslint-disable-next-line @next/next/no-img-element -- foto da API, já reduzida (240 px)
           <img src={d.foto} alt="" className="size-12 rounded-full object-cover" />
         ) : (
           <span
