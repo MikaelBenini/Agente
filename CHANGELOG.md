@@ -7,6 +7,13 @@ produção (`https://seupentefino.com.br`). Detalhes técnicos e o porquê de ca
 
 ## [Não publicado]
 
+### Adicionado (página de vendas nova, parte 1)
+
+- Seção "Se você se identifica com algum desses problemas", logo depois da abertura: seis dores do dia a dia da barbearia, cada uma com o que o Pente Fino faz.
+- Página **Recursos** (`/recursos`), com tudo o que o sistema faz, por assunto, e o selo do plano quando o recurso começa acima do Básico; link no cabeçalho e no rodapé.
+- **Depoimentos em carrossel** na página inicial, cadastrados na administração (aba Vendas): o dono cola o link do Instagram, o sistema tenta puxar o nome e a foto do perfil (ou o dono envia a foto), escreve o que a pessoa disse e escolhe a data; dá para esconder e apagar.
+- Rodapé com Cascavel/PR, o CNPJ e o Instagram @nossopentefino, e os links de Recursos e do comparativo.
+
 ### Melhorado (campos dos formulários)
 
 - CPF e CNPJ com máscara e conferência do dígito na hora, sem esperar o envio: assinatura do Pente Fino, recebimento do clube online e assinatura do clube pelo cliente.

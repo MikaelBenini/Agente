@@ -41,8 +41,7 @@ export function DepoimentosAdmin() {
           Depoimentos da página de vendas
         </h2>
         <p className="text-sm text-tinta-suave">
-          Passam num carrossel na página inicial. Só depoimento real, com autorização de quem
-          falou.
+          Passam num carrossel na página inicial. Só depoimento real, com autorização de quem falou.
         </p>
       </div>
       <NovoDepoimento onSalvo={atualizar} />
@@ -175,7 +174,13 @@ function NovoDepoimento({ onSalvo }: { onSalvo: () => Promise<void> }) {
 
 function ItemDepoimento({ d, onMudou }: { d: DepoimentoNaTela; onMudou: () => Promise<void> }) {
   const [erro, setErro] = useState<string | null>(null);
-  const corpo = { instagram: d.instagram, nome: d.nome, quem: d.quem, texto: d.texto, data: d.data };
+  const corpo = {
+    instagram: d.instagram,
+    nome: d.nome,
+    quem: d.quem,
+    texto: d.texto,
+    data: d.data,
+  };
   async function agir(fn: () => Promise<unknown>) {
     setErro(null);
     try {

@@ -472,19 +472,19 @@ PR, mergeado quando o CI passar (autorização do dono para os próximos):
       cadastrados; a administração paga e marca como pago;
     - entra num lote próprio (cadastro do indicador, link, comissões, painel e a tela da
       administração);
-  - **dores do barbeiro**: "Se você se identifica com qualquer um desses problemas..." com a
+  - [x] **dores do barbeiro** (14/11): "Se você se identifica com qualquer um desses problemas..." com a
     lista das dores e, ao lado de cada uma, o que o sistema faz para resolver ("feito para o dia
     a dia da cadeira, não para escritório");
   - **antes e depois** com o sistema;
   - **"Tudo que a barbearia precisa"**: o que o sistema oferece, em blocos;
-  - **aba Recursos**: uma página com tudo o que o sistema faz;
+  - [x] **aba Recursos** (14/11, `/recursos`): uma página com tudo o que o sistema faz;
   - **comparativo com todos os sistemas do mercado hoje** (amplia o comparativo atual com os
     concorrentes, com fontes e data da consulta);
-  - **depoimentos em carrossel**, com aba própria na administração: o dono cola o link do
+  - [x] **depoimentos em carrossel** (14/11), com aba própria na administração: o dono cola o link do
     Instagram, o sistema puxa a foto e o nome do perfil, o dono escreve o que a pessoa disse
     sobre o sistema e escolhe a data; os depoimentos passam em carrossel na página de vendas
     (conferir o que o Instagram permite puxar sem login; sem isso, o dono sobe a foto);
-  - **rodapé melhor** nas páginas do site;
+  - [x] **rodapé melhor** nas páginas do site (14/11: cidade, CNPJ, Instagram, Recursos);
 - [ ] **Atualizar a página de vendas** (pedido do dono em 12/11, por último): textos e telas da
   página inicial, de `/planos` e do comparativo com tudo o que foi feito (clube no resultado,
   preço livre, despesas fixas, catálogo por unidade, preço por barbeiro, sinal, comissões no

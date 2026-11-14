@@ -402,3 +402,16 @@ test('Plano Agenda no site: faixa em /planos, coluna na tabela e página de busc
   await expect(page.getByRole('heading', { level: 1, name: /Agenda para barbeiro/ })).toBeVisible();
   await expect(page.getByText(/R\$ 10 por mês/).first()).toBeVisible();
 });
+
+test('página de vendas: as dores com a solução e a página Recursos', async ({ page }) => {
+  await page.goto('/');
+  await expect(
+    page.getByRole('heading', { name: 'Se você se identifica com algum desses problemas' }),
+  ).toBeVisible();
+  await expect(page.getByText('Fim de semana na calculadora fechando a comissão.')).toBeVisible();
+  await page.goto('/recursos');
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'Tudo o que a barbearia precisa' }),
+  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'WhatsApp e automações' })).toBeVisible();
+});
