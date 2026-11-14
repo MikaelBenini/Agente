@@ -171,6 +171,14 @@ describe('agendar pela conversa', () => {
       tx.linkHorario.findUnique({ where: { tokenHash: hashTokenHorario(token!) } }),
     );
     expect(link).not.toBeNull();
+    // Pedido do dono em 13/11: quem ainda não tem o aniversário recebe a pergunta.
+    expect(pronto).toContain('Quer receber um parabéns no seu aniversário?');
+    expect(await fala(tel, 'amanhã')).toContain('Mande o dia e o mês, por exemplo 15/03');
+    expect(await fala(tel, '15/03')).toContain('Anotado! 🎉');
+    const cliente = await naMinhaConta((tx) =>
+      tx.cliente.findFirst({ where: { telefone: tel }, select: { aniversario: true } }),
+    );
+    expect(cliente?.aniversario?.toISOString().slice(5, 10)).toBe('03-15');
 
     const ag = await naMinhaConta((tx) =>
       tx.agendamento.findFirst({
