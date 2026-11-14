@@ -71,7 +71,9 @@ import {
   type SitePublico,
   type TipoEndereco,
   automacoesAParte,
+  DIAS_TESTE_INDICADA,
 } from '@pente-fino/shared';
+import { IndicacaoService } from '../indicacao/indicacao.controller.js';
 import type { Request, Response } from 'express';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { z } from 'zod';
@@ -174,6 +176,7 @@ export class PublicoController {
     @Inject(LimiteCadastro) private readonly limiteCadastro: LimiteCadastro,
     @Inject(CONFIGURACAO) private readonly config: Configuracao,
     @Inject(ChatService) private readonly chat: ChatService,
+    @Inject(IndicacaoService) private readonly indicacao: IndicacaoService,
   ) {}
 
   // ─── Cadastro de conta ──────────────────────────────────────────────────
@@ -236,7 +239,10 @@ export class PublicoController {
     // Dias de teste e versão dos termos vêm da administração (com padrão do sistema).
     const { teste } = lerConfiguracaoPublica(await configuracaoDoSistema(this.banco.prisma));
     const desconto = await this.precosServico.cupomValido(d.cupom);
-    const testeAte = new Date(Date.now() + teste.dias * 86_400_000);
+    // Indique e ganhe: quem chega pelo link de indicação ganha 30 dias de teste.
+    const indicadoPor = await this.indicacao.codigoValido(d.indicacao);
+    const dias = indicadoPor ? Math.max(teste.dias, DIAS_TESTE_INDICADA) : teste.dias;
+    const testeAte = new Date(Date.now() + dias * 86_400_000);
     let sessao: Sessao;
     let linkConfirmacao: string | undefined;
     try {
@@ -248,6 +254,7 @@ export class PublicoController {
             plano: d.plano,
             ciclo: d.ciclo,
             automacoesContratadas: d.automacoes && automacoesAParte(d.plano),
+            indicadoPor,
             status: 'teste',
             testeAte,
             precosDesde: new Date(`${dataLocal(new Date())}T00:00:00Z`),

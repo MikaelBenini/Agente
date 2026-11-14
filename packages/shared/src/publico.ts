@@ -14,6 +14,8 @@ export const cadastroContaSchema = z.object({
   ciclo: z.enum(CICLOS).default('mensal'),
   /** Automações à parte (Agenda e Básico), escolhidas na página de planos. */
   automacoes: z.boolean().default(false),
+  /** Indique e ganhe: o código do link de quem indicou (vale 30 dias de teste). */
+  indicacao: z.string().trim().max(20).optional(),
   aceite: z.literal(true, { error: 'É preciso aceitar os termos de uso.' }),
   /** WhatsApp do dono (opcional): para o suporte ajudar na configuração. Vazio = null. */
   whatsapp: z
