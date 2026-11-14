@@ -334,7 +334,7 @@ export function FormularioCadastro() {
             </label>
           ))}
         </div>
-        {automacoesAParte(plano) && (
+        {!!plano && automacoesAParte(plano) && (
           <label className="mt-2 flex cursor-pointer items-start gap-3 rounded-md border border-borda p-3 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-foco">
             <input
               type="checkbox"
