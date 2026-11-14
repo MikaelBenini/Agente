@@ -6,7 +6,7 @@ import type { PrismaClient } from './generated/prisma/client.js';
 export interface LinhaContaPlataforma {
   id: string;
   nome: string;
-  plano: 'basico' | 'pro' | 'premium';
+  plano: 'agenda' | 'basico' | 'pro' | 'premium';
   ciclo: 'mensal' | 'anual';
   status: 'teste' | 'ativa' | 'suspensa' | 'cancelada';
   criado_em: Date;
@@ -114,7 +114,7 @@ export async function guardarAlertasNovos<A extends { tipo: string; chave: strin
 
 export interface LinhaFaturaPlataforma {
   conta_id: string;
-  plano: 'basico' | 'pro' | 'premium';
+  plano: 'agenda' | 'basico' | 'pro' | 'premium';
   ciclo: 'mensal' | 'anual';
   valor: number;
   status: 'aberta' | 'paga' | 'recusada' | 'cancelada';
@@ -146,7 +146,14 @@ export async function mudarPlanoDaConta(
   contaId: string,
   plano: string,
   ciclo: string,
-): Promise<{ plano: string; ciclo: string; asaasAssinaturaId: string | null; unidades: number }> {
+): Promise<{
+  plano: string;
+  ciclo: string;
+  asaasAssinaturaId: string | null;
+  unidades: number;
+  /** As Automações à parte que continuam no plano novo (só no Agenda e no Básico). */
+  automacoes: boolean;
+}> {
   const [r] = await prisma.$queryRaw<{ antes: never }[]>`
     SELECT plataforma_mudar_plano(${contaId}::uuid, ${plano}::plano, ${ciclo}::ciclo_cobranca) AS antes`;
   return r!.antes;

@@ -7,6 +7,20 @@ produção (`https://seupentefino.com.br`). Detalhes técnicos e o porquê de ca
 
 ## [Não publicado]
 
+### Adicionado (plano Agenda)
+
+- Plano novo, o **Agenda**: R$ 10 por mês (R$ 99 no ano), com 1 unidade e até 2 barbeiros. Traz a agenda, o link de agendamento, o site da barbearia, o cadastro de clientes e os avisos no WhatsApp da barbearia (confirmação, lembrete e remarcar).
+- No Agenda, a comanda, o caixa, as despesas, os resultados e as comissões ficam de fora do menu (vêm do Básico em diante). O que for lançado depois de subir de plano aparece normalmente.
+- **Automações**, por mais R$ 10 por mês, no Agenda e no Básico: o bot que responde e marca pela conversa, a lista de espera, a pesquisa depois do atendimento, o convite de retorno e a mensagem de aniversário. Do Pro em diante elas já vêm no plano.
+- Na Assinatura, o dono escolhe o plano e liga ou desliga as Automações. No Agenda, o cupom de desconto só vale com as Automações juntas.
+- A administração cadastra o preço do Agenda e o das Automações nas tabelas de preço.
+
+### Mudado (WhatsApp e Automações nos planos)
+
+- Todo plano conecta o WhatsApp da barbearia para os avisos do agendamento (antes, só do Pro em diante). Sem as Automações, o WhatsApp só manda os avisos: as mensagens dos clientes ficam em Conversas e o bot não responde sozinho.
+- O convite de retorno, a mensagem de aniversário e o aviso do clube passam a vir no Pro (antes, só no Premium).
+- Descer de plano com o WhatsApp conectado não pede mais para desconectar.
+
 ### Adicionado (visitantes da página de vendas)
 
 - Na administração, a aba Vendas ganhou o quadro "Visitantes da página de vendas", de hoje ou dos últimos 7 dias:

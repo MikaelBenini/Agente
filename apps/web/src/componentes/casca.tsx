@@ -2,6 +2,7 @@
 
 import {
   itemDaRota,
+  menuDoPlano,
   menuEmGrupos,
   menuPara,
   type AvisoGeral as AvisoGeralTipo,
@@ -76,6 +77,8 @@ export function Casca({ children }: { children: ReactNode }) {
   const guardada = useUnidadeGuardada();
   const pathname = usePathname();
   const router = useRouter();
+  // Plano Agenda: o menu esconde o que vem do Básico em diante (comanda, caixa, resultados...).
+  const situacao = useSituacaoConta(usuario.isSuccess).data;
 
   const contexto = useMemo<ContextoApp | null>(() => {
     if (!usuario.data || !unidades.data) return null;
@@ -88,10 +91,12 @@ export function Casca({ children }: { children: ReactNode }) {
       unidades: unidades.data,
       unidadeAtiva: ativa,
       papeis,
-      menu: menuPara(papeis),
+      menu: situacao
+        ? menuDoPlano(menuPara(papeis), situacao.plano, situacao.automacoes)
+        : menuPara(papeis),
       podeTrocarUnidade: unidades.data.length + (naConta ? 1 : 0) > 1,
     };
-  }, [usuario.data, unidades.data, guardada]);
+  }, [usuario.data, unidades.data, guardada, situacao]);
 
   const precisaEscolher = !!usuario.data && !!unidades.data && contexto === null;
   useEffect(() => {

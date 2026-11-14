@@ -151,6 +151,7 @@ export function metricasSaas(d: {
   const ltv = churnMedio ? Math.round(arpa / churnMedio) : null;
 
   const porPlano: MetricasSaas['porPlano'] = {
+    agenda: { mrr: 0, contas: 0 },
     basico: { mrr: 0, contas: 0 },
     pro: { mrr: 0, contas: 0 },
     premium: { mrr: 0, contas: 0 },

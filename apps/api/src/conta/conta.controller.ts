@@ -6,6 +6,7 @@ import {
   contaSchema,
   LIMITES_PLANO,
   aplicarDesconto,
+  descontoQueVale,
   dataLocal,
   precoPorMes,
   type AssinarEntrada,
@@ -103,6 +104,7 @@ export class ContaController {
         estado: await estadoAssinatura(tx),
         plano: conta.plano,
         ciclo: conta.ciclo,
+        automacoes: conta.automacoesContratadas,
         testeAte: conta.testeAte?.toISOString() ?? null,
         precoPorMes: aplicarDesconto(
           precoPorMes(
@@ -110,8 +112,9 @@ export class ContaController {
             conta.ciclo,
             Math.max(1, unidades),
             await this.precos.vigente(conta.precosDesde),
+            conta.automacoesContratadas,
           ),
-          conta.descontoBp,
+          descontoQueVale(conta.plano, conta.automacoesContratadas, conta.descontoBp),
         ),
         descontoBp: conta.descontoBp,
         cupom: conta.cupom,
@@ -145,7 +148,7 @@ export class ContaController {
     summary: 'Prévia da troca de plano: valor novo, o que impede e o que deixa de usar',
   })
   previaPlano(@Consulta(trocarPlanoSchema) d: TrocarPlanoEntrada): Promise<PreviaTrocaPlano> {
-    return this.cobranca.previaTroca(d.plano);
+    return this.cobranca.previaTroca(d.plano, d.automacoes);
   }
 
   @Put('plano')
@@ -156,7 +159,7 @@ export class ContaController {
     summary: 'Trocar de plano (subir vale na hora; descer só cabendo no plano novo)',
   })
   trocarPlano(@Corpo(trocarPlanoSchema) d: TrocarPlanoEntrada): Promise<PreviaTrocaPlano> {
-    return this.cobranca.trocarPlano(d.plano);
+    return this.cobranca.trocarPlano(d.plano, d.automacoes);
   }
 
   @Post('assinatura/conferir')

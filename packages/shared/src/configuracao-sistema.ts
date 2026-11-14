@@ -2,7 +2,15 @@
 // o que não valer vira o padrão (o sistema nunca para por uma configuração quebrada).
 import { z } from 'zod';
 import { lerModelosEmail, type ChaveModeloEmail, type TextoModeloEmail } from './modelos-email.js';
-import { DIAS_TESTE, lerTabelasPreco, VERSAO_TERMOS, type TabelaPrecosPlanos } from './planos.js';
+import {
+  DIAS_TESTE,
+  lerTabelasPreco,
+  NOME_PLANO,
+  PLANOS,
+  VERSAO_TERMOS,
+  type PlanoConta,
+  type TabelaPrecosPlanos,
+} from './planos.js';
 import { lerConfigClubeOnline, type ConfigClubeOnline } from './clube-online.js';
 import {
   lerConfigNotaFiscal,
@@ -16,10 +24,7 @@ import type { ExecucaoLimpezaNaTela } from './limpeza.js';
  * a conta precisa caber em todas (ex.: Pro e Premium em teste).
  */
 export const publicoAvisoSchema = z.object({
-  planos: z
-    .array(z.enum(['basico', 'pro', 'premium']))
-    .max(3)
-    .optional(),
+  planos: z.array(z.enum(PLANOS)).max(PLANOS.length).optional(),
   /** "teste" = em teste; "pagante" = assinatura ativa. */
   situacoes: z
     .array(z.enum(['teste', 'pagante']))
@@ -91,7 +96,7 @@ export function lerConfiguracaoPublica(json: unknown): ConfiguracaoPublica {
 /** Admin F8: a conta faz parte do público do aviso? */
 export function contaNoPublico(
   publico: PublicoAviso | undefined,
-  conta: { id: string; plano: 'basico' | 'pro' | 'premium'; status: string },
+  conta: { id: string; plano: PlanoConta; status: string },
 ): boolean {
   if (!publico) return true;
   if (publico.contas?.length && !publico.contas.includes(conta.id)) return false;
@@ -108,13 +113,12 @@ export function contaNoPublico(
 export function descreverPublico(publico: PublicoAviso | undefined): string {
   if (!publico) return 'Todas as barbearias';
   const partes: string[] = [];
-  const nome = { basico: 'Básico', pro: 'Pro', premium: 'Premium' } as const;
   if (publico.contas?.length)
     partes.push(
       `${publico.contas.length} ${publico.contas.length === 1 ? 'conta escolhida' : 'contas escolhidas'}`,
     );
   if (publico.planos?.length)
-    partes.push(`plano ${publico.planos.map((p) => nome[p]).join(' e ')}`);
+    partes.push(`plano ${publico.planos.map((p) => NOME_PLANO[p]).join(' e ')}`);
   if (publico.situacoes?.length)
     partes.push(
       publico.situacoes.map((s) => (s === 'teste' ? 'em teste' : 'pagantes')).join(' e '),

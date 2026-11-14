@@ -1,6 +1,7 @@
 // Lista de espera (Etapa 14): quando um horário vaga, oferece para quem cabe nele, na ordem de
 // chegada (até OFERTAS_POR_VAGA ao mesmo tempo); o primeiro "1" leva e os outros recebem "já foi
 // preenchido". Fonte única para o worker (oferta e resposta) e a API (balcão).
+import { temNaConta } from './assinatura.js';
 import {
   dataLocal,
   OFERTAS_POR_VAGA,
@@ -78,6 +79,8 @@ export async function oferecerVaga(
     if (inicio.getTime() < agora.getTime() + regras.antecedenciaMin * 60_000) return null;
     const conexao = await tx.botConexao.findUnique({ where: { unidadeId: vaga.unidadeId } });
     if (conexao?.status !== 'conectado') return null;
+    // Agenda e Básico: a lista de espera vem com as Automações.
+    if (!(await temNaConta(tx, 'listaEspera'))) return null;
     const dia = dataLocal(inicio);
     const minuto = minutoLocal(inicio);
 

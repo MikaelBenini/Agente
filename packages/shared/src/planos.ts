@@ -3,7 +3,9 @@ import { dataLocal } from './datas.js';
 
 // Limites dos planos (CLAUDE.md e docs/, seção 7). A API aplica; a tela explica.
 
-export const PLANOS = ['basico', 'pro', 'premium'] as const;
+// Agenda (pedido do dono em 13/11): o plano de entrada, só a agenda, o link, o site e os avisos
+// pelo WhatsApp; comanda, caixa, financeiro, comissões, resultados e clube ficam nos de cima.
+export const PLANOS = ['agenda', 'basico', 'pro', 'premium'] as const;
 export type PlanoConta = (typeof PLANOS)[number];
 
 export interface LimitesPlano {
@@ -12,12 +14,14 @@ export interface LimitesPlano {
 }
 
 export const LIMITES_PLANO: Readonly<Record<PlanoConta, LimitesPlano>> = {
+  agenda: { unidades: 1, profissionais: 2 },
   basico: { unidades: 1, profissionais: 3 },
   pro: { unidades: 1, profissionais: 10 },
   premium: { unidades: Number.POSITIVE_INFINITY, profissionais: Number.POSITIVE_INFINITY },
 };
 
 export const NOME_PLANO: Readonly<Record<PlanoConta, string>> = {
+  agenda: 'Agenda',
   basico: 'Básico',
   pro: 'Pro',
   premium: 'Premium',
@@ -87,6 +91,8 @@ export interface PrecoPlano {
 }
 
 export const PRECOS_PLANO: Readonly<Record<PlanoConta, PrecoPlano>> = {
+  // Anual: R$ 99 por ano (R$ 8,25 por mês).
+  agenda: { mensal: 1000, anualPorMes: 825 },
   basico: { mensal: 7990, anualPorMes: 6690 },
   pro: { mensal: 14990, anualPorMes: 12490 },
   premium: { mensal: 24990, anualPorMes: 20790 },
@@ -95,6 +101,25 @@ export const PRECOS_PLANO: Readonly<Record<PlanoConta, PrecoPlano>> = {
 /** Unidade além da primeira, só no Premium. */
 export const PRECO_UNIDADE_EXTRA: PrecoPlano = { mensal: 9990, anualPorMes: 8290 };
 
+/**
+ * Automações (decisão do dono em 14/11): no Agenda e no Básico são contratadas à parte, por
+ * R$ 10 a mais por mês; do Pro em diante já vêm incluídas. Trazem o bot que responde e marca pela
+ * conversa, a lista de espera, a pesquisa depois do atendimento, o retorno de quem sumiu e o
+ * aniversário. Assim ninguém perde nada ao subir de plano.
+ */
+export const PRECO_AUTOMACOES: PrecoPlano = { mensal: 1000, anualPorMes: 825 };
+export const PLANOS_COM_AUTOMACOES_A_PARTE: readonly PlanoConta[] = ['agenda', 'basico'];
+export const automacoesAParte = (plano: PlanoConta) =>
+  PLANOS_COM_AUTOMACOES_A_PARTE.includes(plano);
+
+/**
+ * Cupom no Agenda (decisão do dono em 13/11): só vale com as Automações juntas. No Agenda
+ * sozinho (R$ 10), 10% a 30% de desconto deixaria o plano barato demais.
+ */
+export function descontoQueVale(plano: PlanoConta, automacoes: boolean, descontoBp = 0): number {
+  return plano === 'agenda' && !automacoes ? 0 : descontoBp;
+}
+
 // ─── Tabelas de preço com vigência (Etapa 15.1) ───────────────────────────
 
 /** Uma tabela de preços que vale a partir de uma data (a administração cadastra novas). */
@@ -102,6 +127,7 @@ export interface TabelaPrecosPlanos {
   desde: string;
   planos: Record<PlanoConta, PrecoPlano>;
   unidadeExtra: PrecoPlano;
+  automacoes: PrecoPlano;
 }
 
 /** A tabela do lançamento: vale para quem assinou antes de qualquer outra. */
@@ -109,6 +135,7 @@ export const TABELA_PADRAO: TabelaPrecosPlanos = {
   desde: '2026-01-01',
   planos: { ...PRECOS_PLANO },
   unidadeExtra: { ...PRECO_UNIDADE_EXTRA },
+  automacoes: { ...PRECO_AUTOMACOES },
 };
 
 const precoPlanoSchema = z.object({
@@ -117,8 +144,15 @@ const precoPlanoSchema = z.object({
 });
 export const tabelaPrecosPlanosSchema = z.object({
   desde: z.iso.date({ error: 'Data inválida.' }),
-  planos: z.object({ basico: precoPlanoSchema, pro: precoPlanoSchema, premium: precoPlanoSchema }),
+  planos: z.object({
+    // Tabelas gravadas antes do Agenda não têm o plano: vale o preço de lançamento dele.
+    agenda: precoPlanoSchema.default(PRECOS_PLANO.agenda),
+    basico: precoPlanoSchema,
+    pro: precoPlanoSchema,
+    premium: precoPlanoSchema,
+  }),
   unidadeExtra: precoPlanoSchema,
+  automacoes: precoPlanoSchema.default(PRECO_AUTOMACOES),
 });
 
 /** Tabelas guardadas, em ordem de vigência, sempre com a do lançamento como base. */
@@ -142,16 +176,21 @@ export function tabelaVigente(
   return [...tabelas].reverse().find((t) => t.desde <= dia) ?? TABELA_PADRAO;
 }
 
-/** Quanto a rede paga por mês no ciclo escolhido (Premium cobra a partir da 2ª unidade). */
+/**
+ * Quanto a rede paga por mês no ciclo escolhido (Premium cobra a partir da 2ª unidade; Agenda e
+ * Básico somam as Automações quando contratadas).
+ */
 export function precoPorMes(
   plano: PlanoConta,
   ciclo: Ciclo,
   unidades = 1,
   tabela: TabelaPrecosPlanos = TABELA_PADRAO,
+  automacoes = false,
 ): number {
   const chave = ciclo === 'mensal' ? 'mensal' : 'anualPorMes';
   const extras = plano === 'premium' ? Math.max(0, unidades - 1) : 0;
-  return tabela.planos[plano][chave] + extras * tabela.unidadeExtra[chave];
+  const adicional = automacoes && automacoesAParte(plano) ? tabela.automacoes[chave] : 0;
+  return tabela.planos[plano][chave] + extras * tabela.unidadeExtra[chave] + adicional;
 }
 
 /** Total cobrado no anual e quanto se economiza contra 12 mensalidades. */
@@ -191,6 +230,10 @@ export function textoEconomiaAnual(tabela: TabelaPrecosPlanos = TABELA_PADRAO): 
 export const LUCRO_POR_SERVICO_NO_PRO = false;
 
 export const RECURSOS = {
+  operacao: {
+    nome: 'Comanda, caixa do dia, despesas e resultados do mês',
+    desde: 'basico',
+  },
   comissoes: { nome: 'Comissão automática por item, com extrato do barbeiro', desde: 'basico' },
   metas: { nome: 'Metas por unidade e serviço, com ritmo e projeção', desde: 'pro' },
   clube: { nome: 'Clube da barbearia: assinatura, combos e convênios', desde: 'pro' },
@@ -206,19 +249,31 @@ export const RECURSOS = {
   },
   automacoes: {
     nome: 'Automações do bot: retorno, aniversário e aviso do clube',
-    desde: 'premium',
+    desde: 'pro',
   },
 } as const satisfies Record<string, { nome: string; desde: PlanoConta }>;
 export type Recurso = keyof typeof RECURSOS;
 
-const ORDEM: Record<PlanoConta, number> = { basico: 0, pro: 1, premium: 2 };
+const ORDEM: Record<PlanoConta, number> = { agenda: 0, basico: 1, pro: 2, premium: 3 };
 
-export const temRecurso = (plano: PlanoConta, r: Recurso) =>
-  ORDEM[plano] >= ORDEM[RECURSOS[r].desde];
+/** O que as Automações contratadas à parte destravam no Agenda e no Básico. */
+export const RECURSOS_DAS_AUTOMACOES: readonly Recurso[] = [
+  'bot',
+  'listaEspera',
+  'avaliacoes',
+  'automacoes',
+];
+
+/** O plano (com as Automações à parte, se contratadas) traz o recurso? */
+export const temRecurso = (plano: PlanoConta, r: Recurso, automacoes = false) =>
+  ORDEM[plano] >= ORDEM[RECURSOS[r].desde] ||
+  (automacoes && automacoesAParte(plano) && RECURSOS_DAS_AUTOMACOES.includes(r));
 
 /** Frase do bloqueio (API) e do convite (tela). */
 export function textoRecursoBloqueado(r: Recurso, plano: PlanoConta): string {
   const { nome, desde } = RECURSOS[r];
+  if (automacoesAParte(plano) && RECURSOS_DAS_AUTOMACOES.includes(r))
+    return `${nome}: vem com as Automações (mais R$ 10 por mês) ou a partir do plano Pro. Seu plano é o ${NOME_PLANO[plano]}.`;
   return `${nome}: faz parte do plano ${NOME_PLANO[desde]}. Seu plano é o ${NOME_PLANO[plano]}; mude de plano para usar.`;
 }
 
@@ -232,8 +287,8 @@ export interface RecursoPlano {
   recurso?: Recurso;
 }
 
-const doRecurso = (recurso: Recurso): RecursoPlano => ({
-  nome: RECURSOS[recurso].nome,
+const doRecurso = (recurso: Recurso, nome?: string): RecursoPlano => ({
+  nome: nome ?? RECURSOS[recurso].nome,
   desde: RECURSOS[recurso].desde,
   disponivel: true,
   recurso,
@@ -243,14 +298,21 @@ const doRecurso = (recurso: Recurso): RecursoPlano => ({
 export const RECURSOS_PLANO: readonly RecursoPlano[] = [
   {
     nome: 'Agenda por profissional e link de agendamento online',
-    desde: 'basico',
+    desde: 'agenda',
     disponivel: true,
   },
-  { nome: 'Comanda automática: agendou, a comanda já existe', desde: 'basico', disponivel: true },
+  { nome: 'Site da barbearia, com o seu endereço', desde: 'agenda', disponivel: true },
+  {
+    nome: 'Avisos no WhatsApp da barbearia: confirmação, lembrete e remarcar',
+    desde: 'agenda',
+    disponivel: true,
+  },
+  { nome: 'Cadastro de clientes com histórico', desde: 'agenda', disponivel: true },
+  doRecurso('operacao', 'Comanda automática: agendou, a comanda já existe'),
   { nome: 'Caixa do dia com divergência', desde: 'basico', disponivel: true },
   { nome: 'Despesas por grupo e % sobre o faturamento', desde: 'basico', disponivel: true },
   { nome: 'Indicadores: faturamento, clientes, ticket, extras', desde: 'basico', disponivel: true },
-  { nome: 'App do barbeiro no celular, funciona sem internet', desde: 'basico', disponivel: true },
+  { nome: 'App do barbeiro no celular, funciona sem internet', desde: 'agenda', disponivel: true },
   { nome: 'Comanda impressa em PDF com QR code', desde: 'basico', disponivel: true },
   { nome: 'Importação da sua planilha', desde: 'basico', disponivel: true },
   doRecurso('comissoes'),
@@ -303,8 +365,8 @@ export interface PreviaTrocaPlano {
 const plural = (n: number, um: string, varios: string) => `${n} ${n === 1 ? um : varios}`;
 
 /**
- * Prévia da troca: subir vale na hora; descer só se a conta cabe no plano novo (unidades,
- * profissionais ativos e, no Básico, WhatsApp desconectado) e mostra o que deixa de usar.
+ * Prévia da troca: subir vale na hora; descer só se a conta cabe no plano novo (unidades e
+ * profissionais ativos) e mostra o que deixa de usar.
  */
 export function conferirTrocaDePlano(d: {
   de: PlanoConta;
@@ -314,10 +376,15 @@ export function conferirTrocaDePlano(d: {
   /** Tabela que a conta contratou (valor de hoje) e a do dia (valor novo: troca é contrato novo). */
   tabelaAtual?: TabelaPrecosPlanos;
   tabelaNova?: TabelaPrecosPlanos;
-  /** Desconto do cupom da conta (vale também no plano novo). */
+  /** Desconto do cupom da conta (vale também no plano novo, com a regra do Agenda). */
   descontoBp?: number;
+  /** Automações à parte: as de hoje e as do plano novo (do Pro em diante já vêm incluídas). */
+  automacoes?: boolean;
+  automacoesNovo?: boolean;
 }): PreviaTrocaPlano {
   const { de, para, uso } = d;
+  const autoDe = d.automacoes ?? false;
+  const autoPara = (d.automacoesNovo ?? autoDe) && automacoesAParte(para);
   const limite = LIMITES_PLANO[para];
   const bloqueios: string[] = [];
   if (uso.unidades > limite.unidades)
@@ -328,12 +395,10 @@ export function conferirTrocaDePlano(d: {
     bloqueios.push(
       `O plano ${NOME_PLANO[para]} vai até ${limite.profissionais} profissionais ativos; a conta tem ${uso.profissionais}. Registre a saída de quem não atende mais em Equipe.`,
     );
-  if (!temRecurso(para, 'bot') && uso.whatsappConectado)
-    bloqueios.push(
-      `O bot do WhatsApp não faz parte do plano ${NOME_PLANO[para]}. Desconecte o WhatsApp em Bot → Conexão antes de mudar.`,
-    );
+  // O WhatsApp conectado continua em todo plano (avisos do agendamento); sem o bot, ele só
+  // deixa de responder sozinho.
   const perdas = (Object.keys(RECURSOS) as Recurso[])
-    .filter((r) => temRecurso(de, r) && !temRecurso(para, r))
+    .filter((r) => temRecurso(de, r, autoDe) && !temRecurso(para, r, autoPara))
     .map((r) => {
       const nome = RECURSOS[r].nome;
       if (r === 'clube' && uso.adesoesAtivas > 0)
@@ -345,14 +410,14 @@ export function conferirTrocaDePlano(d: {
   return {
     de,
     para,
-    sobe: ORDEM[para] > ORDEM[de],
+    sobe: ORDEM[para] > ORDEM[de] || (para === de && autoPara && !autoDe),
     valorAtual: aplicarDesconto(
-      precoPorMes(de, d.ciclo, uso.unidades, d.tabelaAtual),
-      d.descontoBp,
+      precoPorMes(de, d.ciclo, uso.unidades, d.tabelaAtual, autoDe),
+      descontoQueVale(de, autoDe, d.descontoBp),
     ),
     valorNovo: aplicarDesconto(
-      precoPorMes(para, d.ciclo, uso.unidades, d.tabelaNova),
-      d.descontoBp,
+      precoPorMes(para, d.ciclo, uso.unidades, d.tabelaNova, autoPara),
+      descontoQueVale(para, autoPara, d.descontoBp),
     ),
     bloqueios,
     perdas,
@@ -361,6 +426,10 @@ export function conferirTrocaDePlano(d: {
 
 export const trocarPlanoSchema = z.object({
   plano: z.enum(PLANOS, { error: 'Escolha o plano.' }),
+  /** Automações à parte (Agenda e Básico); ignorado do Pro em diante. */
+  automacoes: z
+    .union([z.boolean(), z.enum(['true', 'false']).transform((v) => v === 'true')])
+    .optional(),
 });
 export type TrocarPlanoEntrada = z.infer<typeof trocarPlanoSchema>;
 

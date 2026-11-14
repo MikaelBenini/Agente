@@ -173,6 +173,9 @@ export class BotController {
     return this.servico.conexao(unidadeId);
   }
 
+  // O WhatsApp vale em todo plano (decisão do dono em 14/11): os avisos do agendamento saem por
+  // ele. Sem as Automações, só o bot deixa de responder sozinho.
+  @LivreDoPlano()
   @Post('conexao/:unidadeId')
   @UseGuards(EmailConfirmadoGuard)
   @Papeis(...GESTAO)

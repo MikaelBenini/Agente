@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   aplicarDesconto,
   avaliarCupom,
+  descontoQueVale,
   cupomSchema,
   lerCupons,
   lerTabelasPreco,
@@ -18,6 +19,7 @@ import {
   resumoAnual,
   verificarLimite,
 } from './planos.js';
+import { valorDaCobranca } from './assinatura.js';
 
 describe('limites do plano', () => {
   it('básico: 1 unidade e 3 profissionais', () => {
@@ -128,19 +130,29 @@ describe('troca de plano', () => {
     });
   });
 
-  it('descer para o Básico: limites e WhatsApp bloqueiam; o que se perde aparece', () => {
+  it('descer para o Básico: os limites bloqueiam (o WhatsApp não); o que se perde aparece', () => {
     const p = conferirTrocaDePlano({ de: 'pro', para: 'basico', ciclo: 'anual', uso });
     expect(p.sobe).toBe(false);
     expect(p.valorNovo).toBe(6690);
     expect(p.bloqueios).toEqual([
       'O plano Básico vai até 3 profissionais ativos; a conta tem 4. Registre a saída de quem não atende mais em Equipe.',
-      'O bot do WhatsApp não faz parte do plano Básico. Desconecte o WhatsApp em Bot → Conexão antes de mudar.',
     ]);
     expect(p.perdas).toContain(
       'Clube da barbearia: assinatura, combos e convênios (12 assinantes continuam cadastrados, sem novas adesões nem baixas)',
     );
-    expect(p.perdas).toHaveLength(7);
+    expect(p.perdas).toHaveLength(8);
     expect(p.perdas.join(' ')).not.toContain('Comissão automática');
+    // Com as Automações à parte no Básico, o bot e o resto delas continuam.
+    const comAutomacoes = conferirTrocaDePlano({
+      de: 'pro',
+      para: 'basico',
+      ciclo: 'mensal',
+      uso,
+      automacoesNovo: true,
+    });
+    expect(comAutomacoes.valorNovo).toBe(7990 + 1000);
+    expect(comAutomacoes.perdas.join(' ')).not.toMatch(/Bot de WhatsApp|Lista de espera/);
+    expect(comAutomacoes.perdas).toHaveLength(4);
   });
 
   it('descer do Premium para o Pro com duas unidades: bloqueia', () => {
@@ -154,7 +166,6 @@ describe('troca de plano', () => {
     expect(p.perdas).toEqual([
       'Várias unidades e painel da rede',
       'Lucro real e margem por serviço e produto',
-      'Automações do bot: retorno, aniversário e aviso do clube',
     ]);
   });
 });
@@ -263,5 +274,74 @@ describe('briefing do site: oferta, economia anual e lucro por plano', () => {
   it('lucro por serviço segue a constante do plano (padrão: só no Premium)', async () => {
     const { LUCRO_POR_SERVICO_NO_PRO } = await import('./planos.js');
     expect(RECURSOS.lucroReal.desde).toBe(LUCRO_POR_SERVICO_NO_PRO ? 'pro' : 'premium');
+  });
+});
+
+describe('plano Agenda', () => {
+  it('R$ 10 por mês (R$ 99 no ano), 1 unidade e até 2 barbeiros', () => {
+    expect(precoPorMes('agenda', 'mensal')).toBe(1000);
+    expect(precoPorMes('agenda', 'anual') * 12).toBe(9900);
+    expect(verificarLimite('agenda', 'profissionais', 2)).toMatch(/Agenda permite 2/);
+    expect(verificarLimite('agenda', 'profissionais', 1)).toBeNull();
+  });
+
+  it('as Automações somam R$ 10 no Agenda e no Básico; do Pro em diante já vêm', () => {
+    expect(precoPorMes('agenda', 'mensal', 1, undefined, true)).toBe(2000);
+    expect(precoPorMes('basico', 'mensal', 1, undefined, true)).toBe(8990);
+    expect(precoPorMes('pro', 'mensal', 1, undefined, true)).toBe(14990);
+    expect(temRecurso('agenda', 'bot')).toBe(false);
+    expect(temRecurso('agenda', 'bot', true)).toBe(true);
+    expect(temRecurso('basico', 'automacoes', true)).toBe(true);
+    expect(temRecurso('agenda', 'operacao', true)).toBe(false);
+    expect(temRecurso('agenda', 'clube', true)).toBe(false);
+    expect(temRecurso('pro', 'automacoes')).toBe(true);
+    expect(textoRecursoBloqueado('bot', 'agenda')).toMatch(/vem com as Automações/);
+  });
+
+  it('cupom no Agenda só com as Automações juntas', () => {
+    expect(descontoQueVale('agenda', false, 3000)).toBe(0);
+    expect(descontoQueVale('agenda', true, 3000)).toBe(3000);
+    expect(descontoQueVale('basico', false, 3000)).toBe(3000);
+    expect(valorDaCobranca('agenda', 'mensal', 1, undefined, 3000)).toBe(1000);
+    expect(valorDaCobranca('agenda', 'mensal', 1, undefined, 3000, true)).toBe(1400);
+  });
+
+  it('subir do Agenda: nada se perde; ligar as Automações conta como subir', () => {
+    const uso = {
+      unidades: 1,
+      profissionais: 2,
+      whatsappConectado: true,
+      adesoesAtivas: 0,
+      esperaAguardando: 0,
+    };
+    const p = conferirTrocaDePlano({ de: 'agenda', para: 'basico', ciclo: 'mensal', uso });
+    expect(p.sobe).toBe(true);
+    expect(p.bloqueios).toEqual([]);
+    expect(p.perdas).toEqual([]);
+    const ligar = conferirTrocaDePlano({
+      de: 'agenda',
+      para: 'agenda',
+      ciclo: 'mensal',
+      uso,
+      automacoesNovo: true,
+    });
+    expect(ligar.sobe).toBe(true);
+    expect(ligar.valorNovo).toBe(2000);
+  });
+
+  it('tabela antiga sem o Agenda usa o preço de lançamento dele', () => {
+    const [, nova] = lerTabelasPreco([
+      {
+        desde: '2027-01-01',
+        planos: {
+          basico: { mensal: 8990, anualPorMes: 7490 },
+          pro: { mensal: 15990, anualPorMes: 13290 },
+          premium: { mensal: 26990, anualPorMes: 22490 },
+        },
+        unidadeExtra: { mensal: 10990, anualPorMes: 9190 },
+      },
+    ]);
+    expect(nova!.planos.agenda).toEqual({ mensal: 1000, anualPorMes: 825 });
+    expect(nova!.automacoes).toEqual({ mensal: 1000, anualPorMes: 825 });
   });
 });

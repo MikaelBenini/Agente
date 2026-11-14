@@ -6,6 +6,9 @@ const LIMITES = [
   { nome: 'Profissionais', valores: ['Até 3', 'Até 10', 'Ilimitados'] },
 ] as const;
 
+// O Agenda ganha a coluna quando tiver a apresentação própria no site (entrega de divulgação).
+const NA_TABELA = PLANOS.filter((p) => p !== 'agenda');
+
 /** Tabela de recursos por plano. O que ainda está em construção aparece como "em breve". */
 export function ComparativoPlanos() {
   return (
@@ -22,7 +25,7 @@ export function ComparativoPlanos() {
             <th scope="col" className="p-3 font-semibold sm:p-4">
               Recurso
             </th>
-            {PLANOS.map((p) => (
+            {NA_TABELA.map((p) => (
               <th
                 key={p}
                 scope="col"
@@ -40,7 +43,7 @@ export function ComparativoPlanos() {
                 {l.nome}
               </th>
               {l.valores.map((v, i) => (
-                <td key={PLANOS[i]} className="p-3 text-center tabular-nums sm:p-4">
+                <td key={NA_TABELA[i]} className="p-3 text-center tabular-nums sm:p-4">
                   {v}
                 </td>
               ))}
@@ -56,7 +59,7 @@ export function ComparativoPlanos() {
                   </span>
                 )}
               </th>
-              {PLANOS.map((p) => (
+              {NA_TABELA.map((p) => (
                 <td key={p} className="p-3 text-center sm:p-4">
                   {incluiRecurso(p, r) ? (
                     <Check

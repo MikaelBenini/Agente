@@ -53,7 +53,8 @@ const textos = async (ids: string[]) =>
 beforeAll(async () => {
   prisma = criarPrisma();
   await naMinhaConta(async (tx) => {
-    await tx.conta.create({ data: { id: conta, nome: 'Barbearia Navalha' } });
+    // Pro: o bot responde (no Agenda e no Básico, só com as Automações).
+    await tx.conta.create({ data: { id: conta, nome: 'Barbearia Navalha', plano: 'pro' } });
     const u = await tx.unidade.create({ data: { nome: 'Barbearia Centro', endereco: 'Rua A, 1' } });
     unidadeId = u.id;
     instancia = instanciaDaUnidade(u.id);

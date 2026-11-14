@@ -20,12 +20,19 @@ import { useTabelaPrecos } from '@/lib/consultas';
 import { LinkCadastro } from './oferta-lancamento';
 
 const CHAMADA: Record<PlanoConta, string> = {
+  agenda: 'Só a agenda, o link e o site, para começar.',
   basico: 'Para quem trabalha sozinho ou com um ou dois parceiros.',
   pro: 'Para a barbearia com equipe, meta e clube.',
   premium: 'Para a rede: várias unidades e o lucro de cada uma.',
 };
 
 const DESTAQUES: Record<PlanoConta, readonly string[]> = {
+  agenda: [
+    'Agenda online e link de agendamento',
+    'Site da barbearia',
+    'Avisos no WhatsApp da barbearia',
+    'Automações por mais R$ 10 por mês',
+  ],
   basico: [
     'Agenda online, comanda e caixa',
     'Comissão automática e extrato do barbeiro',
@@ -47,6 +54,7 @@ const DESTAQUES: Record<PlanoConta, readonly string[]> = {
 };
 
 const COR: Record<PlanoConta, string> = {
+  agenda: 'bg-plano-basico',
   basico: 'bg-plano-basico',
   pro: 'bg-plano-pro',
   premium: 'bg-plano-premium',
@@ -57,6 +65,9 @@ function limiteTexto(p: PlanoConta) {
   if (p === 'premium') return 'Unidades e profissionais ilimitados';
   return `${l.unidades} unidade · até ${l.profissionais} profissionais`;
 }
+
+/** Os planos dos cartões (o Agenda ganha a apresentação própria na divulgação). */
+const NOS_CARTOES = PLANOS.filter((p) => p !== 'agenda');
 
 /** Os três planos com a escolha mensal/anual e a conta das unidades do Premium. */
 export function CartoesPlanos({ compacto = false }: { compacto?: boolean }) {
@@ -97,7 +108,7 @@ export function CartoesPlanos({ compacto = false }: { compacto?: boolean }) {
       </p>
 
       <ul className="animar-escalonado grid gap-4 md:grid-cols-3">
-        {PLANOS.map((p) => {
+        {NOS_CARTOES.map((p) => {
           const preco = precoPorMes(p, ciclo, 1, tabela);
           const anual = resumoAnual(p, 1, tabela);
           const destaque = p === 'pro';

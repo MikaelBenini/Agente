@@ -10,6 +10,6 @@ export function usePlano(): PlanoConta | undefined {
 
 /** O plano tem o recurso? undefined enquanto carrega (não chamar a API do recurso ainda). */
 export function useTemRecurso(r: Recurso): boolean | undefined {
-  const plano = usePlano();
-  return plano === undefined ? undefined : temRecurso(plano, r);
+  const situacao = useSituacaoConta().data;
+  return situacao === undefined ? undefined : temRecurso(situacao.plano, r, situacao.automacoes);
 }

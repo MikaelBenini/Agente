@@ -6,6 +6,9 @@ import type { NotaDaFatura } from './nota-fiscal.js';
 import { z } from 'zod';
 import {
   aplicarDesconto,
+  automacoesAParte,
+  descontoQueVale,
+  PLANOS,
   diasRestantesTeste,
   precoPorMes,
   type Ciclo,
@@ -43,6 +46,8 @@ export interface EstadoAssinatura {
 /** Situação da conta para o painel: a da assinatura mais o plano (o que a tela libera). */
 export interface EstadoDaConta extends EstadoAssinatura {
   plano: PlanoConta;
+  /** Automações contratadas à parte (Agenda e Básico); do Pro em diante já vêm no plano. */
+  automacoes: boolean;
 }
 
 const dias = (de: DataISO, ate: DataISO) =>
@@ -145,7 +150,7 @@ export function situacaoAssinatura(
 
 export interface FaturaDetalhe {
   id: string;
-  plano: 'basico' | 'pro' | 'premium';
+  plano: PlanoConta;
   ciclo: 'mensal' | 'anual';
   valor: number;
   vencimento: DataISO;
@@ -163,8 +168,10 @@ export interface FaturaDetalhe {
 /** Aba Assinatura (só o dono). */
 export interface AssinaturaDetalhe {
   estado: EstadoAssinatura;
-  plano: 'basico' | 'pro' | 'premium';
+  plano: PlanoConta;
   ciclo: 'mensal' | 'anual';
+  /** Automações contratadas à parte (Agenda e Básico). */
+  automacoes: boolean;
   /** Fim do teste grátis (ISO); null fora do teste. */
   testeAte: string | null;
   /** Preço por mês do plano no ciclo, com as unidades ativas (centavos). */
@@ -221,8 +228,10 @@ export function documentoValido(valor: string): boolean {
 }
 
 export const assinarSchema = z.object({
-  plano: z.enum(['basico', 'pro', 'premium']),
+  plano: z.enum(PLANOS),
   ciclo: z.enum(['mensal', 'anual']),
+  /** Automações à parte (Agenda e Básico): mais R$ 10 por mês. */
+  automacoes: z.boolean().default(false),
   documento: z
     .string()
     .transform((v) => v.replace(/\D/g, ''))
@@ -240,10 +249,13 @@ export function valorDaCobranca(
   tabela?: TabelaPrecosPlanos,
   /** Desconto do cupom da conta (pontos-base). */
   descontoBp = 0,
+  /** Automações à parte (Agenda e Básico); no Agenda, o cupom só vale com elas. */
+  automacoes = false,
 ): number {
+  const comAutomacoes = automacoes && automacoesAParte(plano);
   const porMes = aplicarDesconto(
-    precoPorMes(plano, ciclo, Math.max(1, unidades), tabela),
-    descontoBp,
+    precoPorMes(plano, ciclo, Math.max(1, unidades), tabela, comAutomacoes),
+    descontoQueVale(plano, comAutomacoes, descontoBp),
   );
   return ciclo === 'anual' ? porMes * 12 : porMes;
 }

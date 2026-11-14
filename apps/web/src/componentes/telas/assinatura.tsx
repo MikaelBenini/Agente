@@ -13,6 +13,8 @@ import {
   proximaCobrancaSemFatura,
   documentoValido,
   PLANOS,
+  PRECO_AUTOMACOES,
+  automacoesAParte,
   valorDaCobranca,
   type FaturaDetalhe,
   type PlanoConta,
@@ -87,6 +89,9 @@ export function Assinatura() {
                     · {d.ciclo === 'anual' ? 'anual' : 'mensal'}
                   </span>
                 </p>
+                {d.automacoes && automacoesAParte(d.plano) && (
+                  <p className="text-sm text-tinta-suave">Com as Automações</p>
+                )}
                 <p className="font-denso tabular-nums text-tinta-suave">
                   {formatarMoeda(d.precoPorMes)} por mês
                   {d.unidades > 1 && ` · ${d.unidades} unidades`}
@@ -184,11 +189,12 @@ export function Assinatura() {
                 unidades={d.unidades}
                 tabela={d.tabelaPrecos}
                 descontoBp={d.descontoBp}
+                automacoesAtual={d.automacoes}
               />
             )}
             {d.cobrancaAutomatica && pendente && <ConferirPagamento />}
 
-            <MudarPlano atual={d.plano} />
+            <MudarPlano atual={d.plano} automacoesAtual={d.automacoes} />
 
             <section aria-labelledby="titulo-faturas" className="flex flex-col gap-3">
               <h2 id="titulo-faturas" className="text-xl font-semibold">
@@ -334,14 +340,18 @@ function Assinar({
   unidades,
   tabela,
   descontoBp,
+  automacoesAtual,
 }: {
   planoAtual: FaturaDetalhe['plano'];
   cicloAtual: FaturaDetalhe['ciclo'];
   unidades: number;
   tabela: TabelaPrecosPlanos;
   descontoBp: number;
+  automacoesAtual: boolean;
 }) {
   const [plano, setPlano] = useState(planoAtual);
+  const [comAutomacoes, setComAutomacoes] = useState(automacoesAtual);
+  const automacoes = comAutomacoes && automacoesAParte(plano);
   const [ciclo, setCiclo] = useState(cicloAtual);
   const [documento, setDocumento] = useState('');
   const [erro, setErro] = useState<string | null>(null);
@@ -377,7 +387,9 @@ function Assinar({
     [chaveAssinatura],
   );
   const docOk = documentoValido(documento);
-  const valor = valorDaCobranca(plano, ciclo, unidades, tabela, descontoEfetivo);
+  const valor = valorDaCobranca(plano, ciclo, unidades, tabela, descontoEfetivo, automacoes);
+  // Plano Agenda: o cupom só vale com as Automações juntas.
+  const cupomParado = plano === 'agenda' && !automacoes && descontoEfetivo > 0;
   return (
     <section
       aria-labelledby="titulo-assinar"
@@ -419,8 +431,9 @@ function Assinar({
               const r = await assinar.mutateAsync({
                 plano,
                 ciclo,
+                automacoes,
                 documento,
-                ...(cupom ? { cupom: cupom.codigo } : {}),
+                ...(cupom && !cupomParado ? { cupom: cupom.codigo } : {}),
               });
               setLink(r.linkPagamento);
               if (r.linkPagamento) window.open(r.linkPagamento, '_blank', 'noopener');
@@ -451,6 +464,15 @@ function Assinar({
               { valor: 'anual', rotulo: 'Anual (mais barato)' },
             ]}
           />
+          {automacoesAParte(plano) && (
+            <CaixaAutomacoes
+              id="assinar-automacoes"
+              marcada={comAutomacoes}
+              onMudar={setComAutomacoes}
+              preco={tabela.automacoes[ciclo === 'anual' ? 'anualPorMes' : 'mensal']}
+              className="sm:col-span-3"
+            />
+          )}
           <Campo
             id="assinar-documento"
             rotulo="CPF ou CNPJ de quem paga"
@@ -512,6 +534,11 @@ function Assinar({
               )}
             </div>
           )}
+          {cupomParado && (
+            <p className="text-sm text-tinta-suave sm:col-span-3">
+              No plano Agenda, o cupom vale só com as Automações juntas.
+            </p>
+          )}
           <p className="font-denso text-lg tabular-nums sm:col-span-2">
             {formatarMoeda(valor)}{' '}
             <span className="font-sans text-base text-tinta-suave">
@@ -561,29 +588,35 @@ function ConferirPagamento() {
  * Mudar de plano (o dono, sem falar com o suporte): subir vale na hora; descer mostra antes o
  * que impede (limites) e o que deixa de usar, e pede confirmação.
  */
-function MudarPlano({ atual }: { atual: PlanoConta }) {
-  const outros = PLANOS.filter((p) => p !== atual);
-  const [para, setPara] = useState<PlanoConta>(outros[0]!);
+function MudarPlano({ atual, automacoesAtual }: { atual: PlanoConta; automacoesAtual: boolean }) {
+  // Agenda e Básico: o mesmo plano aparece para ligar ou desligar as Automações.
+  const opcoes = PLANOS.filter((p) => p !== atual || automacoesAParte(p));
+  const [para, setPara] = useState<PlanoConta>(opcoes.find((p) => p !== atual) ?? opcoes[0]!);
+  const [comAutomacoes, setComAutomacoes] = useState(automacoesAtual);
+  const automacoes = comAutomacoes && automacoesAParte(para);
+  const igual = para === atual && automacoes === (automacoesAtual && automacoesAParte(atual));
   const [confirmar, setConfirmar] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [feito, setFeito] = useState<string | null>(null);
   const previa = useQuery({
-    queryKey: [...chaveAssinatura, 'previa', para],
-    queryFn: () => api<PreviaTrocaPlano>(`conta/plano/previa?plano=${para}`),
+    queryKey: [...chaveAssinatura, 'previa', para, automacoes],
+    queryFn: () =>
+      api<PreviaTrocaPlano>(`conta/plano/previa?plano=${para}&automacoes=${automacoes}`),
   });
   const trocar = useAcao(
-    (plano: PlanoConta) =>
-      api<PreviaTrocaPlano>('conta/plano', { metodo: 'PUT', corpo: { plano } }),
+    (d: { plano: PlanoConta; automacoes: boolean }) =>
+      api<PreviaTrocaPlano>('conta/plano', { metodo: 'PUT', corpo: d }),
     [chaveAssinatura],
   );
   const p = previa.data;
+  const nomeNovo = `${NOME_PLANO[para]}${automacoes ? ' com as Automações' : ''}`;
 
   async function aplicar() {
     setConfirmar(false);
     setErro(null);
     try {
-      await trocar.mutateAsync(para);
-      setFeito(`Pronto: a conta está no plano ${NOME_PLANO[para]}.`);
+      await trocar.mutateAsync({ plano: para, automacoes });
+      setFeito(`Pronto: a conta está no plano ${nomeNovo}.`);
     } catch (e) {
       setErro(mensagemDe(e));
     }
@@ -606,7 +639,7 @@ function MudarPlano({ atual }: { atual: PlanoConta }) {
       {feito && <Aviso tom="sucesso">{feito}</Aviso>}
       {erro && <Aviso tom="erro">{erro}</Aviso>}
       <div role="radiogroup" aria-label="Plano novo" className="flex flex-wrap gap-2">
-        {outros.map((o) => (
+        {opcoes.map((o) => (
           <button
             key={o}
             type="button"
@@ -624,11 +657,21 @@ function MudarPlano({ atual }: { atual: PlanoConta }) {
                 : 'border-borda hover:border-borda-forte',
             )}
           >
-            {NOME_PLANO[o]}
+            {o === atual ? `${NOME_PLANO[o]} (atual)` : NOME_PLANO[o]}
           </button>
         ))}
       </div>
-      {p && p.para === para && (
+      {automacoesAParte(para) && (
+        <CaixaAutomacoes
+          id="mudar-automacoes"
+          marcada={comAutomacoes}
+          onMudar={(v) => {
+            setComAutomacoes(v);
+            setFeito(null);
+          }}
+        />
+      )}
+      {p && p.para === para && !igual && (
         <div className="flex flex-col gap-3">
           <p className="font-denso text-lg tabular-nums">
             {formatarMoeda(p.valorAtual)} → <strong>{formatarMoeda(p.valorNovo)}</strong>{' '}
@@ -664,19 +707,66 @@ function MudarPlano({ atual }: { atual: PlanoConta }) {
             carregando={trocar.isPending}
             onClick={() => (p.sobe ? aplicar() : setConfirmar(true))}
           >
-            Mudar para o {NOME_PLANO[para]}
+            {para === atual
+              ? automacoes
+                ? 'Ligar as Automações'
+                : 'Desligar as Automações'
+              : `Mudar para o ${nomeNovo}`}
           </Botao>
         </div>
       )}
       <ModalConfirmacao
         aberto={confirmar}
-        titulo={`Mudar para o ${NOME_PLANO[para]}?`}
+        titulo={para === atual ? 'Desligar as Automações?' : `Mudar para o ${nomeNovo}?`}
         descricao={`A conta deixa de usar ${p?.perdas.length ?? 0} ${p?.perdas.length === 1 ? 'recurso' : 'recursos'} agora mesmo. O que já foi lançado continua guardado e volta quando subir de plano.`}
-        textoConfirmar={`Mudar para o ${NOME_PLANO[para]}`}
+        textoConfirmar={para === atual ? 'Desligar' : `Mudar para o ${nomeNovo}`}
         carregando={trocar.isPending}
         onConfirmar={aplicar}
         onCancelar={() => setConfirmar(false)}
       />
     </section>
+  );
+}
+
+/**
+ * Automações à parte (Agenda e Básico): o bot que responde e marca pela conversa, a lista de
+ * espera, a pesquisa depois do atendimento, o retorno de quem sumiu e o aniversário.
+ */
+function CaixaAutomacoes({
+  id,
+  marcada,
+  onMudar,
+  preco = PRECO_AUTOMACOES.mensal,
+  className,
+}: {
+  id: string;
+  marcada: boolean;
+  onMudar: (v: boolean) => void;
+  preco?: number;
+  className?: string;
+}) {
+  return (
+    <label
+      htmlFor={id}
+      className={cn(
+        'flex cursor-pointer items-start gap-3 rounded-md border border-borda p-3 hover:border-borda-forte',
+        className,
+      )}
+    >
+      <input
+        id={id}
+        type="checkbox"
+        checked={marcada}
+        onChange={(e) => onMudar(e.target.checked)}
+        className="mt-1 size-4 accent-modulo"
+      />
+      <span className="flex flex-col gap-0.5">
+        <span className="font-semibold">Automações, mais {formatarMoeda(preco)} por mês</span>
+        <span className="text-sm text-tinta-suave">
+          O bot que responde e marca pela conversa, a lista de espera, a pesquisa depois do
+          atendimento, o convite de retorno de quem sumiu e a mensagem de aniversário.
+        </span>
+      </span>
+    </label>
   );
 }

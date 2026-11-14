@@ -1,6 +1,7 @@
 // Menu montado pelo papel (docs/documentacao-do-produto.md, "Navegação por papel").
 // Nada aparece bloqueado: o que o papel não usa simplesmente não está no menu.
 import type { Papel } from './papeis.js';
+import { temRecurso, type PlanoConta, type Recurso } from './planos.js';
 
 export type IdMenu =
   | 'inicio'
@@ -114,6 +115,31 @@ export function menuEmGrupos(
 /** Itens do menu para os papéis que valem na unidade ativa (união, na ordem canônica). */
 export function menuPara(papeis: readonly Papel[]): ItemMenu[] {
   return ITENS_MENU.filter((item) => item.papeis.some((p) => papeis.includes(p)));
+}
+
+/**
+ * Telas que dependem de um recurso do plano (Plano Agenda): sem ele, saem do menu. O que já foi
+ * lançado continua guardado e volta ao subir de plano.
+ */
+export const RECURSO_DA_TELA: Partial<Record<IdMenu, Recurso>> = {
+  dia: 'operacao',
+  comandas: 'operacao',
+  caixa: 'operacao',
+  resultados: 'operacao',
+  financeiro: 'operacao',
+  comissoes: 'comissoes',
+};
+
+/** O menu sem as telas que o plano (com as Automações à parte) não traz. */
+export function menuDoPlano(
+  menu: readonly ItemMenu[],
+  plano: PlanoConta,
+  automacoes = false,
+): ItemMenu[] {
+  return menu.filter((i) => {
+    const r = RECURSO_DA_TELA[i.id];
+    return !r || temRecurso(plano, r, automacoes);
+  });
 }
 
 /** Item do menu dono de uma rota (inclusive subrotas: /comandas/123 → comandas). */

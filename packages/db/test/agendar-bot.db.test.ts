@@ -87,7 +87,8 @@ async function escolherServico(telefone: string, n: string, quando = agora) {
 beforeAll(async () => {
   prisma = criarPrisma();
   await naMinhaConta(async (tx) => {
-    await tx.conta.create({ data: { id: conta, nome: 'Barbearia Navalha' } });
+    // Pro: o bot responde (no Agenda e no Básico, só com as Automações).
+    await tx.conta.create({ data: { id: conta, nome: 'Barbearia Navalha', plano: 'pro' } });
     const u = await tx.unidade.create({
       data: {
         nome: 'Centro',
