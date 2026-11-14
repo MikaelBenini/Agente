@@ -924,6 +924,8 @@ export const visualAgendamentoSchema = z.object({
   cor: z.enum(IDS_CORES),
   logo: fotoIdSchema.optional(),
   capa: fotoIdSchema.optional(),
+  /** Pedido do dono em 14/11: a foto da unidade no fundo da página inteira (não só no topo). */
+  capaNoFundo: z.boolean().optional(),
   titulo: textoCurto(80),
   texto: textoCurto(300),
   /** Mostra "Ver o site da barbearia" (só quando o site está publicado). */
@@ -957,6 +959,8 @@ export interface VisualAgendamentoPublico {
   cor: string;
   logo: string | null;
   capa: string | null;
+  /** A capa vai no fundo da página inteira, com uma camada escura por cima. */
+  capaNoFundo: boolean;
   titulo: string;
   texto: string;
   /** Endereço do site publicado (/s/...), quando o dono quer o link para ele. */
