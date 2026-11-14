@@ -1,6 +1,6 @@
 // Contato e dados da empresa no site (briefing do site, C2 e C3). Tudo vazio até o dono passar os
 // dados reais: campo vazio não aparece (nada de número, CNPJ ou rede social inventados).
-// TODO(dono): preencher razão social, CNPJ, cidade/UF e redes sociais.
+// Dados passados pelo dono em 14/11. TODO(dono): razão social (o nome da empresa), se quiser mostrar.
 
 // O WhatsApp comercial fica em /admin → Configurações (componentes/site/whatsapp-site.tsx).
 
@@ -10,10 +10,10 @@ export const MENSAGEM_WHATSAPP = 'Oi! Vim pelo site e quero saber mais sobre o P
 export const EMPRESA = {
   razaoSocial: '',
   /** Só dígitos ou já formatado (00.000.000/0000-00). */
-  cnpj: '',
+  cnpj: '61.775.956/0001-50',
   /** Ex.: 'São Paulo/SP'. */
-  cidade: '',
-  instagram: '',
+  cidade: 'Cascavel/PR',
+  instagram: 'https://www.instagram.com/nossopentefino/',
   youtube: '',
 } as const;
 

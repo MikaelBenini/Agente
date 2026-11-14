@@ -11,6 +11,7 @@ import {
   NOME_PLANO,
   PLANOS,
   automacoesAParte,
+  DIAS_TESTE_INDICADA,
   type PlanoConta,
   aplicarDesconto,
   formatarPercentualBp,
@@ -102,7 +103,17 @@ export function FormularioCadastro() {
       ciclo: daUrl(params.get('ciclo'), CICLOS, 'mensal'),
       cupom: params.get('cupom')?.slice(0, 30) ?? '',
       whatsapp: '',
+      indicacao: params.get('indicacao')?.slice(0, 20) ?? undefined,
     },
+  });
+  // Indique e ganhe: quem chega pelo link de um amigo ganha 30 dias de teste.
+  const indicacaoDoLink = params.get('indicacao')?.trim().slice(0, 20) ?? '';
+  const indicacao = useQuery({
+    queryKey: ['indicacao', indicacaoDoLink],
+    queryFn: () =>
+      api<{ valido: boolean }>(`publico/indicadores/codigo/${encodeURIComponent(indicacaoDoLink)}`),
+    enabled: !!indicacaoDoLink,
+    retry: false,
   });
   // Cupom vindo do link (ex.: anúncio "30% off"): confere ao abrir, para o desconto aparecer já.
   const cupomDoLink = params.get('cupom')?.trim().slice(0, 30) ?? '';
@@ -188,6 +199,11 @@ export function FormularioCadastro() {
         </p>
       </div>
       {erroGeral && <Aviso tom="erro">{erroGeral}</Aviso>}
+      {indicacao.data?.valido && (
+        <Aviso tom="sucesso">
+          Você veio pela indicação de um amigo: são {DIAS_TESTE_INDICADA} dias grátis para testar.
+        </Aviso>
+      )}
       <Campo
         id="cadastro-barbearia"
         rotulo="Nome da barbearia"

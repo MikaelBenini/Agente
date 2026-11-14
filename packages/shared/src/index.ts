@@ -76,6 +76,8 @@ export * from './catalogo-servicos.js';
 export * from './pagina-barbearia.js';
 export * from './site-barbearia.js';
 export * from './quem-faz.js';
+export * from './indicacao.js';
+export * from './depoimentos-site.js';
 export * from './revenda-agenda.js';
 export * from './visitas-site.js';
 export * from './busca-global.js';

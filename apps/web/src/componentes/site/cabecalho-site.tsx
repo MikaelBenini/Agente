@@ -15,6 +15,12 @@ export function CabecalhoSite() {
         </Link>
         <nav aria-label="Site" className="flex items-center gap-1 sm:gap-2">
           <Link
+            href="/recursos"
+            className="hidden min-h-11 items-center rounded-md px-2 font-medium text-tinta-suave hover:text-tinta sm:inline-flex sm:px-3"
+          >
+            Recursos
+          </Link>
+          <Link
             href="/planos"
             className="inline-flex min-h-11 items-center rounded-md px-2 font-medium text-tinta-suave hover:text-tinta sm:px-3"
           >

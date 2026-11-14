@@ -19,6 +19,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     { url: `${URL_SITE}/`, changeFrequency: 'weekly', priority: 1 },
     { url: `${URL_SITE}/planos`, changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${URL_SITE}/indique`, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${URL_SITE}/recursos`, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${URL_SITE}/cadastro`, changeFrequency: 'monthly', priority: 0.7 },
     // Site N1: páginas por termo de busca.
     ...PAGINAS_BUSCA.map((p) => ({

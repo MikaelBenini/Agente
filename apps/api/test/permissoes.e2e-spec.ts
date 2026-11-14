@@ -25,6 +25,10 @@ const PUBLICAS = new Set([
   'GET /publico/clube/:slug',
   'GET /publico/contato', // WhatsApp comercial do site de vendas
   'GET /publico/cupom/:codigo',
+  'GET /publico/indicadores/codigo/:codigo', // o link de indicação vale?
+  'GET /publico/indicadores/painel', // exige o link secreto do indicador
+  'GET /publico/depoimentos', // depoimentos ativos da página de vendas
+  'GET /publico/depoimentos/:id/foto',
   'GET /publico/horario/:token',
   'GET /publico/horario/:token/horarios',
   'GET /publico/dominio-liberado', // o Caddy pergunta antes do certificado: só sim ou não
@@ -44,6 +48,7 @@ const PUBLICAS = new Set([
   'POST /chat/conversas', // chat do site: visitante começa (limite por IP)
   'POST /chat/conversas/:id/avaliacao', // exige o segredo da conversa (limite por IP)
   'POST /chat/conversas/:id/mensagens', // exige o segredo da conversa (limite por IP)
+  'POST /publico/indicadores', // indique e ganhe: cadastro de quem indica (limite por IP)
   'POST /publico/agendamento/:slug',
   'POST /publico/agendamento/:slug/espera',
   'POST /publico/clube/:slug/assinar',

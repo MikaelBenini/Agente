@@ -61,6 +61,17 @@ import { BancoPlataforma } from './admin/banco-plataforma.js';
 import { AdminChatController, ChatPublicoController } from './chat/chat.controller.js';
 import { ChatService } from './chat/chat.service.js';
 import {
+  AdminIndicacaoController,
+  IndicacaoContaController,
+  IndicacaoPublicoController,
+  IndicacaoService,
+} from './indicacao/indicacao.controller.js';
+import {
+  AdminDepoimentosController,
+  DepoimentosPublicoController,
+  DepoimentosService,
+} from './site/depoimentos.controller.js';
+import {
   AdminVisitasController,
   VisitasPublicoController,
   VisitasService,
@@ -181,6 +192,11 @@ export class ComumModule {}
     ChatPainelController,
     AdminChatController,
     VisitasPublicoController,
+    IndicacaoPublicoController,
+    IndicacaoContaController,
+    AdminIndicacaoController,
+    DepoimentosPublicoController,
+    AdminDepoimentosController,
     AdminVisitasController,
     AvisosController,
     ResumoController,
@@ -221,6 +237,8 @@ export class ComumModule {}
     BancoPlataforma,
     ChatService,
     VisitasService,
+    IndicacaoService,
+    DepoimentosService,
     AdminAuthService,
     AdminContasService,
     AdminVendasService,

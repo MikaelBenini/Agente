@@ -251,6 +251,8 @@ model Conta {
   automacoesContratadas   Boolean       @default(false) @map("automacoes_contratadas")
   /// "Experimentar 7 dias" no Agenda: os recursos do Básico até esta data (uma vez por conta).
   experimentaBasicoAte    DateTime?     @map("experimenta_basico_ate") @db.Timestamptz(3)
+  /// Indique e ganhe: o código de quem indicou (link /cadastro?indicacao=).
+  indicadoPor             String?       @map("indicado_por")
   status                  StatusConta   @default(teste)
   /// Esconde o telefone do cliente na tela do barbeiro (docs: matriz de permissões).
   ocultarTelefoneBarbeiro Boolean       @default(true) @map("ocultar_telefone_barbeiro")
@@ -1968,4 +1970,67 @@ model EventoVisitaSite {
   @@index([criadoEm])
   @@index([visitaId])
   @@map("evento_visita_site")
+}
+
+/// Depoimentos da página de vendas (pedido do dono em 14/11). Tabela só da administração.
+model DepoimentoSite {
+  id           String   @id @default(dbgenerated("uuidv7()")) @db.Uuid
+  /// Perfil do Instagram, sem o @.
+  instagram    String
+  nome         String
+  quem         String   @default("")
+  texto        String
+  data         DateTime @db.Date
+  ativo        Boolean  @default(true)
+  /// Foto guardada aqui (o endereço do Instagram expira); já reduzida.
+  foto         Bytes?
+  fotoTipo     String?  @map("foto_tipo")
+  criadoEm     DateTime @default(now()) @map("criado_em") @db.Timestamptz(3)
+  atualizadoEm DateTime @default(now()) @updatedAt @map("atualizado_em") @db.Timestamptz(3)
+
+  @@index([ativo, data])
+  @@map("depoimento_site")
+}
+
+/// Indique e ganhe (pedido do dono em 14/11): quem indica, cliente ou não. Tabela só da
+/// administração; o painel do indicador abre pelo link secreto (só o hash fica aqui).
+model Indicador {
+  id        String   @id @default(dbgenerated("uuidv7()")) @db.Uuid
+  nome      String
+  email     String   @unique
+  cpf       String?
+  chavePix  String?  @map("chave_pix")
+  codigo    String   @unique
+  tokenHash String   @unique @map("token_hash")
+  /// Dono que já é cliente (pode trocar o Pix por meses grátis).
+  contaId   String?  @unique @map("conta_cliente_id") @db.Uuid
+  /// "pix" ou "meses".
+  recebe    String   @default("pix")
+  ativo     Boolean  @default(true)
+  criadoEm  DateTime @default(now()) @map("criado_em") @db.Timestamptz(3)
+
+  comissoes ComissaoIndicacao[]
+
+  @@map("indicador")
+}
+
+/// Uma comissão por fatura paga da indicada (o gatilho da migração "indique_e_ganhe" cria).
+model ComissaoIndicacao {
+  id          String    @id @default(dbgenerated("uuidv7()")) @db.Uuid
+  indicadorId String    @map("indicador_id") @db.Uuid
+  contaId     String    @map("conta_indicada_id") @db.Uuid
+  faturaId    String    @unique @map("fatura_id") @db.Uuid
+  /// "pix" ou "mes".
+  tipo        String
+  valor       Int
+  liberaEm    DateTime  @map("libera_em") @db.Timestamptz(3)
+  pagaEm      DateTime? @map("paga_em") @db.Timestamptz(3)
+  canceladaEm DateTime? @map("cancelada_em") @db.Timestamptz(3)
+  aplicadaEm  DateTime? @map("aplicada_em") @db.Timestamptz(3)
+  criadoEm    DateTime  @default(now()) @map("criado_em") @db.Timestamptz(3)
+
+  indicador Indicador @relation(fields: [indicadorId], references: [id], onDelete: Cascade)
+
+  @@index([indicadorId])
+  @@map("comissao_indicacao")
 }

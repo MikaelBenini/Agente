@@ -33,7 +33,7 @@ import { CalculadoraSobra } from '@/componentes/site/calculadora-sobra';
 import { BotaoWhatsappSite } from '@/componentes/site/whatsapp-site';
 import { CartoesPlanos } from '@/componentes/site/cartoes-planos';
 import { BotaoVideo } from '@/componentes/site/botao-video';
-import { Depoimentos } from '@/componentes/site/depoimentos';
+import { CarrosselDepoimentos } from '@/componentes/site/carrossel-depoimentos';
 import {
   BotaoTesteOferta,
   LinkCadastro,
@@ -61,6 +61,40 @@ const SELOS = [
 
 /** Perto de cada botão de teste (briefing do site, C5): só o que o produto já cumpre. */
 const IMPLANTACAO = 'Configuração guiada · atende no mesmo dia · importamos sua planilha';
+
+/** As dores do barbeiro e o que o sistema faz em cada uma (pedido do dono em 14/11). */
+const DORES = [
+  {
+    dor: 'Entra dinheiro, mas no fim do mês não sobra.',
+    solucao:
+      'Você vê o lucro de cada serviço e de cada barbeiro, depois da comissão, do produto e das despesas.',
+  },
+  {
+    dor: 'Fim de semana na calculadora fechando a comissão.',
+    solucao:
+      'A comissão sai sozinha, item por item, do jeito que você combina. O barbeiro vê o extrato no celular.',
+  },
+  {
+    dor: 'O WhatsApp não para: todo mundo querendo marcar.',
+    solucao:
+      'O cliente marca sozinho pelo link de agendamento. Com as Automações, o bot responde e marca pela conversa.',
+  },
+  {
+    dor: 'Cliente que falta e cadeira vazia.',
+    solucao:
+      'Lembrete no WhatsApp com confirmar, remarcar ou cancelar. O horário que vaga vai para a lista de espera.',
+  },
+  {
+    dor: 'O caixa não bate e ninguém sabe por quê.',
+    solucao:
+      'Caixa do dia com a diferença na hora, por forma de pagamento. O resumo do fechamento chega no seu celular.',
+  },
+  {
+    dor: 'O barbeiro esquece de lançar a barba ou o produto.',
+    solucao:
+      'A comanda nasce do horário marcado. O barbeiro acrescenta o extra no celular e a recepção só recebe.',
+  },
+] as const;
 
 const ANTES = [
   'Comanda de papel que some ou chega rasgada no caixa',
@@ -349,6 +383,35 @@ export default function Pagina() {
       </section>
 
       {/* O problema que a planilha não resolve. */}
+      {/* Pedido do dono em 14/11: as dores do barbeiro, cada uma com o que o sistema faz. */}
+      <section aria-labelledby="dores" className="mx-auto max-w-6xl px-4 pt-16 sm:px-6 md:pt-24">
+        <div className="mb-10 flex max-w-3xl flex-col gap-3">
+          <h2 id="dores" className="font-denso text-4xl font-bold uppercase sm:text-5xl">
+            Se você se identifica com algum desses problemas
+          </h2>
+          <p className="text-lg text-tinta-suave">
+            O Pente Fino foi feito para o dia a dia da cadeira, não para escritório.
+          </p>
+        </div>
+        <ul className="grid gap-4 md:grid-cols-2">
+          {DORES.map((d) => (
+            <li
+              key={d.dor}
+              className="revelar flex flex-col gap-3 rounded-2xl border border-borda bg-superficie p-6"
+            >
+              <p className="flex gap-3 text-lg font-semibold">
+                <X aria-hidden className="mt-1 size-5 shrink-0 text-perigo-texto" />
+                {d.dor}
+              </p>
+              <p className="flex gap-3 text-tinta-suave">
+                <Check aria-hidden className="mt-0.5 size-5 shrink-0 text-acao-texto" />
+                <span>{d.solucao}</span>
+              </p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
       <section aria-labelledby="problema" className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-24">
         <div className="mb-12 grid items-center gap-10 md:grid-cols-[1.2fr_1fr]">
           <div className="flex max-w-3xl flex-col gap-3">
@@ -679,7 +742,7 @@ export default function Pagina() {
         </div>
       </section>
 
-      <Depoimentos />
+      <CarrosselDepoimentos />
 
       <section aria-labelledby="precos" className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-24">
         <div className="mb-10 flex flex-col items-center gap-3 text-center">
