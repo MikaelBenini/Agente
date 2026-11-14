@@ -1969,3 +1969,23 @@ model EventoVisitaSite {
   @@index([visitaId])
   @@map("evento_visita_site")
 }
+
+/// Depoimentos da página de vendas (pedido do dono em 14/11). Tabela só da administração.
+model DepoimentoSite {
+  id           String   @id @default(dbgenerated("uuidv7()")) @db.Uuid
+  /// Perfil do Instagram, sem o @.
+  instagram    String
+  nome         String
+  quem         String   @default("")
+  texto        String
+  data         DateTime @db.Date
+  ativo        Boolean  @default(true)
+  /// Foto guardada aqui (o endereço do Instagram expira); já reduzida.
+  foto         Bytes?
+  fotoTipo     String?  @map("foto_tipo")
+  criadoEm     DateTime @default(now()) @map("criado_em") @db.Timestamptz(3)
+  atualizadoEm DateTime @default(now()) @updatedAt @map("atualizado_em") @db.Timestamptz(3)
+
+  @@index([ativo, data])
+  @@map("depoimento_site")
+}
