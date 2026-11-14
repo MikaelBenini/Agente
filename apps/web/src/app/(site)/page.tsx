@@ -10,7 +10,6 @@ import {
   HandCoins,
   Repeat,
   SlidersHorizontal,
-  UserCog,
   Building2,
   CalendarCheck,
   Check,
