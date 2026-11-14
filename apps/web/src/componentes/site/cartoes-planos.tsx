@@ -63,11 +63,62 @@ const COR: Record<PlanoConta, string> = {
 function limiteTexto(p: PlanoConta) {
   const l = LIMITES_PLANO[p];
   if (p === 'premium') return 'Unidades e profissionais ilimitados';
-  return `${l.unidades} unidade · até ${l.profissionais} profissionais`;
+  return `${l.unidades} unidade, até ${l.profissionais} profissionais`;
 }
 
-/** Os planos dos cartões (o Agenda ganha a apresentação própria na divulgação). */
+/** Os três planos completos nos cartões; o Agenda fica na faixa logo abaixo. */
 const NOS_CARTOES = PLANOS.filter((p) => p !== 'agenda');
+
+/**
+ * Plano Agenda (pedido do dono em 13/11): a porta de entrada, numa faixa abaixo dos cartões, para
+ * quem só precisa da agenda, do link e do site agora.
+ */
+function FaixaAgenda({
+  ciclo,
+  tabela,
+  compacto,
+}: {
+  ciclo: Ciclo;
+  tabela: ReturnType<typeof useTabelaPrecos>;
+  compacto: boolean;
+}) {
+  const preco = precoPorMes('agenda', ciclo, 1, tabela);
+  const automacoes = tabela.automacoes[ciclo === 'mensal' ? 'mensal' : 'anualPorMes'];
+  return (
+    <section
+      aria-labelledby="titulo-plano-agenda"
+      className="flex flex-col gap-4 rounded-xl border border-borda bg-superficie p-6 md:flex-row md:items-center md:justify-between"
+    >
+      <div className="flex flex-col gap-2">
+        <h3
+          id="titulo-plano-agenda"
+          className="flex items-center gap-2 font-denso text-2xl font-bold uppercase tracking-wide"
+        >
+          <span aria-hidden className={cn('size-2.5 rounded-full', COR.agenda)} />
+          Só precisa da agenda?
+        </h3>
+        <p className="text-tinta-suave">
+          Plano {NOME_PLANO.agenda}: {limiteTexto('agenda')}.{' '}
+          {DESTAQUES.agenda.slice(0, 3).join(', ')}.
+          {!compacto && ` Automações por mais ${formatarMoeda(automacoes)} por mês.`}
+        </p>
+      </div>
+      <div className="flex flex-wrap items-center gap-4">
+        <p className="flex items-baseline gap-1">
+          <span className="font-denso text-4xl font-bold tabular-nums">{formatarMoeda(preco)}</span>
+          <span className="text-tinta-suave">/mês</span>
+        </p>
+        <LinkCadastro
+          extra={`plano=agenda&ciclo=${ciclo}`}
+          variante="contorno"
+          aria-label={`Testar o plano ${NOME_PLANO.agenda} grátis por ${DIAS_TESTE} dias`}
+        >
+          Testar {DIAS_TESTE} dias grátis
+        </LinkCadastro>
+      </div>
+    </section>
+  );
+}
 
 /** Os três planos com a escolha mensal/anual e a conta das unidades do Premium. */
 export function CartoesPlanos({ compacto = false }: { compacto?: boolean }) {
@@ -180,6 +231,8 @@ export function CartoesPlanos({ compacto = false }: { compacto?: boolean }) {
           );
         })}
       </ul>
+
+      <FaixaAgenda ciclo={ciclo} tabela={tabela} compacto={compacto} />
 
       {!compacto && (
         <section

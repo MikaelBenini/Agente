@@ -10,7 +10,7 @@ import { LinkCadastro, OfertaLancamento } from '@/componentes/site/oferta-lancam
 
 export const metadata: Metadata = {
   title: 'Planos e preços',
-  description: `Básico, Pro e Premium a partir de R$ 66,90/mês no anual. ${DIAS_TESTE} dias grátis, sem cartão e sem fidelidade.`,
+  description: `Agenda a partir de R$ 10/mês; Básico, Pro e Premium a partir de R$ 66,90/mês no anual. ${DIAS_TESTE} dias grátis, sem cartão e sem fidelidade.`,
   alternates: { canonical: '/planos' },
 };
 
@@ -36,7 +36,7 @@ const PERGUNTAS: readonly Pergunta[] = [
   {
     pergunta: 'O bot de WhatsApp cobra por mensagem?',
     resposta:
-      'Não. Ele usa o WhatsApp da própria barbearia, conectado por QR Code, e responde com menus que você mesmo programa. Não usa inteligência artificial. Está incluso no Pro e no Premium, sem custo extra.',
+      'Não. Ele usa o WhatsApp da própria barbearia, conectado por QR Code, e responde com menus que você mesmo programa. Não usa inteligência artificial. Está incluso no Pro e no Premium, sem custo extra; no Agenda e no Básico, com as Automações (mais R$ 10 por mês).',
   },
   {
     pergunta: 'E os meus dados se eu sair?',

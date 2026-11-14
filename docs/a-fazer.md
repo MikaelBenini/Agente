@@ -421,7 +421,9 @@ PR, mergeado quando o CI passar (autorização do dono para os próximos):
     - [x] **revenda conforme a necessidade** (14/11): cadeado no menu, tela do Básico com
       "Experimentar 7 dias" (uma vez por conta), convites no Início e nos limites, o Início do
       Agenda com os números da agenda;
-    - [ ] **divulgação:** cartão do Agenda em `/planos`, página de vendas e página de busca;
+    - [x] **divulgação** (14/11): faixa do Agenda em `/planos`, coluna na tabela de recursos,
+      página de busca `/agenda-para-barbeiro`, Automações no cadastro e os textos do site sobre
+      o WhatsApp; a página de vendas nova entra com a atualização da página de vendas;
   - **Agenda, R$ 10 por mês** (anual R$ 99 por ano, sai R$ 8,25 por mês), com o mesmo teste
     grátis dos outros planos; 1 unidade e até 2 barbeiros;
   - entra: agenda de cada barbeiro, bloqueios e folgas, cadastro de clientes, o link de

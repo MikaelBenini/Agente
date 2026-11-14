@@ -120,16 +120,16 @@ test('B2, B4 e B6: bot sem "em construção", preços certos para o Google e eco
 }) => {
   await page.goto('/planos');
   await expect(page.getByText(/bot está em construção/)).toHaveCount(0);
-  await expect(page.getByText('Está incluso no Pro e no Premium, sem custo extra.')).toBeAttached();
+  await expect(page.getByText(/Está incluso no Pro e no Premium, sem custo extra/)).toBeAttached();
   await expect(page.getByText('economize até R$ 504/ano').first()).toBeVisible();
   const ld = JSON.parse(
     (await page.locator('script[type="application/ld+json"]').first().textContent())!,
   ) as { offers: { '@type': string; lowPrice: string; highPrice: string; offerCount: number } };
   expect(ld.offers).toMatchObject({
     '@type': 'AggregateOffer',
-    lowPrice: '66.90',
+    lowPrice: '8.25',
     highPrice: '249.90',
-    offerCount: 3,
+    offerCount: 4,
   });
 });
 
@@ -385,4 +385,20 @@ test('WhatsApp comercial: link no rodapé e botão no fim da página, com a mens
     'href',
     /^https:\/\/wa\.me\/\d{12,13}\?text=Oi/,
   );
+});
+
+test('Plano Agenda no site: faixa em /planos, coluna na tabela e página de busca', async ({
+  page,
+}) => {
+  await page.goto('/planos');
+  const faixa = page.getByRole('region', { name: 'Só precisa da agenda?' });
+  await expect(faixa).toContainText('R$ 8,25');
+  await expect(faixa.getByRole('link', { name: /Testar o plano Agenda/ })).toHaveAttribute(
+    'href',
+    /plano=agenda/,
+  );
+  await expect(page.getByRole('columnheader', { name: 'Agenda' })).toBeVisible();
+  await page.goto('/agenda-para-barbeiro');
+  await expect(page.getByRole('heading', { level: 1, name: /Agenda para barbeiro/ })).toBeVisible();
+  await expect(page.getByText(/R\$ 10 por mês/).first()).toBeVisible();
 });
