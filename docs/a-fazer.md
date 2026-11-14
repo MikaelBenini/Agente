@@ -478,7 +478,7 @@ PR, mergeado quando o CI passar (autorização do dono para os próximos):
   - **antes e depois** com o sistema;
   - **"Tudo que a barbearia precisa"**: o que o sistema oferece, em blocos;
   - [x] **aba Recursos** (14/11, `/recursos`): uma página com tudo o que o sistema faz;
-  - **comparativo com todos os sistemas do mercado hoje** (amplia o comparativo atual com os
+  - [x] **comparativo com todos os sistemas do mercado hoje** (14/11: GENDA, Barbeiro.app e BestBarbers, além de AppBarber, Trinks e Booksy; Cash Barber e Avec não têm página de preços que dê para conferir) (amplia o comparativo atual com os
     concorrentes, com fontes e data da consulta);
   - [x] **depoimentos em carrossel** (14/11), com aba própria na administração: o dono cola o link do
     Instagram, o sistema puxa a foto e o nome do perfil, o dono escreve o que a pessoa disse

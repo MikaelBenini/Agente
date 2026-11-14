@@ -6,9 +6,11 @@
 export const CONFERIDO_EM = '2026-11-12';
 
 export interface Concorrente {
-  slug: 'appbarber' | 'trinks' | 'booksy';
+  slug: 'appbarber' | 'trinks' | 'booksy' | 'genda' | 'barbeiro-app' | 'bestbarbers';
   nome: string;
   fonte: string;
+  /** Data em que esta fonte foi conferida, quando diferente de CONFERIDO_EM. */
+  conferidoEm?: string;
   /** Uma frase sobre como cobra, com os números da página. */
   comoCobra: string;
   /** Custo por mês no mensal para 1, 3 e 5 profissionais; null = a página não mostra. */
@@ -100,6 +102,84 @@ export const CONCORRENTES: readonly Concorrente[] = [
       'Comissão automática por item, com extrato do barbeiro, em todos os planos.',
       'Bot de WhatsApp com a conta da barbearia (incluso no Pro e no Premium; no Agenda e no Básico, com as Automações).',
       'Lucro e margem de cada serviço e produto (Premium).',
+    ],
+  },
+  {
+    slug: 'genda',
+    nome: 'GENDA',
+    fonte: 'https://genda.work/#pricing',
+    conferidoEm: '2026-11-14',
+    comoCobra:
+      'Por faixa de profissionais: Grátis (1 profissional, 50 mensagens de WhatsApp por mês), R$ 39,90 (1), R$ 79,90 (até 3) e R$ 129,90 (ilimitados) no mensal, com desconto no trimestral e no semestral.',
+    custo: { 1: 'R$ 39,90', 3: 'R$ 79,90', 5: 'R$ 129,90' },
+    teste: '5 dias; depois cai no plano grátis',
+    whatsapp: 'Lembretes e confirmações em todos os planos, com cota de mensagens por mês',
+    comissao: 'Não citado',
+    notaFiscal: 'Não citado',
+    lucroPorServico: 'Não citado',
+    appNasLojas: 'Não citado; funciona no navegador',
+    ondeEleEMelhor: [
+      'Tem plano grátis para 1 profissional.',
+      'Para 1 barbeiro sai mais barato: R$ 39,90, contra R$ 79,90 do Básico.',
+      'Lembrete pelo WhatsApp em todos os planos, até no grátis (com cota).',
+    ],
+    ondePenteFinoEMelhor: [
+      'Comissão automática por item, com extrato do barbeiro, em todos os planos.',
+      'Caixa do dia com a diferença apontada no fechamento e despesas do mês.',
+      'Bot e avisos sem cota de mensagens: o WhatsApp é o da barbearia.',
+      'Lucro e margem de cada serviço e produto (Premium).',
+    ],
+  },
+  {
+    slug: 'barbeiro-app',
+    nome: 'Barbeiro.app',
+    fonte: 'https://www.barbeiro.app/#planos',
+    conferidoEm: '2026-11-14',
+    comoCobra:
+      'Starter R$ 29,90 (até 3 profissionais, sem WhatsApp), Pro R$ 39,90 e WhatsApp Pro R$ 99,90 (profissionais ilimitados) no mensal, com 20% no anual.',
+    custo: { 1: 'R$ 39,90', 3: 'R$ 39,90', 5: 'R$ 39,90' },
+    teste: '14 dias, sem cartão',
+    whatsapp:
+      'Confirmação e lembrete no Pro; as mensagens são cobradas pela Meta (R$ 0,035 a R$ 0,32 cada)',
+    comissao: 'Sim, em todos os planos',
+    notaFiscal: 'NFS-e no WhatsApp Pro ou por R$ 29,90 por mês à parte',
+    lucroPorServico: 'Não citado (cita o lucro do mês e o faturamento por serviço)',
+    appNasLojas: 'App para iPhone na App Store; no Android, pelo navegador',
+    ondeEleEMelhor: [
+      'Bem mais barato: profissionais ilimitados por R$ 39,90 no Pro.',
+      'Emite nota fiscal (no WhatsApp Pro ou à parte).',
+      'App para iPhone na App Store.',
+    ],
+    ondePenteFinoEMelhor: [
+      'WhatsApp da própria barbearia, sem custo por mensagem; lá cada mensagem é cobrada pela Meta.',
+      'Lucro e margem de cada serviço e produto (Premium), não só o lucro do mês.',
+      'Caixa do dia com a diferença apontada no fechamento.',
+      'Clube de assinatura com cobrança pelo link (Pro e Premium).',
+    ],
+  },
+  {
+    slug: 'bestbarbers',
+    nome: 'BestBarbers',
+    fonte: 'https://www.bestbarbers.app/',
+    conferidoEm: '2026-11-14',
+    comoCobra:
+      'A página não mostra os preços: tem o Plano Básico (agenda e financeiro) e o App Próprio, sob consulta com um especialista.',
+    custo: { 1: null, 3: null, 5: null },
+    teste: 'Não citado',
+    whatsapp: 'Não citado; lembretes por notificação no app próprio',
+    comissao: 'Sim, gestão de comissões dos barbeiros',
+    notaFiscal: 'NFS-e automática depois de cada atendimento',
+    lucroPorServico: 'Não citado (cita relatórios e métricas)',
+    appNasLojas: 'Sim, app próprio da barbearia na App Store e na Play Store',
+    ondeEleEMelhor: [
+      'App próprio com a marca da barbearia nas lojas.',
+      'Emite a nota fiscal sozinho depois de cada atendimento.',
+    ],
+    ondePenteFinoEMelhor: [
+      'Preço aberto no site, a partir de R$ 79,90 no Básico, sem precisar falar com vendedor.',
+      'Avisos e bot no WhatsApp da barbearia, sem custo por mensagem.',
+      'Lucro e margem de cada serviço e produto (Premium).',
+      'Caixa do dia com a diferença apontada no fechamento.',
     ],
   },
 ];

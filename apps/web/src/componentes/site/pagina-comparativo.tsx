@@ -110,6 +110,7 @@ function Fontes({ itens }: { itens: readonly Concorrente[] }) {
             <a href={c.fonte} rel="nofollow noopener" className="underline underline-offset-4">
               {c.fonte}
             </a>
+            {c.conferidoEm && ` (conferido em ${dataBr(c.conferidoEm)})`}
           </li>
         ))}
       </ul>
@@ -197,7 +198,7 @@ export function PaginaComparativo({ c }: { c: Concorrente }) {
               ...EQUIPES.map((n) => [
                 `${n} ${n === 1 ? 'barbeiro' : 'barbeiros'}, por mês`,
                 penteFinoPara(n),
-                c.custo[n] ?? 'Veja na página de planos',
+                c.custo[n] ?? 'A página não mostra o preço',
               ]),
               ['Teste grátis', `${DIAS_TESTE} dias, sem cartão`, c.teste],
               ['WhatsApp', PENTE_FINO.whatsapp, c.whatsapp],
@@ -248,13 +249,13 @@ export function PaginaComparativoGeral() {
             Os sistemas lado a lado
           </h2>
           <Tabela
-            legenda="Pente Fino, AppBarber, Trinks e Booksy lado a lado"
+            legenda={`Pente Fino, ${CONCORRENTES.map((c) => c.nome).join(', ')} lado a lado`}
             colunas={['', 'Pente Fino', ...col((c) => c.nome)]}
             linhas={[
               ...EQUIPES.map((n) => [
                 `${n} ${n === 1 ? 'barbeiro' : 'barbeiros'}, por mês`,
                 penteFinoPara(n),
-                ...col((c) => c.custo[n] ?? 'Veja na página de planos'),
+                ...col((c) => c.custo[n] ?? 'A página não mostra o preço'),
               ]),
               ['Teste grátis', `${DIAS_TESTE} dias`, ...col((c) => c.teste)],
               ['WhatsApp', PENTE_FINO.whatsapp, ...col((c) => c.whatsapp)],

@@ -7,6 +7,12 @@ produção (`https://seupentefino.com.br`). Detalhes técnicos e o porquê de ca
 
 ## [Não publicado]
 
+### Adicionado (comparativo com mais sistemas)
+
+- Três sistemas novos no comparativo, com a página oficial e a data da consulta (14/11): **GENDA**, **Barbeiro.app** e **BestBarbers**. Cada um tem a própria página (`/comparativo/...`), com onde ele é melhor e onde o Pente Fino é melhor, e todos entram na tabela de "Como escolher o sistema".
+- Quando o sistema não mostra o preço no site, a tabela diz "A página não mostra o preço".
+- O rodapé leva para a tabela com todos os sistemas.
+
 ### Adicionado (indique e ganhe)
 
 - Página **Indique e ganhe** (`/indique`): qualquer pessoa (barbeiro, cliente de barbearia, fornecedor, quem tem amigo barbeiro) gera um link com o CPF e a chave Pix e ganha **20% de cada mensalidade** que a barbearia indicada pagar, nos **12 primeiros meses** dela.
