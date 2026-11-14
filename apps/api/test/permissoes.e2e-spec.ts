@@ -25,6 +25,8 @@ const PUBLICAS = new Set([
   'GET /publico/clube/:slug',
   'GET /publico/contato', // WhatsApp comercial do site de vendas
   'GET /publico/cupom/:codigo',
+  'GET /publico/depoimentos', // depoimentos ativos da página de vendas
+  'GET /publico/depoimentos/:id/foto',
   'GET /publico/horario/:token',
   'GET /publico/horario/:token/horarios',
   'GET /publico/dominio-liberado', // o Caddy pergunta antes do certificado: só sim ou não
