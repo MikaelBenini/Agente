@@ -12,6 +12,7 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { useState } from 'react';
 import { api } from '@/lib/api';
 import { mesAtual, nomeDoMes } from '@/lib/periodo';
 import { useApp } from './contexto-app';
@@ -35,7 +36,8 @@ export function InicioAgenda({ situacao }: { situacao: EstadoDaConta }) {
     queryKey: ['resumo', 'agenda', mes, unidadeAtiva],
     queryFn: () => api<ResumoDaAgenda>(`resumo/agenda?mes=${mes}${unidade}`),
   });
-  const diasDeConta = Math.floor((Date.now() - Date.parse(situacao.contaDesde)) / 86_400_000);
+  const [agora] = useState(() => Date.now());
+  const diasDeConta = Math.floor((agora - Date.parse(situacao.contaDesde)) / 86_400_000);
   return (
     <section aria-labelledby="titulo-agenda-mes" className="flex flex-col gap-4">
       <h2 id="titulo-agenda-mes" className="text-xl font-semibold">

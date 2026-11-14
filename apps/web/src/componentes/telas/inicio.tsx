@@ -1,10 +1,9 @@
 'use client';
 
-import { formatarMoeda, formatarNumero } from '@pente-fino/shared';
+import { formatarMoeda, formatarNumero, planoDosRecursos } from '@pente-fino/shared';
 import { ChevronRight } from 'lucide-react';
 import { BarraMeta } from '@pente-fino/ui';
 import Link from 'next/link';
-import { planoDosRecursos } from '@pente-fino/shared';
 import { useIndicadores, useMetas, useSituacaoConta } from '@/lib/consultas';
 import { InicioAgenda } from '../inicio-agenda';
 import { useEstadoConfiguracao } from './configuracao-inicial';
