@@ -39,6 +39,7 @@ import { Aviso } from '../aviso';
 import { useApp } from '../contexto-app';
 import { CabecalhoPagina, Estado, Ficha } from '../pagina';
 import { Assinatura } from './assinatura';
+import { IndiqueConta } from './indique-conta';
 import { RegrasDeAgendamento } from './regras-agendamento';
 import { ImportarPlanilha, LinkAgendamento } from './link-e-importacao';
 import { HorarioFuncionamentoDialogo } from '../horario-funcionamento';
@@ -49,7 +50,7 @@ export function TelaConfiguracoes() {
   const abaDoLink = useSearchParams().get('aba');
   const ehDono = papeis.includes('dono');
   const [aba, setAba] = useState(
-    (abaDoLink === 'assinatura' || abaDoLink === 'suporte') && ehDono
+    (abaDoLink === 'assinatura' || abaDoLink === 'suporte' || abaDoLink === 'indique') && ehDono
       ? abaDoLink
       : abaDoLink === 'link'
         ? 'link'
@@ -72,6 +73,7 @@ export function TelaConfiguracoes() {
             ? [
                 { id: 'importar', rotulo: 'Importar planilha', conteudo: <ImportarPlanilha /> },
                 { id: 'assinatura', rotulo: 'Assinatura', conteudo: <Assinatura /> },
+                { id: 'indique', rotulo: 'Indique e ganhe', conteudo: <IndiqueConta /> },
                 { id: 'suporte', rotulo: 'Acesso do suporte', conteudo: <AcessoSuporte /> },
               ]
             : []),

@@ -35,6 +35,7 @@ import { ConfiguracoesAdmin, SaudeAdmin } from './config-admin';
 import { ChatAdmin, useAvisosDoChat } from './chat-admin';
 import { NovaVenda, VendasPorOrigemAdmin, VendasPorVendedor } from './nova-venda';
 import { VisitasSiteAdmin } from './visitas-admin';
+import { IndicacoesAdmin } from './indicacoes-admin';
 import { DepoimentosAdmin } from './depoimentos-admin';
 
 const CHAVE_EU = ['admin', 'eu'] as const;
@@ -276,6 +277,7 @@ function Painel({ u }: { u: UsuarioPlataformaSessao }) {
       conteudo: (
         <div className="flex flex-col gap-8">
           <VisitasSiteAdmin />
+          <IndicacoesAdmin />
           <DepoimentosAdmin />
           <VendasPorOrigemAdmin />
           <VendasPorVendedor />
