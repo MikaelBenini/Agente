@@ -25,6 +25,8 @@ export type PassoAgenda =
   | 'cancelar'
   // Depois de marcar: "quer que eu avise se vagar antes?" (Etapa 14).
   | 'antecipar'
+  // Depois de marcar, para quem ainda não tem: o dia do aniversário (pedido do dono em 13/11).
+  | 'aniversario'
   // Remarcação rápida depois do "Não veio" por atraso: o número já marca (Etapa 14).
   | 'atraso';
 
@@ -328,4 +330,25 @@ export function textoRemarcado(
     `Te esperamos na ${barbearia}.`,
     ...(link ? [comoMudar(link, '')] : []),
   ].join('\n');
+}
+
+// ─── Aniversário pela conversa (pedido do dono em 13/11) ────────────────────
+
+/** A pergunta, para quem marcou e ainda não tem o aniversário na ficha. */
+export const TEXTO_PERGUNTA_ANIVERSARIO =
+  'Quer receber um parabéns no seu aniversário? 🎂 Responda o dia e o mês (ex.: 15/03), ou 0 para pular.';
+
+/**
+ * "15/03", "15-3", "15 03" ou "15/03/1990" → "2000-03-15" (o ano não importa para o parabéns;
+ * 2000 aceita o 29/02). null = não entendeu.
+ */
+export function lerAniversario(texto: string): string | null {
+  const m = texto.trim().match(/^(\d{1,2})\s*[/.\- ]\s*(\d{1,2})(?:\s*[/.\- ]\s*\d{2,4})?$/);
+  if (!m) return null;
+  const dia = Number(m[1]);
+  const mes = Number(m[2]);
+  if (mes < 1 || mes > 12 || dia < 1) return null;
+  const ultimo = new Date(Date.UTC(2000, mes, 0)).getUTCDate();
+  if (dia > ultimo) return null;
+  return `2000-${String(mes).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
 }

@@ -6,6 +6,7 @@ import {
   textoHorarios,
   textoMaisServico,
   textoServicos,
+  lerAniversario,
 } from './agendar-bot.js';
 
 describe('lerNumeros', () => {
@@ -75,5 +76,17 @@ describe('somar serviços', () => {
     expect(t).toContain('30 min');
     expect(t).toMatch(/1\. Barba · R\$\s?30,00 · 20 min/);
     expect(t).toContain('0. Não, escolher o horário');
+  });
+});
+
+describe('aniversário pela conversa', () => {
+  it('lê dia e mês em vários jeitos; o ano não importa', () => {
+    expect(lerAniversario('15/03')).toBe('2000-03-15');
+    expect(lerAniversario(' 5-3 ')).toBe('2000-03-05');
+    expect(lerAniversario('29/02')).toBe('2000-02-29');
+    expect(lerAniversario('15/03/1990')).toBe('2000-03-15');
+    expect(lerAniversario('31/04')).toBeNull();
+    expect(lerAniversario('15/13')).toBeNull();
+    expect(lerAniversario('amanhã')).toBeNull();
   });
 });
