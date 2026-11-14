@@ -41,6 +41,9 @@ function cabecalhos(req: NextRequest, acesso?: string): Headers {
   // Admin F6: segredo da conversa do chat do site (o visitante não tem sessão).
   const chat = req.headers.get('x-chat-token');
   if (chat) h.set('x-chat-token', chat);
+  // Indique e ganhe: o painel de quem indica abre pelo link secreto.
+  const indicador = req.headers.get('x-indicador-token');
+  if (indicador) h.set('x-indicador-token', indicador);
   if (acesso) h.set('authorization', `Bearer ${acesso}`);
   return h;
 }
