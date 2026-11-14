@@ -96,7 +96,8 @@ describe('indique e ganhe', () => {
 
   it('o dono entra pela conta e troca o Pix por meses grátis', async () => {
     const dono = await como(app, a.emails.dono);
-    expect((await dono.get('/conta/indicacao').expect(200)).body).toBeNull();
+    // Ainda fora do programa: resposta vazia (null).
+    expect((await dono.get('/conta/indicacao').expect(200)).text).toBe('');
     await dono.put('/conta/indicacao', { recebe: 'pix' }).expect(400);
     const p = (await dono.put('/conta/indicacao', { recebe: 'meses' }).expect(200))
       .body as PainelIndicador & { link: string };
