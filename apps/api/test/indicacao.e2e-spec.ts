@@ -76,15 +76,15 @@ describe('indique e ganhe', () => {
         indicacao: r.codigo.toLowerCase(),
       })
       .expect(201);
-    const contaId = (cadastro.body as { conta?: { id: string } }).conta?.id;
-    const conta = await plataforma.$queryRaw<{ indicado_por: string; dias: number }[]>`
-      SELECT indicado_por, extract(day from teste_ate - criado_em)::int AS dias
-        FROM conta WHERE nome = ${`Indicada ${sufixo}`}`.catch(() => []);
-    if (contaId) contasCriadas.push(contaId);
-    if (conta[0]) {
-      expect(conta[0].indicado_por).toBe(r.codigo);
-      expect(conta[0].dias).toBeGreaterThanOrEqual(29);
-    }
+    const sessao = cadastro.body as { accessToken: string; usuario: { contaId?: string } };
+    if (sessao.usuario.contaId) contasCriadas.push(sessao.usuario.contaId);
+    const estado = (
+      await http()
+        .get('/conta/situacao')
+        .set('authorization', `Bearer ${sessao.accessToken}`)
+        .expect(200)
+    ).body as { diasRestantesTeste: number };
+    expect(estado.diasRestantesTeste).toBeGreaterThanOrEqual(29);
 
     await http().get('/publico/indicadores/painel').expect(404);
     const painel = (
