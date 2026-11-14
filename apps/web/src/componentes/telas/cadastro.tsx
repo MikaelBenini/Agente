@@ -10,6 +10,7 @@ import {
   LIMITES_PLANO,
   NOME_PLANO,
   PLANOS,
+  automacoesAParte,
   type PlanoConta,
   aplicarDesconto,
   formatarPercentualBp,
@@ -37,7 +38,7 @@ import { eventoGoogle } from '../site/tag-google';
 function limitePlano(p: PlanoConta) {
   if (p === 'premium') return 'Várias unidades · profissionais ilimitados';
   const l = LIMITES_PLANO[p];
-  return `${l.unidades} unidade · até ${l.profissionais} profissionais`;
+  return `${l.unidades} unidade, até ${l.profissionais} profissionais`;
 }
 
 /** "(11) 98888-7777" enquanto digita; aceita colar com +55. */
@@ -317,6 +318,26 @@ export function FormularioCadastro() {
             </label>
           ))}
         </div>
+        {!!plano && automacoesAParte(plano) && (
+          <label className="mt-2 flex cursor-pointer items-start gap-3 rounded-md border border-borda p-3 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-foco">
+            <input
+              type="checkbox"
+              {...register('automacoes')}
+              className="mt-1 size-5 accent-[var(--modulo)]"
+            />
+            <span className="flex flex-col">
+              <span className="font-semibold">
+                Automações, mais{' '}
+                {formatarMoeda(tabela.automacoes[ciclo === 'mensal' ? 'mensal' : 'anualPorMes'])}
+                /mês
+              </span>
+              <span className="text-sm text-tinta-suave">
+                O bot que responde e marca pela conversa, a lista de espera, a pesquisa depois do
+                atendimento, o retorno de quem sumiu e o aniversário.
+              </span>
+            </span>
+          </label>
+        )}
       </fieldset>
       <Campo
         id="cadastro-cupom"

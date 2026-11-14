@@ -33,3 +33,18 @@ test('ficha do cliente: editar os dados e pôr o aniversário', async ({ page })
   await expect(editar).toBeHidden();
   await expect(ficha.getByText('12/05')).toBeVisible();
 });
+
+test('campos com máscara: WhatsApp formata enquanto digita e avisa número errado', async ({
+  page,
+}) => {
+  await entrar(page);
+  await page.goto('/clientes');
+  await page.getByRole('button', { name: /Novo cliente/ }).click();
+  const novo = page.getByRole('dialog', { name: 'Novo cliente' });
+  const zap = novo.getByLabel('WhatsApp');
+  await zap.pressSequentially('11988887777');
+  await expect(zap).toHaveValue('(11) 98888-7777');
+  await zap.fill('');
+  await zap.pressSequentially('11888887777');
+  await expect(novo.getByText('Celular com 11 dígitos começa com 9 depois do DDD.')).toBeVisible();
+});

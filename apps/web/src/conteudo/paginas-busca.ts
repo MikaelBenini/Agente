@@ -81,6 +81,61 @@ export const PAGINAS_BUSCA: readonly PaginaBusca[] = [
     ],
   },
   {
+    caminho: '/agenda-para-barbeiro',
+    nome: 'Agenda para barbeiro',
+    titulo: 'Agenda para barbeiro por R$ 10 por mês, com link e site',
+    descricao:
+      'Agenda para barbeiro com link para o cliente marcar sozinho, site da barbearia e avisos no WhatsApp. Plano Agenda por R$ 10 por mês.',
+    h1: 'Agenda para barbeiro, com link para o cliente marcar sozinho',
+    resposta:
+      'O plano Agenda custa R$ 10 por mês: a agenda de até 2 barbeiros, o link de agendamento para pôr no Instagram, o site da barbearia e os avisos no seu WhatsApp (confirmação, lembrete e remarcar). Quando precisar de comanda, caixa e comissão, é só passar para o Básico, sem perder nada.',
+    secoes: [
+      {
+        titulo: 'Uma agenda para cada barbeiro',
+        texto:
+          'Horário de trabalho, folga e almoço de cada um. Você vê o dia inteiro numa tela e encaixa quem chega sem horário.',
+        tela: 'agenda',
+        alt: 'Agenda com uma coluna por barbeiro',
+      },
+      {
+        titulo: 'O cliente marca sozinho',
+        texto:
+          'O link abre no celular, sem baixar nada. O cliente escolhe o serviço, o barbeiro e um horário livre. Você para de responder mensagem só para marcar.',
+      },
+      {
+        titulo: 'Site da barbearia incluso',
+        texto:
+          'Uma página com os serviços, os preços, a equipe, as fotos e o botão de agendar, com o seu endereço.',
+      },
+      {
+        titulo: 'Avisos no seu WhatsApp',
+        texto:
+          'Confirmação na hora, lembrete antes do horário e o link para remarcar ou cancelar, saindo do WhatsApp da própria barbearia, sem custo por mensagem.',
+      },
+      {
+        titulo: 'Bot e lista de espera, se quiser',
+        texto:
+          'Com as Automações, por mais R$ 10 por mês, o bot responde e marca pela conversa, e o horário que vaga vai para quem está na lista de espera.',
+      },
+    ],
+    perguntas: [
+      {
+        pergunta: 'Quanto custa?',
+        resposta:
+          'R$ 10 por mês, ou R$ 99 no ano. As Automações custam mais R$ 10 por mês. Teste grátis antes, sem cartão.',
+      },
+      {
+        pergunta: 'E quando a barbearia crescer?',
+        resposta:
+          'No Básico entram a comanda, o caixa do dia, as despesas e a comissão de cada barbeiro, e cabem até 3 barbeiros. A agenda e os clientes continuam como estão.',
+      },
+      {
+        pergunta: 'Preciso de computador?',
+        resposta: 'Não. Tudo funciona no celular, no navegador, sem baixar aplicativo.',
+      },
+    ],
+  },
+  {
     caminho: '/agenda-online-para-barbearia',
     nome: 'Agenda online para barbearia',
     titulo: 'Agenda online para barbearia com link de agendamento',
@@ -125,7 +180,7 @@ export const PAGINAS_BUSCA: readonly PaginaBusca[] = [
       {
         pergunta: 'Tem lembrete do horário?',
         resposta:
-          'Nos planos Pro e Premium, o bot do WhatsApp da própria barbearia manda o lembrete, sem custo por mensagem.',
+          'Sim, em todos os planos: o WhatsApp da própria barbearia manda a confirmação e o lembrete, sem custo por mensagem.',
       },
       {
         pergunta: 'Posso bloquear o almoço de toda semana?',
@@ -282,7 +337,7 @@ export const PAGINAS_BUSCA: readonly PaginaBusca[] = [
     nome: 'WhatsApp para barbearia',
     titulo: 'Bot de WhatsApp para barbearia, sem custo por mensagem',
     descricao:
-      'Bot de WhatsApp para barbearia que agenda 24 horas com menus que você programa. Sem inteligência artificial e sem custo por mensagem. Planos Pro e Premium.',
+      'Bot de WhatsApp para barbearia que agenda 24 horas com menus que você programa. Sem inteligência artificial e sem custo por mensagem. Incluso no Pro e no Premium.',
     h1: 'Bot de WhatsApp para barbearia que agenda sozinho',
     resposta:
       'O bot usa o WhatsApp da própria barbearia, conectado por QR Code. Ele responde com menus que você programa: agendar, remarcar, ver preços e endereço. Não usa inteligência artificial e não cobra por mensagem.',
@@ -314,7 +369,8 @@ export const PAGINAS_BUSCA: readonly PaginaBusca[] = [
       },
       {
         pergunta: 'Tem custo por mensagem?',
-        resposta: 'Não. O bot está incluso nos planos Pro e Premium.',
+        resposta:
+          'Não. O bot está incluso nos planos Pro e Premium; no Agenda e no Básico, com as Automações (mais R$ 10 por mês).',
       },
       {
         pergunta: 'E se o cliente quiser falar com uma pessoa?',

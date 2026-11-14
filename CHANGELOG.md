@@ -7,6 +7,19 @@ produção (`https://seupentefino.com.br`). Detalhes técnicos e o porquê de ca
 
 ## [Não publicado]
 
+### Melhorado (campos dos formulários)
+
+- CPF e CNPJ com máscara e conferência do dígito na hora, sem esperar o envio: assinatura do Pente Fino, recebimento do clube online e assinatura do clube pelo cliente.
+- WhatsApp e telefone com máscara "(11) 98888-7777" e aviso de DDD ou número errado em todos os formulários (clientes, equipe, convite, link de agendamento, configuração inicial, unidade, clube e administração); CEP com máscara.
+- "Agendar pela conversa do WhatsApp" ligado sem as Automações mostra na hora que o bot vem com elas.
+
+### Adicionado (plano Agenda no site)
+
+- Em `/planos`, a faixa "Só precisa da agenda?" logo abaixo dos três planos, com o preço do Agenda e o botão de teste grátis; a tabela de recursos ganhou a coluna do Agenda.
+- Página nova para quem procura "agenda para barbeiro" no Google (`/agenda-para-barbeiro`).
+- No cadastro, com o Agenda ou o Básico escolhido, aparece a opção das Automações.
+- Textos do site atualizados: os avisos no WhatsApp vêm em todos os planos, e o bot vem incluso no Pro e no Premium (no Agenda e no Básico, com as Automações).
+
 ### Adicionado (plano Agenda: convites na hora certa)
 
 - O Início do Agenda mostra a agenda do mês no lugar do faturamento: atendidos, o que ainda vem, clientes novos, faltas, cancelados e marcados pelo próprio cliente (link ou WhatsApp).

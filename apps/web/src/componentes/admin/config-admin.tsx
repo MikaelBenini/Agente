@@ -18,6 +18,7 @@ import {
   type CupomNaTela,
   type EventoDaAuditoria,
   type PublicoAviso,
+  mascararTelefone,
   NOME_PLANO,
   PLANOS,
 } from '@pente-fino/shared';
@@ -35,6 +36,7 @@ import { NotaFiscalAdmin, NotasNaSaude } from './nota-fiscal-admin';
 import { useTabelasAdmin } from './precos-admin';
 import { RespostasChatAdmin } from './respostas-chat-admin';
 import { ResultadoCupons } from './resultado-cupons';
+import { CampoTelefone } from '../campos';
 
 const mensagemDe = (e: unknown) =>
   e instanceof ErroApi ? (e.campos[0]?.mensagem ?? e.message) : 'Não foi possível salvar.';
@@ -113,7 +115,7 @@ function Formularios({ c }: { c: ConfiguracaoPublica }) {
   const [taxaClube, setTaxaClube] = useState(
     (c.clubeOnline.taxaBp / 100).toLocaleString('pt-BR', { maximumFractionDigits: 2 }),
   );
-  const [whatsapp, setWhatsapp] = useState(c.contatoSite.whatsapp);
+  const [whatsapp, setWhatsapp] = useState(mascararTelefone(c.contatoSite.whatsapp));
   const atualizar = () => cliente.invalidateQueries({ queryKey: ['admin', 'configuracoes'] });
 
   return (
@@ -297,13 +299,11 @@ function Formularios({ c }: { c: ConfiguracaoPublica }) {
           em &ldquo;Visitantes da página de vendas&rdquo;. Vazio tira o WhatsApp do site.
         </p>
         <div className="max-w-xs">
-          <Campo
+          <CampoTelefone
             id="contato-site-whatsapp"
             rotulo="WhatsApp com DDD"
-            inputMode="tel"
-            autoComplete="off"
-            value={whatsapp}
-            onChange={(e) => setWhatsapp(e.target.value)}
+            valor={whatsapp}
+            onValor={setWhatsapp}
           />
         </div>
         <Salvar

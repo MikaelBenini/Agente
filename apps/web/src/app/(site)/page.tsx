@@ -54,7 +54,7 @@ export const metadata: Metadata = {
 
 const SELOS = [
   `${DIAS_TESTE} dias grátis, sem cartão`,
-  'WhatsApp no Pro e no Premium, sem custo por mensagem',
+  'Avisos no WhatsApp em todos os planos, sem custo por mensagem',
   'Sem cobrança por barbeiro',
   'Funciona no celular, sem baixar app',
 ] as const;
@@ -688,7 +688,7 @@ export default function Pagina() {
             Preço justo, sem cobrar por barbeiro
           </h2>
           <p className="max-w-2xl text-tinta-suave">
-            WhatsApp incluso no Pro e no Premium, sem custo por mensagem. No anual,{' '}
+            Avisos no WhatsApp em todos os planos, sem custo por mensagem. No anual,{' '}
             {textoEconomiaAnual()}.{' '}
             <Link href="/planos" className="text-tinta underline underline-offset-4">
               Compare tudo o que vem em cada plano

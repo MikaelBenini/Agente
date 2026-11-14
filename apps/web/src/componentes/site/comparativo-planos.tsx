@@ -2,12 +2,11 @@ import { incluiRecurso, NOME_PLANO, PLANOS, RECURSOS_PLANO } from '@pente-fino/s
 import { Check, Minus } from 'lucide-react';
 
 const LIMITES = [
-  { nome: 'Unidades', valores: ['1', '1', 'Ilimitadas'] },
-  { nome: 'Profissionais', valores: ['Até 3', 'Até 10', 'Ilimitados'] },
+  { nome: 'Unidades', valores: ['1', '1', '1', 'Ilimitadas'] },
+  { nome: 'Profissionais', valores: ['Até 2', 'Até 3', 'Até 10', 'Ilimitados'] },
 ] as const;
 
-// O Agenda ganha a coluna quando tiver a apresentação própria no site (entrega de divulgação).
-const NA_TABELA = PLANOS.filter((p) => p !== 'agenda');
+const NA_TABELA = PLANOS;
 
 /** Tabela de recursos por plano. O que ainda está em construção aparece como "em breve". */
 export function ComparativoPlanos() {
@@ -29,7 +28,7 @@ export function ComparativoPlanos() {
               <th
                 key={p}
                 scope="col"
-                className="w-[18%] p-3 text-center font-denso text-lg font-bold uppercase sm:p-4"
+                className="w-[15%] p-3 text-center font-denso text-lg font-bold uppercase sm:p-4"
               >
                 {NOME_PLANO[p]}
               </th>

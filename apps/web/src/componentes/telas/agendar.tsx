@@ -41,6 +41,7 @@ import { Suspense, useEffect, useMemo, useState } from 'react';
 import { api, ErroApi } from '@/lib/api';
 import { Aviso } from '../aviso';
 import { IconeMarca } from '../marca';
+import { CampoTelefone } from '../campos';
 
 export function proximosDias(n: number): string[] {
   const hoje = dataLocal(new Date());
@@ -667,15 +668,13 @@ function Formulario({
                     </p>
                   </div>
                 ) : (
-                  <Campo
+                  <CampoTelefone
                     id="agendar-telefone"
                     rotulo="WhatsApp"
-                    type="tel"
-                    inputMode="tel"
-                    autoComplete="tel"
+                    obrigatorio
                     dica="Com DDD. A barbearia usa para confirmar o horário."
-                    value={telefone}
-                    onChange={(e) => setTelefone(e.target.value)}
+                    valor={telefone}
+                    onValor={setTelefone}
                   />
                 )}
                 {u.lembretesWhatsapp && (

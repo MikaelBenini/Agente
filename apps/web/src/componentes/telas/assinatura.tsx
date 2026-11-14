@@ -31,6 +31,7 @@ import { api, ErroApi } from '@/lib/api';
 import { chaveAssinatura, useAcao, useAssinatura } from '@/lib/consultas';
 import { Aviso } from '../aviso';
 import { Estado, Ficha, Tabela, td, th } from '../pagina';
+import { CampoDocumento } from '../campos';
 
 const TOM_SITUACAO: Record<SituacaoAssinatura, 'acao' | 'aviso' | 'neutro' | 'perigo'> = {
   teste: 'aviso',
@@ -473,18 +474,11 @@ function Assinar({
               className="sm:col-span-3"
             />
           )}
-          <Campo
+          <CampoDocumento
             id="assinar-documento"
             rotulo="CPF ou CNPJ de quem paga"
-            inputMode="numeric"
-            autoComplete="off"
-            value={documento}
-            onChange={(e) => setDocumento(e.target.value)}
-            erro={
-              documento.replace(/\D/g, '').length >= 11 && !docOk
-                ? 'CPF ou CNPJ inválido.'
-                : undefined
-            }
+            valor={documento}
+            onValor={setDocumento}
           />
           {descontoBp === 0 && (
             <div className="flex flex-col gap-2 sm:col-span-3">

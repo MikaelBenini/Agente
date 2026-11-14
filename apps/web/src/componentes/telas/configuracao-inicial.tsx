@@ -12,6 +12,7 @@ import { Aviso } from '../aviso';
 import { useApp } from '../contexto-app';
 import { Estado } from '../pagina';
 import { NovoProfissional } from './equipe';
+import { CampoTelefone } from '../campos';
 
 interface Modelo {
   nome: string;
@@ -163,13 +164,12 @@ function FormUnidade({
         value={f.endereco}
         onChange={(e) => setF({ ...f, endereco: e.target.value })}
       />
-      <Campo
+      <CampoTelefone
         id="ci-telefone"
         rotulo="WhatsApp da unidade"
-        inputMode="tel"
         dica="Aparece no link de agendamento para o cliente confirmar."
-        value={f.telefone}
-        onChange={(e) => setF({ ...f, telefone: e.target.value })}
+        valor={f.telefone}
+        onValor={(v) => setF({ ...f, telefone: v })}
       />
       <fieldset className="min-w-0">
         <legend className="mb-1.5 text-sm font-medium">Dias de trabalho</legend>
