@@ -15,7 +15,10 @@ const CHAVE = ['admin', 'indicacoes'];
 
 export function IndicacoesAdmin() {
   const cliente = useQueryClient();
-  const q = useQuery({ queryKey: CHAVE, queryFn: () => adminApi<IndicadorNaAdmin[]>('indicacoes') });
+  const q = useQuery({
+    queryKey: CHAVE,
+    queryFn: () => adminApi<IndicadorNaAdmin[]>('indicacoes'),
+  });
   const [erro, setErro] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
   async function pagar(i: IndicadorNaAdmin) {
@@ -47,8 +50,8 @@ export function IndicacoesAdmin() {
       </h2>
       <p className="text-sm text-tinta-suave">
         O Pix sai uma vez por mês, a partir de {formatarMoeda(MINIMO_SAQUE)} liberados (30 dias
-        depois do pagamento da indicada). Faça o Pix pela chave e marque como pago. Os meses
-        grátis de quem é cliente entram como desconto na próxima cobrança.
+        depois do pagamento da indicada). Faça o Pix pela chave e marque como pago. Os meses grátis
+        de quem é cliente entram como desconto na próxima cobrança.
       </p>
       {erro && <Aviso tom="erro">{erro}</Aviso>}
       {ok && <Aviso tom="sucesso">{ok}</Aviso>}
@@ -74,7 +77,9 @@ export function IndicacoesAdmin() {
                   <tr key={i.id} className="border-b border-borda">
                     <th scope="row" className={`${td} font-normal`}>
                       <span className="font-semibold">{i.nome}</span>
-                      {i.cliente && <span className="ml-1 text-sm text-tinta-suave">(cliente)</span>}
+                      {i.cliente && (
+                        <span className="ml-1 text-sm text-tinta-suave">(cliente)</span>
+                      )}
                       <span className="block text-sm text-tinta-suave">
                         {i.email}
                         {i.recebe === 'pix' && i.chavePix ? `, Pix: ${i.chavePix}` : ''}

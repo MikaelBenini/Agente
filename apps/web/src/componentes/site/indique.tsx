@@ -147,7 +147,12 @@ export function PainelDoIndicador({ token }: { token: string }) {
   if (!token || q.isError)
     return <Aviso tom="erro">Link do painel inválido. Use o link que apareceu no cadastro.</Aviso>;
   if (!q.data) return <p className="text-tinta-suave">Carregando…</p>;
-  return <ConteudoPainel p={q.data} link={`${window.location.origin}/cadastro?indicacao=${q.data.codigo}`} />;
+  return (
+    <ConteudoPainel
+      p={q.data}
+      link={`${window.location.origin}/cadastro?indicacao=${q.data.codigo}`}
+    />
+  );
 }
 
 export function ConteudoPainel({ p, link }: { p: PainelIndicador; link: string }) {

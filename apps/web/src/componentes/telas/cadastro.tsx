@@ -111,9 +111,7 @@ export function FormularioCadastro() {
   const indicacao = useQuery({
     queryKey: ['indicacao', indicacaoDoLink],
     queryFn: () =>
-      api<{ valido: boolean }>(
-        `publico/indicadores/codigo/${encodeURIComponent(indicacaoDoLink)}`,
-      ),
+      api<{ valido: boolean }>(`publico/indicadores/codigo/${encodeURIComponent(indicacaoDoLink)}`),
     enabled: !!indicacaoDoLink,
     retry: false,
   });

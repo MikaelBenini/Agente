@@ -459,7 +459,7 @@ PR, mergeado quando o CI passar (autorização do dono para os próximos):
   atualização da página de vendas). Referência de estilo: o blog do próprio dono
   (`navalhago.app/blog`); aproveitar as ideias e o jeito de escrever, sempre com a identidade
   do Pente Fino (nome, cores, marca e textos próprios, nada copiado ao pé da letra):
-  - **"Indique e ganhe"** (regras decididas pelo dono em 14/11, depois de estudar o programa do
+  - [x] **"Indique e ganhe"** (feito em 14/11; regras decididas pelo dono, depois de estudar o programa do
     site de referência):
     - **qualquer pessoa** pode indicar, não só barbeiro: quem tem amigo barbeiro, fornecedor,
       influenciador; cadastro grátis de indicador, com link próprio;

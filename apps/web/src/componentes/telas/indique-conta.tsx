@@ -22,9 +22,9 @@ export function IndiqueConta() {
       {() => (
         <div className="flex max-w-4xl flex-col gap-6">
           <p className="text-tinta-suave">
-            Indique o Pente Fino para outras barbearias. Quem entra pelo seu link ganha 30 dias
-            para testar, e você escolhe: 20% das mensalidades dela nos 12 primeiros meses, no Pix,
-            ou 1 mês grátis na sua assinatura a cada barbearia que pagar.
+            Indique o Pente Fino para outras barbearias. Quem entra pelo seu link ganha 30 dias para
+            testar, e você escolhe: 20% das mensalidades dela nos 12 primeiros meses, no Pix, ou 1
+            mês grátis na sua assinatura a cada barbearia que pagar.
           </p>
           {q.data && <ConteudoPainel p={q.data} link={q.data.link} />}
           <Escolha atual={q.data ?? null} />

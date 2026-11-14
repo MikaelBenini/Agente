@@ -7,6 +7,15 @@ produção (`https://seupentefino.com.br`). Detalhes técnicos e o porquê de ca
 
 ## [Não publicado]
 
+### Adicionado (indique e ganhe)
+
+- Página **Indique e ganhe** (`/indique`): qualquer pessoa (barbeiro, cliente de barbearia, fornecedor, quem tem amigo barbeiro) gera um link com o CPF e a chave Pix e ganha **20% de cada mensalidade** que a barbearia indicada pagar, nos **12 primeiros meses** dela.
+- A barbearia que entra pelo link ganha **30 dias de teste** e vê o aviso no cadastro.
+- A comissão libera 30 dias depois do pagamento (se houver estorno antes, ela é cancelada); o Pix sai uma vez por mês, a partir de R$ 50 liberados.
+- Painel de quem indica, aberto pelo link secreto mostrado no cadastro: barbearias indicadas, liberado, a liberar e já recebido.
+- Quem já é cliente encontra o link em **Configurações → Indique e ganhe** e escolhe entre o Pix e **1 mês grátis** na assinatura por barbearia que pagar.
+- Na administração (aba Vendas), a lista de quem indica, com o Pix liberado, a chave e os botões "Marcar Pix pago" e "Marcar mês aplicado".
+
 ### Adicionado (página de vendas nova, parte 1)
 
 - Seção "Se você se identifica com algum desses problemas", logo depois da abertura: seis dores do dia a dia da barbearia, cada uma com o que o Pente Fino faz.
