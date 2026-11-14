@@ -7,6 +7,10 @@ import {
 } from '@pente-fino/shared';
 import {
   BellRing,
+  HandCoins,
+  Repeat,
+  SlidersHorizontal,
+  UserCog,
   Building2,
   CalendarCheck,
   Check,
@@ -118,9 +122,8 @@ const EXTRAS: {
 }[] = [
   {
     icone: BellRing,
-    titulo: 'Lembretes automáticos',
-    texto: '24 h e 2 h antes, com confirmação.',
-    recurso: 'bot',
+    titulo: 'Lembretes no WhatsApp',
+    texto: 'Antes do horário, com confirmar e remarcar.',
   },
   {
     icone: ListOrdered,
@@ -149,6 +152,18 @@ const EXTRAS: {
   },
   { icone: Printer, titulo: 'Comanda impressa', texto: 'PDF com QR code, 4 ou 6 por folha.' },
   { icone: FileSpreadsheet, titulo: 'Relatório do contador', texto: 'Planilha e PDF do mês.' },
+  {
+    icone: HandCoins,
+    titulo: 'Sinal adiantado',
+    texto: 'Recebe parte antes; abate no fechamento.',
+  },
+  { icone: UserCog, titulo: 'Preço por barbeiro', texto: 'Cada um com o próprio preço.' },
+  { icone: Repeat, titulo: 'Despesas fixas', texto: 'Aluguel e contas se repetem sozinhos.' },
+  {
+    icone: SlidersHorizontal,
+    titulo: 'Preço livre',
+    texto: 'Química com faixa de preço e comissão certa.',
+  },
 ];
 
 type Celula = boolean | 'parcial';
