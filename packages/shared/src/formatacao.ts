@@ -132,3 +132,29 @@ export function nomeCurto(nome: string): string {
   if (partes.length <= 1) return partes[0] ?? '';
   return `${partes[0]} ${partes[1]!.charAt(0).toUpperCase()}.`;
 }
+
+/** Máscara de CEP enquanto digita: "01310100" → "01310-100". */
+export function mascararCep(texto: string): string {
+  const d = texto.replace(/\D/g, '').slice(0, 8);
+  return d.length > 5 ? `${d.slice(0, 5)}-${d.slice(5)}` : d;
+}
+
+/**
+ * Mensagem do campo enquanto a pessoa digita (revisão dos campos, 14/11): só reclama quando o
+ * número já está completo, para não acusar erro no meio da digitação. null = sem problema.
+ */
+export function erroDoTelefone(texto: string, obrigatorio = false): string | null {
+  const d = texto.replace(/\D/g, '').replace(/^55(?=\d{10,11}$)/, '');
+  if (!d) return obrigatorio ? 'Informe o WhatsApp com DDD.' : null;
+  if (d.length < 10) return null;
+  if (d.length > 11 || Number(d.slice(0, 2)) < 11) return 'Confira o DDD e o número.';
+  if (d.length === 11 && d[2] !== '9') return 'Celular com 11 dígitos começa com 9 depois do DDD.';
+  return null;
+}
+
+/** CEP com 8 dígitos; incompleto ainda não acusa erro. */
+export function erroDoCep(texto: string): string | null {
+  const d = texto.replace(/\D/g, '');
+  if (!d || d.length < 8) return null;
+  return /^0{8}$/.test(d) ? 'CEP inválido.' : null;
+}

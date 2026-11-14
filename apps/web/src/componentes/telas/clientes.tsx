@@ -32,6 +32,7 @@ import { ListaMensagens } from '../lista-mensagens';
 import { MandarMensagem } from '../mandar-mensagem';
 import { useApp } from '../contexto-app';
 import { CabecalhoPagina, Estado, Ficha, Tabela, td, th } from '../pagina';
+import { CampoTelefone } from '../campos';
 
 const mensagemDe = (e: unknown) =>
   e instanceof ErroApi ? (e.campos[0]?.mensagem ?? e.message) : 'Não foi possível concluir.';
@@ -501,12 +502,11 @@ function EditarCliente({ cliente, onFechar }: { cliente: ClienteDetalhe; onFecha
           onChange={(e) => setF({ ...f, nome: e.target.value })}
         />
         {!cliente.telefoneOculto && (
-          <Campo
+          <CampoTelefone
             id="editar-cliente-telefone"
             rotulo="WhatsApp"
-            inputMode="tel"
-            value={f.telefone}
-            onChange={(e) => setF({ ...f, telefone: e.target.value })}
+            valor={f.telefone}
+            onValor={(v) => setF({ ...f, telefone: v })}
           />
         )}
         <Campo
@@ -576,12 +576,11 @@ function NovoCliente({ aberto, onFechar }: { aberto: boolean; onFechar: () => vo
           value={f.nome}
           onChange={(e) => setF({ ...f, nome: e.target.value })}
         />
-        <Campo
+        <CampoTelefone
           id="cliente-telefone"
           rotulo="WhatsApp"
-          inputMode="tel"
-          value={f.telefone}
-          onChange={(e) => setF({ ...f, telefone: e.target.value })}
+          valor={f.telefone}
+          onValor={(v) => setF({ ...f, telefone: v })}
         />
         <Campo
           id="cliente-email"

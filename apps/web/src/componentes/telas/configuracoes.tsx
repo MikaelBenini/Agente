@@ -15,6 +15,7 @@ import {
   type ContaEntrada,
   type UnidadeDetalhe,
 } from '@pente-fino/shared';
+import { mascararTelefone } from '@pente-fino/shared';
 import {
   Abas,
   Botao,
@@ -360,7 +361,11 @@ function FormularioUnidade({
           rotulo="Telefone"
           inputMode="tel"
           erro={formState.errors.telefone?.message}
-          {...register('telefone')}
+          {...register('telefone', {
+            onChange: (e: { target: HTMLInputElement }) => {
+              e.target.value = mascararTelefone(e.target.value);
+            },
+          })}
         />
         <fieldset className="min-w-0">
           <legend className="mb-1.5 text-sm font-medium">Dias de trabalho</legend>

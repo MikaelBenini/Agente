@@ -299,7 +299,7 @@ PR, mergeado quando o CI passar (autorização do dono para os próximos):
 10. [x] Saber o que o visitante faz na página de vendas (painel no /admin)
 11. Seção 8: plano Agenda (com a regra do cupom), página "Sobre" (N5), página de vendas
     atualizada e vídeo novo
-12. Revisão dos campos de entrada e das validações (CPF, máscaras, avisos das caixas de marcar)
+12. [x] Revisão dos campos de entrada e das validações (CPF, máscaras, avisos das caixas de marcar)
 13. Seção 9: verificação final
 
 - [ ] **Página da barbearia editável** (painel P2 e P5), aprovada em 11/11:
@@ -496,7 +496,7 @@ PR, mergeado quando o CI passar (autorização do dono para os próximos):
   - licença grátis enquanto a empresa tiver até 3 pessoas;
   - o projeto fica numa pasta própria, fora do build do site.
 
-- [ ] **Revisão dos campos de entrada e das validações** (pedido do dono em 13/11, antes da
+- [x] **Revisão dos campos de entrada e das validações** (pedido do dono em 13/11, antes da
   verificação final): percorrer todos os formulários (cadastro da conta, assinatura, clube,
   clientes, equipe, unidades, despesas, admin) e conferir:
   - validação e máscara de CPF e CNPJ (com dígito verificador), telefone, CEP, e-mail, datas e
@@ -505,6 +505,20 @@ PR, mergeado quando o CI passar (autorização do dono para os próximos):
   - caixas de marcar (checkbox) que pedem uma ação ou têm consequência mostram o aviso na hora
     (o que acontece, o que falta fazer);
   - o resultado vira uma lista de achados e as correções entram em lotes antes da seção 9;
+  - **achados e correções (14/11):**
+    - [x] CPF e CNPJ sem máscara e com erro só no envio (assinatura, clube online, assinar o
+      clube): agora `CampoDocumento`, com máscara e o dígito verificador conferido quando o
+      número fica completo;
+    - [x] WhatsApp e telefone sem máscara em 10 formulários (clientes, equipe, convite, link de
+      agendamento, busca de cliente, configuração inicial, unidade, clube online, assinar o
+      clube e admin): agora `CampoTelefone`, com "(11) 98888-7777" e o aviso de DDD e do 9;
+    - [x] CEP sem máscara (clube online): agora `CampoCep`;
+    - [x] o servidor já normaliza os valores com máscara (mesmo zod do shared), conferido;
+    - [x] "Agendar pela conversa do WhatsApp" ligado sem as Automações: aviso na hora de que o
+      bot vem com elas;
+    - [x] as outras caixas com consequência já avisam (cancelar com "não veio", avisar o cliente
+      só com o WhatsApp conectado, devolver o sinal com o valor);
+    - e-mail, datas e valores em reais já usavam campo próprio e a mesma mensagem da API;
 
 ## 9. Por último: verificação final do ecossistema
 

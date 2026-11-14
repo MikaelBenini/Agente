@@ -5,6 +5,7 @@ import { Botao, Campo, cn } from '@pente-fino/ui';
 import { Check, UserPlus } from 'lucide-react';
 import { useDeferredValue, useState } from 'react';
 import { useClientes } from '@/lib/consultas';
+import { CampoTelefone } from '../campos';
 
 export type ClienteEscolhido =
   | { clienteId: string; nome: string }
@@ -51,12 +52,11 @@ export function BuscaCliente({
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
         />
-        <Campo
+        <CampoTelefone
           id={`${id}-novo-telefone`}
           rotulo="WhatsApp (opcional)"
-          inputMode="tel"
-          value={telefone}
-          onChange={(e) => setTelefone(e.target.value)}
+          valor={telefone}
+          onValor={setTelefone}
         />
         <div className="flex gap-2">
           <Botao

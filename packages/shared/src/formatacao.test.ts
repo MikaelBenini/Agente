@@ -10,6 +10,9 @@ import {
   formatarPercentualBp,
   formatarTelefone,
   formatarValor,
+  erroDoCep,
+  erroDoTelefone,
+  mascararCep,
 } from './formatacao.js';
 
 describe('formatação pt-BR', () => {
@@ -48,5 +51,25 @@ describe('nome curto no bloco da agenda (painel M9)', () => {
     expect(nomeCurto('Ana Paula Souza')).toBe('Ana P.');
     expect(nomeCurto('  Ana  ')).toBe('Ana');
     expect(nomeCurto('')).toBe('');
+  });
+});
+
+describe('campos com máscara (revisão dos campos)', () => {
+  it('CEP', () => {
+    expect(mascararCep('01310100')).toBe('01310-100');
+    expect(mascararCep('0131')).toBe('0131');
+    expect(erroDoCep('01310-100')).toBeNull();
+    expect(erroDoCep('00000000')).toBe('CEP inválido.');
+    expect(erroDoCep('0131')).toBeNull();
+  });
+
+  it('telefone: só acusa quando o número está completo', () => {
+    expect(erroDoTelefone('(11) 9888')).toBeNull();
+    expect(erroDoTelefone('(11) 98888-7777')).toBeNull();
+    expect(erroDoTelefone('(11) 3333-4444')).toBeNull();
+    expect(erroDoTelefone('(11) 88888-7777')).toMatch(/começa com 9/);
+    expect(erroDoTelefone('(05) 98888-7777')).toMatch(/DDD/);
+    expect(erroDoTelefone('', true)).toMatch(/Informe/);
+    expect(erroDoTelefone('')).toBeNull();
   });
 });

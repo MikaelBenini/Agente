@@ -19,6 +19,7 @@ import { mesAtual } from '@/lib/periodo';
 import { Aviso } from '../aviso';
 import { SeletorMes } from '../indicadores';
 import { Estado, Ficha, Tabela, td, th } from '../pagina';
+import { CampoCep, CampoDocumento, CampoTelefone } from '../campos';
 
 const mensagemDe = (e: unknown) =>
   e instanceof ErroApi ? (e.campos[0]?.mensagem ?? e.message) : 'Não foi possível concluir.';
@@ -240,12 +241,12 @@ function AtivarRecebimento({ taxaBp }: { taxaBp: number }) {
             onChange={mudar('nome')}
             erro={campos.nome}
           />
-          <Campo
+          <CampoDocumento
             id="rec-doc"
             rotulo={tipo === 'pj' ? 'CNPJ' : 'CPF'}
-            inputMode="numeric"
-            value={f.documento}
-            onChange={mudar('documento')}
+            soCpf={tipo !== 'pj'}
+            valor={f.documento}
+            onValor={(v) => setF((x) => ({ ...x, documento: v }))}
             erro={campos.documento}
           />
           {tipo === 'pj' ? (
@@ -282,20 +283,19 @@ function AtivarRecebimento({ taxaBp }: { taxaBp: number }) {
             onChange={mudar('email')}
             erro={campos.email}
           />
-          <Campo
+          <CampoTelefone
             id="rec-tel"
             rotulo="Celular"
-            inputMode="tel"
-            value={f.telefone}
-            onChange={mudar('telefone')}
+            obrigatorio
+            valor={f.telefone}
+            onValor={(v) => setF((x) => ({ ...x, telefone: v }))}
             erro={campos.telefone}
           />
-          <Campo
+          <CampoCep
             id="rec-cep"
             rotulo="CEP"
-            inputMode="numeric"
-            value={f.cep}
-            onChange={mudar('cep')}
+            valor={f.cep}
+            onValor={(v) => setF((x) => ({ ...x, cep: v }))}
             erro={campos.cep}
           />
           <Campo

@@ -7,6 +7,12 @@ produção (`https://seupentefino.com.br`). Detalhes técnicos e o porquê de ca
 
 ## [Não publicado]
 
+### Melhorado (campos dos formulários)
+
+- CPF e CNPJ com máscara e conferência do dígito na hora, sem esperar o envio: assinatura do Pente Fino, recebimento do clube online e assinatura do clube pelo cliente.
+- WhatsApp e telefone com máscara "(11) 98888-7777" e aviso de DDD ou número errado em todos os formulários (clientes, equipe, convite, link de agendamento, configuração inicial, unidade, clube e administração); CEP com máscara.
+- "Agendar pela conversa do WhatsApp" ligado sem as Automações mostra na hora que o bot vem com elas.
+
 ### Adicionado (plano Agenda no site)
 
 - Em `/planos`, a faixa "Só precisa da agenda?" logo abaixo dos três planos, com o preço do Agenda e o botão de teste grátis; a tabela de recursos ganhou a coluna do Agenda.

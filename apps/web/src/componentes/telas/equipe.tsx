@@ -41,6 +41,7 @@ import { NOME_PAPEL } from '@/lib/sessao';
 import { Aviso } from '../aviso';
 import { useApp } from '../contexto-app';
 import { CabecalhoPagina, Estado, Ficha, Tabela, td, th } from '../pagina';
+import { CampoTelefone } from '../campos';
 
 const mensagemDe = (e: unknown) =>
   e instanceof ErroApi ? e.message : 'Não foi possível concluir. Tente de novo.';
@@ -471,13 +472,12 @@ export function NovoProfissional({
                 value={f.email}
                 onChange={(e) => setF({ ...f, email: e.target.value })}
               />
-              <Campo
+              <CampoTelefone
                 id="prof-telefone"
                 rotulo="WhatsApp (opcional)"
-                inputMode="tel"
                 dica="Para mandar o convite pelo WhatsApp"
-                value={f.telefone}
-                onChange={(e) => setF({ ...f, telefone: e.target.value })}
+                valor={f.telefone}
+                onValor={(v) => setF({ ...f, telefone: v })}
               />
             </>
           )}
@@ -1021,12 +1021,11 @@ function Convidar({ aberto, onFechar }: { aberto: boolean; onFechar: () => void 
             value={f.email}
             onChange={(e) => setF({ ...f, email: e.target.value })}
           />
-          <Campo
+          <CampoTelefone
             id="convite-telefone"
             rotulo="WhatsApp (opcional)"
-            inputMode="tel"
-            value={f.telefone}
-            onChange={(e) => setF({ ...f, telefone: e.target.value })}
+            valor={f.telefone}
+            onValor={(v) => setF({ ...f, telefone: v })}
           />
           <Selecao
             id="convite-papel"

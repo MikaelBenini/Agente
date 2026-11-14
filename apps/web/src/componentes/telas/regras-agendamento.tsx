@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { api, ErroApi } from '@/lib/api';
 import { useAcao } from '@/lib/consultas';
+import { useTemRecurso } from '@/lib/plano';
 import { Aviso } from '../aviso';
 import { useApp } from '../contexto-app';
 import { Estado } from '../pagina';
@@ -63,6 +64,8 @@ export function RegrasDeAgendamento() {
 
 function Formulario({ unidadeId, inicial }: { unidadeId: string; inicial: RegrasAgendamento }) {
   const [f, setF] = useState(inicial);
+  // Agenda e Básico sem as Automações: o bot não responde, então avisa na hora.
+  const temBot = useTemRecurso('bot');
   const [lembrete1, setLembrete1] = useState(inicial.lembretesHoras[0] ?? null);
   const [lembrete2, setLembrete2] = useState(inicial.lembretesHoras[1] ?? null);
   const [erro, setErro] = useState<string | null>(null);
@@ -192,6 +195,15 @@ function Formulario({ unidadeId, inicial }: { unidadeId: string; inicial: Regras
             Desligado, a opção “Agendar” do bot manda o link do site. O link liga e desliga na aba
             “Link de agendamento”.
           </p>
+          {f.pelaConversa && temBot === false && (
+            <Aviso tom="aviso">
+              Agendar pela conversa usa o bot, que vem com as Automações (mais R$ 10 por mês) ou do
+              Pro em diante. Sem elas, o cliente recebe só os avisos do horário.{' '}
+              <a href="/configuracoes?aba=assinatura" className="font-semibold underline">
+                Ver a assinatura
+              </a>
+            </Aviso>
+          )}
         </div>
       </fieldset>
 

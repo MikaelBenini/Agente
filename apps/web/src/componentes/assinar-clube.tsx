@@ -8,6 +8,7 @@ import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { api, ErroApi } from '@/lib/api';
 import { Aviso } from './aviso';
+import { CampoDocumento, CampoTelefone } from './campos';
 
 /**
  * Link do clube (/assinar?u=slug&p=plano), aberto pelo WhatsApp: o cliente escolhe o plano,
@@ -148,22 +149,21 @@ export function AssinarClube() {
             onChange={(e) => setNome(e.target.value)}
             erro={campos.nome}
           />
-          <Campo
+          <CampoTelefone
             id="ass-tel"
             rotulo="WhatsApp com DDD"
-            inputMode="tel"
-            autoComplete="tel"
-            value={telefone}
-            onChange={(e) => setTelefone(e.target.value)}
+            obrigatorio
+            valor={telefone}
+            onValor={setTelefone}
             erro={campos.telefone}
           />
-          <Campo
+          <CampoDocumento
             id="ass-cpf"
             rotulo="CPF"
-            inputMode="numeric"
+            soCpf
             dica="Vai na cobrança, como em qualquer pagamento."
-            value={cpf}
-            onChange={(e) => setCpf(e.target.value)}
+            valor={cpf}
+            onValor={setCpf}
             erro={campos.cpf}
           />
           <Campo
