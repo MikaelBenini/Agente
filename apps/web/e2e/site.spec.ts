@@ -379,7 +379,7 @@ test('WhatsApp comercial: link no rodapé e botão no fim da página, com a mens
   page,
 }) => {
   await page.goto('/');
-  const rodape = page.getByRole('contentinfo').getByRole('link', { name: 'WhatsApp' });
+  const rodape = page.getByRole('contentinfo').getByRole('link', { name: 'WhatsApp', exact: true });
   await expect(rodape).toHaveAttribute('href', /^https:\/\/wa\.me\/\d{12,13}\?text=/);
   await expect(page.getByRole('link', { name: 'Falar no WhatsApp' })).toHaveAttribute(
     'href',
