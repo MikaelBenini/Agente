@@ -272,7 +272,7 @@ test('N1: página por termo de busca tem H1, canonical, perguntas para o Google 
     'Pro e Premium',
   );
   await expect(page.getByRole('navigation', { name: 'Recursos' }).getByRole('link')).toHaveCount(
-    11,
+    12,
   );
 });
 
