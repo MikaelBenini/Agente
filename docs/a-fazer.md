@@ -485,11 +485,12 @@ PR, mergeado quando o CI passar (autorização do dono para os próximos):
     sobre o sistema e escolhe a data; os depoimentos passam em carrossel na página de vendas
     (conferir o que o Instagram permite puxar sem login; sem isso, o dono sobe a foto);
   - [x] **rodapé melhor** nas páginas do site (14/11: cidade, CNPJ, Instagram, Recursos);
-- [x] **Atualizar a página de vendas** (feito em 14/11: destaques, comparativo, Recursos e capturas novas por `e2e/capturas.spec.ts`) (pedido do dono em 12/11, por último): textos e telas da
+- [x] **Atualizar a página de vendas** (feito em 14/11: destaques, comparativo, Recursos e capturas novas pelo `video/telas.mjs`) (pedido do dono em 12/11, por último): textos e telas da
   página inicial, de `/planos` e do comparativo com tudo o que foi feito (clube no resultado,
   preço livre, despesas fixas, catálogo por unidade, preço por barbeiro, sinal, comissões no
   Básico, chat de suporte), com capturas de tela novas das telas atuais
 - [ ] **Vídeo novo com todas as funções** (pedido do dono em 12/11, depois da página de vendas):
+  - [x] **levantamento feito** (15/11, `apps/web/video/levantamento.md`), aguardando a aprovação do dono;
   - **antes de gerar o vídeo** (pedido do dono em 12/11): percorrer o sistema inteiro, tela por
     tela e papel por papel (dono, gestor, recepção e barbeiro, no computador e no celular), e
     listar tudo o que ele faz pelo olhar do barbeiro: o que ele bate o olho e pensa "isso faria
