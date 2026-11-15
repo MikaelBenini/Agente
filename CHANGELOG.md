@@ -7,6 +7,10 @@ produção (`https://seupentefino.com.br`). Detalhes técnicos e o porquê de ca
 
 ## [Não publicado]
 
+### Adicionado (aniversário pela conversa do WhatsApp)
+
+- Depois de marcar pelo WhatsApp, quem ainda não tem o aniversário na ficha recebe a pergunta "Quer receber um parabéns no seu aniversário?". O cliente responde o dia e o mês (por exemplo, 15/03) ou 0 para pular, e a data vai para a ficha. Quando o bot oferece o "avisar se vagar antes", a pergunta vem logo depois dessa resposta.
+
 ### Adicionado (foto da unidade no fundo do link de agendamento)
 
 - No visual do link de agendamento (Minha página), a foto de capa ganhou a opção **"No fundo da página inteira"**: a foto da unidade fica atrás de tudo, com uma camada escura por cima para o texto continuar legível. "No topo da página" continua como antes.

@@ -174,7 +174,7 @@ U2 a U5 já feitos (#161).
 - [x] **D4** Contraste AA e foco visível no site (12/11: foco geral, tabelas roláveis pelo teclado e auditoria axe no site)
 - [x] Lote 5e (D1, D2, D4): bateria verde e PR aberto (12/11)
 - [x] Merge pelo dono (lote 5e)
-- [ ] **Contato e rodapé**: sem CNPJ por enquanto (o dono é MEI); falta o que está na pergunta
+- [x] **Contato e rodapé** (14/11: Cascavel/PR, CNPJ e Instagram no rodapé): sem CNPJ por enquanto (o dono é MEI); falta o que está na pergunta
   P13
 
 ## 6. Administração: recursos novos (F)
@@ -287,9 +287,9 @@ U2 a U5 já feitos (#161).
 PR, mergeado quando o CI passar (autorização do dono para os próximos):
 
 1. [x] Aniversário do cliente que veio pelo bot: editar os dados na ficha do cliente
-2. Merge do PR #198 (site sem o link de agendamento)
-3. Lote 7n: cabeçalho e rodapé editáveis, junto com o 7m (botões com link e CSS personalizado)
-4. Horário de funcionamento da unidade (base do agendamento e dos avisos de resumo)
+2. [x] Merge do PR #198 (site sem o link de agendamento)
+3. [x] Lote 7n: cabeçalho e rodapé editáveis, junto com o 7m (botões com link e CSS personalizado)
+4. [x] Horário de funcionamento da unidade (base do agendamento e dos avisos de resumo)
 5. [x] Lote 7l: editar o visual da página de agendamento no mesmo painel
 6. [x] Lote 7g: quem faz cada serviço, com foto (site e agendamento)
 7. [x] Lote 7h: páginas extras Galeria e Clube de assinatura
@@ -302,7 +302,7 @@ PR, mergeado quando o CI passar (autorização do dono para os próximos):
 12. [x] Revisão dos campos de entrada e das validações (CPF, máscaras, avisos das caixas de marcar)
 13. Seção 9: verificação final
 
-- [ ] **Página da barbearia editável** (painel P2 e P5), aprovada em 11/11:
+- [x] **Página da barbearia editável** (painel P2 e P5), aprovada em 11/11:
   - instalar a skill `frontend-design`;
   - desenhar mais de um modelo, bem diferentes entre si, para o dono aprovar antes de
     desenvolver;
@@ -332,7 +332,7 @@ PR, mergeado quando o CI passar (autorização do dono para os próximos):
   - [x] **Lote 7b** (13/11, documentado na linha de desenvolvimento) painel "Minha página": escolher a página, ligar, desligar, reordenar e editar
     os blocos, tema (cor, fonte, botões), prévia no computador e no celular, publicar;
   - [x] Lote 7b: bateria verde e PR aberto (13/11)
-  - [ ] Merge do lote 7b
+  - [x] Merge do lote 7b
   - [x] **Lote 7c** (13/11, documentado na linha de desenvolvimento) fotos: envio, redução de
     tamanho e guarda no servidor, com backup; banner, sobre a casa, barbeiros, galeria e
     logotipo (foto de serviço fica para depois);
@@ -362,7 +362,7 @@ PR, mergeado quando o CI passar (autorização do dono para os próximos):
     com o link de agendamento desligado (a barbearia pode não querer agendamento pelo site nem
     o link no WhatsApp); sem link, os botões "Agendar" dão lugar a "Falar no WhatsApp" (com o
     telefone da unidade) ou somem; ligar o link depois faz os botões voltarem sozinhos;
-  - [ ] **Aniversário do cliente que veio pelo bot** (pedido do dono em 13/11): quando o cliente
+  - [x] **Aniversário do cliente que veio pelo bot** (13/11: editar na ficha; 15/11: o bot pergunta depois de marcar) (pedido do dono em 13/11): quando o cliente
     chega pelo WhatsApp, não dá para informar a data de aniversário; corrigir no cadastro e,
     se fizer sentido, o bot perguntar (opcional);
   - [x] **Horário de funcionamento da unidade** (13/11, documentado na linha de desenvolvimento; o resumo do fechamento, no item 9, já usa `fechamentoDoDia`):
@@ -406,7 +406,7 @@ PR, mergeado quando o CI passar (autorização do dono para os próximos):
 
 ## 8. Perto do fim
 
-- [ ] **Plano Agenda** (pedido do dono em 13/11; respostas P14 a P16 em 13/11): plano de entrada,
+- [x] **Plano Agenda** (pedido do dono em 13/11; respostas P14 a P16 em 13/11): plano de entrada,
   barato, para trazer barbearia nova pelo preço e pela busca do Google ("agenda para barbeiro",
   "agenda online para barbearia"). Decisões (o dono pediu "pense por mim" nos detalhes):
   - **Decisão do dono em 14/11 (WhatsApp e Automações):** todo plano conecta o WhatsApp para os
@@ -455,7 +455,7 @@ PR, mergeado quando o CI passar (autorização do dono para os próximos):
 
 - [ ] **N5** Página "Sobre": perguntar ao dono quem faz o Pente Fino, por que existe e de qual
   cidade, e escrever junto com ele
-- [ ] **Página de vendas nova, seções e conteúdo** (pedido do dono em 14/11, junto com a
+- [x] **Página de vendas nova, seções e conteúdo** (pedido do dono em 14/11, junto com a
   atualização da página de vendas). Referência de estilo: o blog do próprio dono
   (`navalhago.app/blog`); aproveitar as ideias e o jeito de escrever, sempre com a identidade
   do Pente Fino (nome, cores, marca e textos próprios, nada copiado ao pé da letra):
