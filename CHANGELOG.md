@@ -18,6 +18,17 @@ produção (`https://seupentefino.com.br`). Detalhes técnicos e o porquê de ca
 
 - O botão "Assinar" do site aparecia com o cadastro no Asaas ainda em análise ou recusado, e a assinatura falhava. Agora só aparece com o cadastro aprovado.
 
+### Adicionado (instalar o app no celular)
+
+- **"Instalar o app"**: no Perfil e num convite no topo do app (só no celular, até instalar ou fechar). No Android, o botão instala direto; no iPhone, aparece o passo a passo do Safari (Compartilhar → Adicionar à Tela de Início). Onde o navegador não deixa instalar, o botão não aparece.
+
+### Mudado (telas mais leves e fáceis de usar)
+
+- Janelas só de leitura (Procurar, extrato do barbeiro, ficha do cliente, "Acesso pronto" e o aviso de caixa fechado) fecham tocando fora delas. As de formulário continuam só no X, para não perder o que foi digitado.
+- Telefone, CPF/CNPJ e CEP pela metade mostram o aviso quando a pessoa sai do campo ("Número incompleto", "CEP incompleto"), nunca enquanto digita. O erro que aparece é lido pelo leitor de tela.
+- O vídeo da página inicial só baixa quando a pessoa chega perto dele (Chrome e Edge).
+- No celular, as tabelas das comparações viram um cartão por linha, com o nome de cada coluna; a tabela da página inicial mantém a primeira coluna presa ao rolar.
+
 ### Mudado (comparações mais curtas e visíveis na página inicial)
 
 - A tabela de "Como escolher o sistema" ficou de bater o olho: um sistema por linha e, em cada célula, um sinal (sim, em parte, não) com no máximo duas palavras. O nome do sistema leva ao detalhe. Onde o site do sistema não informa aparece um traço, com uma legenda, no lugar de "Não citado" e "A página não mostra o preço"; vale também nas páginas de cada sistema.
