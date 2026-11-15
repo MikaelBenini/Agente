@@ -1627,9 +1627,31 @@ function FormVisual({
             rotulo="Foto de capa"
             unidadeId={unidadeId}
             valor={v.capa}
-            dica="Foto deitada, aparece no topo da página."
+            dica="Foto deitada, como a fachada ou o salão da unidade."
             onMudar={(f) => mudar({ capa: f?.id })}
           />
+          {v.capa && (
+            <fieldset className="flex flex-col gap-1">
+              <legend className="mb-1 text-sm font-medium">Onde a foto aparece</legend>
+              {(
+                [
+                  [false, 'No topo da página'],
+                  [true, 'No fundo da página inteira, com o texto por cima'],
+                ] as const
+              ).map(([valor, rotulo]) => (
+                <label key={rotulo} className="flex min-h-11 cursor-pointer items-center gap-3">
+                  <input
+                    type="radio"
+                    name="visual-capa-fundo"
+                    checked={!!v.capaNoFundo === valor}
+                    onChange={() => mudar({ capaNoFundo: valor })}
+                    className="size-5 accent-[var(--modulo)]"
+                  />
+                  {rotulo}
+                </label>
+              ))}
+            </fieldset>
+          )}
           <Campo
             id="visual-titulo"
             rotulo="Título (opcional)"

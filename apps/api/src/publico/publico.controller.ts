@@ -109,6 +109,7 @@ function visualPublico(u: {
     cor: CORES_SITE[v.cor].hex,
     logo: v.logo ?? null,
     capa: v.capa ?? null,
+    capaNoFundo: !!v.capa && !!v.capaNoFundo,
     titulo: v.titulo,
     texto: v.texto,
     site: v.linkSite && u.sitePublicado && u.siteSlug ? `/s/${u.siteSlug}` : null,

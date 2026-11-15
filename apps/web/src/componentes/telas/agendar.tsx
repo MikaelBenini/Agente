@@ -141,9 +141,24 @@ export function Moldura({
   return (
     <div
       style={estilo}
-      className="mx-auto flex min-h-dvh w-full max-w-xl flex-col gap-6 px-[max(1rem,env(safe-area-inset-left))] pt-[max(1.5rem,env(safe-area-inset-top))] pr-[max(1rem,env(safe-area-inset-right))] pb-10"
+      className="isolate mx-auto flex min-h-dvh w-full max-w-xl flex-col gap-6 px-[max(1rem,env(safe-area-inset-left))] pt-[max(1.5rem,env(safe-area-inset-top))] pr-[max(1rem,env(safe-area-inset-right))] pb-10"
     >
-      {visual?.capa && (
+      {visual?.capa && visual.capaNoFundo && (
+        // Pedido do dono em 14/11: a foto da unidade no fundo, com uma camada escura por cima.
+        <div aria-hidden className="fixed inset-0 -z-10">
+          {/* eslint-disable-next-line @next/next/no-img-element -- foto já reduzida, em WebP */}
+          <img
+            src={urlDaFoto(visual.capa, 1600)}
+            srcSet={`${urlDaFoto(visual.capa, 640)} 640w, ${urlDaFoto(visual.capa, 1600)} 1600w`}
+            sizes="100vw"
+            alt=""
+            fetchPriority="high"
+            className="size-full object-cover"
+          />
+          <div className="absolute inset-0 bg-fundo/85" />
+        </div>
+      )}
+      {visual?.capa && !visual.capaNoFundo && (
         // eslint-disable-next-line @next/next/no-img-element -- foto já reduzida, em WebP
         <img
           src={urlDaFoto(visual.capa, 1600)}

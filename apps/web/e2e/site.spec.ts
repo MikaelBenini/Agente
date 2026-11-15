@@ -295,11 +295,14 @@ test('N2: comparação mostra os dois lados, a fonte com data e leva às outras'
     .getByRole('navigation', { name: 'Outras comparações' })
     .getByRole('link', { name: 'Como escolher o sistema' })
     .click();
-  await expect(
-    page.getByRole('table', { name: 'Pente Fino, AppBarber, Trinks e Booksy lado a lado' }),
-  ).toBeVisible();
-  // Sem preço claro na fonte, a tabela manda para a página de planos do concorrente.
-  await expect(page.getByText('Veja na página de planos').first()).toBeVisible();
+  const geral = page.getByRole('table', { name: /^Pente Fino, AppBarber, Trinks, Booksy, GENDA/ });
+  await expect(geral).toBeVisible();
+  // Sem preço claro na fonte, a tabela diz isso com todas as letras.
+  await expect(geral.getByText('A página não mostra o preço').first()).toBeVisible();
+  // Concorrente novo, conferido em 14/11, com a data na fonte.
+  await page.goto('/comparativo/barbeiro-app');
+  await expect(page.getByRole('heading', { name: 'Onde o Barbeiro.app é melhor' })).toBeVisible();
+  await expect(page.getByText(/conferido em 14\/11\/2026/)).toBeVisible();
 });
 
 // ─── Site N3: calculadoras grátis em endereço próprio ─────
