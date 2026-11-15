@@ -13,7 +13,8 @@ import { Celular, JanelaNavegador, Texto, Titulo, useEntrada } from './partes';
 // Duração das cenas em ritmo.json, lida também pelo scripts/trilha.mjs (o som segue as cenas).
 const TRANSICAO = ritmo.transicao;
 
-function Gancho() {
+/** Gancho: o faturamento sobe, é riscado e vem a pergunta. `escala` diminui para os anúncios. */
+export function Gancho({ escala = 1 }: { escala?: number }) {
   const frame = useCurrentFrame();
   const valor = Math.round(interpolate(frame, [8, 30], [0, 52880], { extrapolateRight: 'clamp' }));
   const risco = interpolate(frame, [52, 66], [0, 1], {
@@ -25,9 +26,9 @@ function Gancho() {
     <AbsoluteFill
       style={{ background: COR.fundo, justifyContent: 'center', alignItems: 'center', gap: 40 }}
     >
-      <Titulo tamanho={110}>Faturou</Titulo>
+      <Titulo tamanho={110 * escala}>Faturou</Titulo>
       <div style={{ position: 'relative' }}>
-        <Titulo tamanho={200}>
+        <Titulo tamanho={200 * escala}>
           <span style={{ color: COR.amarelo, fontVariantNumeric: 'tabular-nums' }}>
             R$ {valor.toLocaleString('pt-BR')}
           </span>
@@ -37,7 +38,7 @@ function Gancho() {
             position: 'absolute',
             left: 0,
             top: '52%',
-            height: 14,
+            height: 14 * escala,
             width: `${risco * 100}%`,
             background: COR.texto,
             borderRadius: 7,
@@ -45,22 +46,29 @@ function Gancho() {
         />
       </div>
       <div style={{ opacity: pergunta, transform: `translateY(${(1 - pergunta) * 30}px)` }}>
-        <Titulo tamanho={130}>Quanto sobrou?</Titulo>
+        <Titulo tamanho={130 * escala}>Quanto sobrou?</Titulo>
       </div>
     </AbsoluteFill>
   );
 }
 
-function Encerramento() {
+/** Encerramento com o endereço, o teste grátis e o botão verde. */
+export function Encerramento({ escala = 1 }: { escala?: number }) {
   const a = useEntrada(0);
   const b = useEntrada(30);
   const c = useEntrada(60);
   return (
     <AbsoluteFill
-      style={{ background: COR.fundo, justifyContent: 'center', alignItems: 'center', gap: 48 }}
+      style={{
+        background: COR.fundo,
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 48 * escala,
+        padding: '0 6%',
+      }}
     >
       <div style={{ opacity: a, transform: `translateY(${(1 - a) * 30}px)` }}>
-        <Titulo tamanho={130}>
+        <Titulo tamanho={130 * escala}>
           <span style={{ color: COR.amarelo }}>Saiba quanto sobra,</span>
           <br />
           não só quanto entrou.
@@ -71,7 +79,7 @@ function Encerramento() {
           opacity: b,
           fontFamily: TEXTO,
           fontWeight: 600,
-          fontSize: 56,
+          fontSize: 56 * escala,
           color: COR.suave,
           textAlign: 'center',
         }}
@@ -88,8 +96,8 @@ function Encerramento() {
           color: COR.fundo,
           fontFamily: TEXTO,
           fontWeight: 600,
-          fontSize: 60,
-          padding: '24px 64px',
+          fontSize: 60 * escala,
+          padding: `${24 * escala}px ${64 * escala}px`,
           borderRadius: 18,
         }}
       >
