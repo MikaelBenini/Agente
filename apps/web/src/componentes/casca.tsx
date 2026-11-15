@@ -9,6 +9,7 @@ import {
   type AvisoGeral as AvisoGeralTipo,
   type ItemMenu,
 } from '@pente-fino/shared';
+import { ChatFlutuante } from './chat-flutuante';
 import { ConviteInstalar } from './instalar-app';
 import { Botao, Carregando, cn, EstadoVazio } from '@pente-fino/ui';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -193,6 +194,8 @@ export function Casca({ children }: { children: ReactNode }) {
         <MenuInferior />
       </div>
       <BuscaGlobal />
+      {/* Admin F6: o suporte num botão flutuante (no modo suporte, a equipe já está na conta). */}
+      {!usuario.data?.modoSuporte && <ChatFlutuante />}
     </Contexto>
   );
 }

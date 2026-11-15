@@ -38,3 +38,15 @@ export const FONTE_TITULO: Record<FonteSite, string> = {
   condensada: 'var(--site-fonte-condensada), Impact, sans-serif',
   letreiro: 'var(--site-fonte-letreiro), Rockwell, serif',
 };
+
+/**
+ * Ajuste da fonte reserva dos títulos (guia visually-stable-font-fallbacks). O Next já gera a
+ * reserva com `size-adjust` para três delas; a Big Shoulders (condensada) ficou sem, e os títulos
+ * pulavam ao trocar. Medida no navegador: altura das maiúsculas = 0,8 do tamanho (títulos são
+ * em maiúsculas, por isso cap-height).
+ */
+export const AJUSTE_TITULO: Record<FonteSite, string> = {
+  serifa: 'none',
+  condensada: 'cap-height 0.8',
+  letreiro: 'none',
+};

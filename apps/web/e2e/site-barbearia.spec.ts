@@ -60,6 +60,16 @@ test('site da barbearia: Início, páginas internas, agendar e tirar do ar', asy
     await expect(visitante.getByRole('heading', { name: 'Os mais pedidos' })).toBeVisible();
     await expect(visitante.getByRole('heading', { name: 'Os barbeiros' })).toBeVisible();
     await expect(visitante.getByRole('contentinfo')).toContainText('Site e agenda pelo Pente Fino');
+    // Barra do navegador na cor do cabeçalho do tema (Tradicional) e cabeçalho parado na troca
+    // de página (pedido do dono em 15/11).
+    await expect(visitante.locator('meta[name="theme-color"]').first()).toHaveAttribute(
+      'content',
+      '#14271C',
+    );
+    await expect(visitante.locator('header.site-cabecalho')).toHaveCSS(
+      'view-transition-name',
+      'site-cabecalho',
+    );
 
     // No celular os links ficam no "Menu"; no computador, à vista (o outro fica escondido).
     const menu = visitante.locator('summary:visible', { hasText: 'Menu' });

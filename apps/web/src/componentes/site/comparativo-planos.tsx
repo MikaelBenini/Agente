@@ -15,7 +15,7 @@ export function ComparativoPlanos() {
       role="region"
       aria-label="Recursos de cada plano, role para o lado"
       tabIndex={0}
-      className="relative overflow-x-auto rounded-xl border border-borda focus-visible:outline-2 focus-visible:outline-foco"
+      className="dica-rolagem relative overflow-x-auto rounded-xl border border-borda focus-visible:outline-2 focus-visible:outline-foco"
     >
       <table className="w-full min-w-[22rem] border-collapse text-left">
         <caption className="sr-only">Recursos de cada plano</caption>

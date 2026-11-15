@@ -168,7 +168,7 @@ U2 a U5 já feitos (#161).
   - registro no CHANGELOG.
 - [x] Lote 5d (N4): bateria verde e PR aberto (12/11)
 - [x] Merge pelo dono (lote 5d)
-- [ ] **P4** Coerência com os anúncios do Google já publicados
+- [x] **P4** Coerência com os anúncios do Google já publicados (conferido em 15/11 no site em produção: 30% para sempre até 31/01/2027, 14 dias grátis sem cartão e sem fidelidade, lucro por serviço, comissão, preços anuais 66,90/124,90/207,90, sitelinks e `#video`; a frase "Bot de WhatsApp que agenda, incluso no plano" virou "sem custo por mensagem")
 - [x] **D1** Imagens do hero no tamanho certo para o celular (12/11: versão com metade da largura e `srcset`)
 - [x] **D2** Scripts de terceiros carregados depois da página, sem gtag duplicado (12/11: só o GTM; **dono:** conferir no Tag Assistant que a conversão continua chegando)
 - [x] **D4** Contraste AA e foco visível no site (12/11: foco geral, tabelas roláveis pelo teclado e auditoria axe no site)
@@ -246,7 +246,7 @@ U2 a U5 já feitos (#161).
   - registro no CHANGELOG.
 - [x] Lote 6k (push do chat): bateria verde e PR aberto (13/11)
 - [x] Merge pelo dono (lote 6k)
-- [ ] **F6** Suporte por chat (pedido do dono em 11/11, detalhado em 12/11):
+- [x] **F6** Suporte por chat (pedido do dono em 11/11, detalhado em 12/11; entregas 1 e 2 em 13/11, conferido em 15/11: faltavam o botão flutuante no painel e tirar o WhatsApp da Ajuda, feitos no mesmo dia):
   - **Quem chama:** ícone flutuante no canto da tela, no site (visitante, que informa nome e
     contato) e no painel da barbearia (já logado: a conversa fica ligada à conta).
   - **Fila de espera:** ao abrir, a conversa entra na fila e o cliente vê que está aguardando
@@ -565,6 +565,15 @@ de ganho para o barbeiro:
 - [x] **Tabelas no celular** (feito em 15/11 nas comparações e na página inicial; relatórios do app ficam como estão, já rolam para o lado) (`ui-atoms/responsive-table`): comparativo, planos e relatórios.
 - [ ] **Entrar com passkey** (`security/passkeys`, para depois): login sem senha, com a digital ou o
   rosto do celular; é um recurso novo e precisa de decisão do dono.
+
+## 8c. Site da barbearia e página de vendas mais finos (pedido do dono em 15/11)
+
+- [x] Troca de página do site da barbearia com esmaecer curto e o cabeçalho parado
+- [x] Fonte reserva dos títulos sem pular (a Big Shoulders ficou sem o ajuste do Next)
+- [x] Textos que respeitam o tamanho de letra do celular (`text-scale` e textos do site em rem)
+- [x] Barra do navegador e seleção na cor do tema da barbearia
+- [x] Página de vendas mais leve (seções de baixo desenhadas perto da tela), parágrafos sem palavra
+  sozinha e dica de rolagem nas tabelas
 
 ## 9. Por último: verificação final do ecossistema
 

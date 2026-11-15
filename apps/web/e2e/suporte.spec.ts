@@ -33,3 +33,20 @@ test('cliente fala com o suporte pelo chat da Ajuda', async ({ page }, info) => 
   await expect(contato.getByRole('list', { name: 'Mensagens com o suporte' })).toContainText(texto);
   await expect(contato.getByRole('status')).toBeVisible();
 });
+
+// Admin F6: o chat também num botão flutuante em todo o painel; a Ajuda não mostra mais o WhatsApp.
+test('chat do suporte no botão flutuante, fora da Ajuda', async ({ page }) => {
+  await page.goto('/entrar');
+  await page.getByLabel('E-mail').fill('gestor@demo.pentefino.dev');
+  await page.getByLabel('Senha').fill('pentefino123');
+  await page.getByRole('button', { name: 'Entrar' }).click();
+  await page.waitForURL(/inicio|agenda|hoje/);
+  await page.getByRole('button', { name: 'Falar com o suporte' }).click();
+  const painel = page.getByRole('dialog', { name: 'Falar com o suporte' });
+  await expect(painel.getByLabel('Mensagem para o suporte')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(painel).toBeHidden();
+  await page.goto('/ajuda');
+  await expect(page.getByRole('button', { name: 'Falar com o suporte' })).toHaveCount(0);
+  await expect(page.getByText('WhatsApp do suporte')).toHaveCount(0);
+});

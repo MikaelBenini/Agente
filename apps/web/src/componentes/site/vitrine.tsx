@@ -73,7 +73,7 @@ export function Janela({
         <span className="size-2.5 rounded-full bg-[#ff5f57]" />
         <span className="size-2.5 rounded-full bg-[#febc2e]" />
         <span className="size-2.5 rounded-full bg-[#28c840]" />
-        <span className="ml-3 truncate rounded bg-superficie-2 px-2 py-0.5 text-[11px] text-tinta-suave">
+        <span className="ml-3 truncate rounded bg-superficie-2 px-2 py-0.5 text-[0.6875rem] text-tinta-suave">
           seupentefino.com.br
         </span>
       </div>
@@ -189,7 +189,7 @@ export function ConversaWhatsapp() {
           <span className="text-xs text-[#8696a0]">responde na hora</span>
         </span>
       </div>
-      <ol className="flex flex-col gap-1.5 bg-[#0b141a] p-3 text-[13px] leading-snug">
+      <ol className="flex flex-col gap-1.5 bg-[#0b141a] p-3 text-[0.8125rem] leading-snug">
         {mensagens.map((m, i) => (
           <li
             key={i}

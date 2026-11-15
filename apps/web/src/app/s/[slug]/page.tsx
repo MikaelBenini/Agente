@@ -1,8 +1,10 @@
+import { PALETAS_SITE } from '@pente-fino/shared';
 import { Carregando } from '@pente-fino/ui';
 import type { Metadata } from 'next';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { headers } from 'next/headers';
 import { Suspense } from 'react';
+import { CorDoNavegador } from '@/componentes/site-barbearia/cor-do-navegador';
 import { SiteDaBarbearia } from '@/componentes/site-barbearia/site';
 import { CABECALHO_DOMINIO } from '@/lib/dominio-proprio';
 import { enderecoAtual, sitePublico } from '@/lib/servidor/pagina-publica';
@@ -49,12 +51,15 @@ async function Conteudo({ params }: Props) {
   // No domínio próprio (lote 7e) os links ficam limpos: /servicos, /agendar.
   const noDominio = !!(await headers()).get(CABECALHO_DOMINIO);
   return (
-    <SiteDaBarbearia
-      dados={site}
-      pagina="inicio"
-      base={noDominio ? '' : `/s/${slug}`}
-      agendar={noDominio && site.slugAgendamento ? '/agendar' : undefined}
-    />
+    <>
+      <CorDoNavegador cor={PALETAS_SITE[site.site.tema].escuro} />
+      <SiteDaBarbearia
+        dados={site}
+        pagina="inicio"
+        base={noDominio ? '' : `/s/${slug}`}
+        agendar={noDominio && site.slugAgendamento ? '/agendar' : undefined}
+      />
+    </>
   );
 }
 

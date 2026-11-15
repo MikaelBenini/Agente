@@ -183,7 +183,8 @@ const COMPARATIVO: {
     planilha: false,
   },
   {
-    recurso: 'Bot de WhatsApp que agenda, incluso no plano',
+    // P4: o bot vem incluso no Pro e no Premium; no Agenda e no Básico, com as Automações (selo).
+    recurso: 'Bot de WhatsApp que agenda, sem custo por mensagem',
     nos: true,
     plano: 'bot',
     agenda: 'parcial',
@@ -496,7 +497,10 @@ export default function Pagina() {
       </section>
 
       {/* Recursos, com as telas de verdade. */}
-      <section aria-labelledby="recursos" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-24">
+      <section
+        aria-labelledby="recursos"
+        className="desenhar-perto mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-24"
+      >
         <div className="mb-12 flex max-w-3xl flex-col gap-3">
           <Sobretitulo>Tudo num lugar só</Sobretitulo>
           <h2 id="recursos" className="font-denso text-4xl font-bold uppercase sm:text-5xl">
@@ -620,7 +624,7 @@ export default function Pagina() {
       {/* A conta que o sistema faz sozinho. */}
       <section
         aria-labelledby="calculadora"
-        className="border-y border-borda bg-[linear-gradient(180deg,var(--superficie-2),var(--fundo))]"
+        className="desenhar-perto border-y border-borda bg-[linear-gradient(180deg,var(--superficie-2),var(--fundo))]"
       >
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-24">
           <div className="mb-10 flex max-w-3xl flex-col gap-3">
@@ -652,7 +656,7 @@ export default function Pagina() {
       {/* Comparação geral sem marcas; embaixo, o caminho para cada sistema. */}
       <section
         aria-labelledby="comparativo"
-        className="mx-auto max-w-5xl px-4 py-16 sm:px-6 md:py-24"
+        className="desenhar-perto mx-auto max-w-5xl px-4 py-16 sm:px-6 md:py-24"
       >
         <div className="mb-10 flex flex-col gap-3">
           <Sobretitulo>Por que o Pente Fino</Sobretitulo>
@@ -665,7 +669,7 @@ export default function Pagina() {
           role="region"
           aria-label="Comparação, role para o lado"
           tabIndex={0}
-          className="revelar relative overflow-x-auto rounded-2xl border border-borda focus-visible:outline-2 focus-visible:outline-foco"
+          className="dica-rolagem revelar relative overflow-x-auto rounded-2xl border border-borda focus-visible:outline-2 focus-visible:outline-foco"
         >
           <table className="w-full min-w-[36rem] text-left">
             <caption className="sr-only">
@@ -759,7 +763,10 @@ export default function Pagina() {
       </section>
 
       {/* Cada papel, a sua pergunta. */}
-      <section aria-labelledby="papeis" className="border-y border-borda bg-superficie">
+      <section
+        aria-labelledby="papeis"
+        className="desenhar-perto border-y border-borda bg-superficie"
+      >
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-24">
           <h2 id="papeis" className="mb-10 font-denso text-4xl font-bold uppercase sm:text-5xl">
             Cada um vê o que precisa
@@ -799,7 +806,10 @@ export default function Pagina() {
 
       <CarrosselDepoimentos />
 
-      <section aria-labelledby="precos" className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-24">
+      <section
+        aria-labelledby="precos"
+        className="desenhar-perto mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-24"
+      >
         <div className="mb-10 flex flex-col items-center gap-3 text-center">
           <Sobretitulo>Planos</Sobretitulo>
           <h2 id="precos" className="font-denso text-4xl font-bold uppercase sm:text-5xl">
@@ -822,7 +832,10 @@ export default function Pagina() {
       {/* Indique e ganhe, para quem não tem barbearia (pedido do dono em 15/11). */}
       <FaixaIndique />
 
-      <section aria-labelledby="faq" className="mx-auto max-w-4xl px-4 pb-16 sm:px-6">
+      <section
+        aria-labelledby="faq"
+        className="desenhar-perto mx-auto max-w-4xl px-4 pb-16 sm:px-6"
+      >
         <h2 id="faq" className="mb-6 font-denso text-4xl font-bold uppercase">
           Perguntas frequentes
         </h2>
