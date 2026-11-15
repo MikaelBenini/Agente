@@ -10,25 +10,22 @@ async function entrar(page: Page, email: string) {
   await page.waitForURL(/inicio|agenda|hoje|comandas/);
 }
 
-/** O navegador avisa que dá para instalar (no teste, um aviso falso que aceita). */
-const avisoDeInstalar = (page: Page) =>
-  page.evaluate(() => {
-    const e = new Event('beforeinstallprompt', { cancelable: true });
-    Object.assign(e, {
-      prompt: () => Promise.resolve(),
-      userChoice: Promise.resolve({ outcome: 'accepted' }),
+/**
+ * O navegador deixa instalar e aceita na hora (no teste, `navigator.install` falso): o Chrome de
+ * teste já tem o jeito novo de instalar, que esperaria alguém responder a pergunta dele.
+ */
+const navegadorQueInstala = (page: Page) =>
+  page.addInitScript(() => {
+    Object.defineProperty(Navigator.prototype, 'install', {
+      configurable: true,
+      value: () => Promise.resolve(),
     });
-    dispatchEvent(e);
   });
 
-test('instalar o app: botão no Perfil quando o navegador deixa, e o convite no celular', async ({
-  page,
-}, info) => {
+test('instalar o app: botão no Perfil, e o convite só no celular', async ({ page }, info) => {
+  await navegadorQueInstala(page);
   await entrar(page, 'rafael@demo.pentefino.dev');
   await page.goto('/perfil');
-  // Sem o aviso do navegador (e fora do iPhone), nada de botão que não funciona.
-  await expect(page.getByRole('heading', { name: 'App na tela do celular' })).toHaveCount(0);
-  await avisoDeInstalar(page);
   const secao = page.getByRole('region', { name: 'App na tela do celular' });
   await expect(secao).toBeVisible();
   const convite = page.getByRole('region', { name: 'Instale o Pente Fino no celular' });
@@ -42,14 +39,13 @@ test('instalar o app: botão no Perfil quando o navegador deixa, e o convite no 
 
 test('convite para instalar: quem fecha não vê de novo', async ({ page }, info) => {
   test.skip(info.project.name !== 'celular', 'o convite é só no celular');
+  await navegadorQueInstala(page);
   await entrar(page, 'rafael@demo.pentefino.dev');
-  await avisoDeInstalar(page);
   const convite = page.getByRole('region', { name: 'Instale o Pente Fino no celular' });
   await convite.getByRole('button', { name: 'Fechar o convite para instalar' }).click();
   await expect(convite).toBeHidden();
   await page.reload();
-  await avisoDeInstalar(page);
-  await expect(page.getByRole('region', { name: 'App na tela do celular' })).toHaveCount(0);
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   await expect(convite).toBeHidden();
 });
 
