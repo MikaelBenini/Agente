@@ -2,6 +2,8 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
+    // id fixo: o navegador reconhece o app instalado mesmo se o start_url mudar (guia pwa/install-web-app).
+    id: '/app',
     name: 'Pente Fino',
     short_name: 'Pente Fino',
     description: 'Gestão de barbearia: agenda, comandas, comissões e lucro real.',

@@ -673,7 +673,11 @@ export default function Pagina() {
             </caption>
             <thead className="bg-superficie text-sm">
               <tr>
-                <th scope="col" className="px-4 py-3 font-medium text-tinta-suave">
+                {/* Primeira coluna presa ao rolar para o lado (guia ui-atoms/responsive-table). */}
+                <th
+                  scope="col"
+                  className="sticky left-0 bg-superficie px-4 py-3 font-medium text-tinta-suave"
+                >
                   Recurso
                 </th>
                 <th
@@ -693,7 +697,7 @@ export default function Pagina() {
             <tbody className="divide-y divide-borda">
               {COMPARATIVO.map((l) => (
                 <tr key={l.recurso}>
-                  <th scope="row" className="px-4 py-3 font-normal">
+                  <th scope="row" className="sticky left-0 bg-fundo px-4 py-3 font-normal">
                     {l.recurso}
                   </th>
                   <td className="bg-modulo/5 px-4 py-3 text-center">

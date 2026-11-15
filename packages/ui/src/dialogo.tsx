@@ -11,6 +11,11 @@ export interface DialogoProps {
   onFechar: () => void;
   children: ReactNode;
   largura?: 'normal' | 'larga';
+  /**
+   * Fecha tocando fora da janela (guia ui-behaviors/light-dismiss-a-dialog). Só em janela sem
+   * formulário: tocar fora sem querer apagaria o que foi digitado.
+   */
+  fecharTocandoFora?: boolean;
 }
 
 /** Janela para formulários. No celular ocupa a largura toda e rola por dentro. */
@@ -21,6 +26,7 @@ export function Dialogo({
   onFechar,
   children,
   largura = 'normal',
+  fecharTocandoFora = false,
 }: DialogoProps) {
   const ref = useRef<HTMLDialogElement>(null);
   const id = useId();
@@ -35,9 +41,27 @@ export function Dialogo({
     <dialog
       ref={ref}
       aria-labelledby={`${id}-titulo`}
+      // `closedby` ainda não está nos tipos do React; no Safari vale o plano B do onClick.
+      {...(fecharTocandoFora ? { closedby: 'any' } : {})}
       onCancel={(e) => {
         e.preventDefault();
         onFechar();
+      }}
+      onClose={() => {
+        if (aberto) onFechar();
+      }}
+      onClick={(e) => {
+        // Plano B do guia para quem não tem `closedby`: o toque no fundo cai no próprio <dialog>.
+        if (!fecharTocandoFora || 'closedBy' in HTMLDialogElement.prototype) return;
+        const d = e.currentTarget;
+        if (e.target !== d) return;
+        const r = d.getBoundingClientRect();
+        const dentro =
+          r.top <= e.clientY &&
+          e.clientY <= r.bottom &&
+          r.left <= e.clientX &&
+          e.clientX <= r.right;
+        if (!dentro) onFechar();
       }}
       className={cn(
         'm-auto max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] overflow-y-auto rounded-lg border border-borda bg-superficie p-0 text-tinta backdrop:bg-black/70',

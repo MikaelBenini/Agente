@@ -91,7 +91,7 @@ export function CampoQuantidade({
           inputMode="numeric"
           pattern="[0-9]*"
           autoComplete="off"
-          aria-invalid={erro ? true : undefined}
+          aria-invalid={erro ? true : false}
           aria-describedby={[idErro, idDica].filter(Boolean).join(' ') || undefined}
           className="min-h-11 w-full min-w-0 bg-transparent text-center text-base text-tinta tabular-nums focus-visible:outline-none"
           value={texto}

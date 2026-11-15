@@ -64,6 +64,9 @@ export function VideoApresentacao() {
         playsInline
         controls
         preload={reduzir ? 'none' : 'metadata'}
+        // Abaixo da dobra: só baixa capa e vídeo perto de aparecer (guia lazy-load-video-and-audio;
+        // Chrome e Edge; os outros ignoram e seguem o preload). Ainda fora dos tipos do React.
+        {...({ loading: 'lazy' } as Record<string, string>)}
         autoPlay={!reduzir}
         onVolumeChange={(e) => setMudo(e.currentTarget.muted)}
         aria-label="Vídeo de 1 minuto: lucro do mês, margem de cada serviço, agendamento pelo link, comanda, comissão, caixa, lembretes, WhatsApp, site e clube"

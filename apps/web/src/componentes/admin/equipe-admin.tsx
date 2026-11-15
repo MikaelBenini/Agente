@@ -45,6 +45,7 @@ function SenhaUmaVez({
     <Dialogo
       aberto={!!acesso}
       titulo="Acesso pronto"
+      fecharTocandoFora
       descricao="A senha aparece só agora. Mande para a pessoa por um canal seguro."
       onFechar={() => {
         setCopiado(false);
