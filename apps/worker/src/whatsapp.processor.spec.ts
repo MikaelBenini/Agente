@@ -1,5 +1,5 @@
 import { INTERVALO_MINIMO_ENVIO_MS, type TrabalhoWhatsappSaida } from '@pente-fino/shared';
-import { agendarRespostas, type RelogioDeEnvio } from './whatsapp.processor.js';
+import { agendarRespostas, FalhasPorConta, type RelogioDeEnvio } from './whatsapp.processor.js';
 
 const resultado = (saidas: string[]) => ({
   tipo: 'respondida' as const,
@@ -58,5 +58,16 @@ describe('agendarRespostas', () => {
     const { r, valor } = relogioEmMemoria(null);
     await agendarRespostas(resultado([]), { relogio: r, adicionar: async () => 0 });
     expect(valor()).toBeNull();
+  });
+});
+
+describe('FalhasPorConta (verificação final, C3)', () => {
+  it('sem erro, nada; com erro, quantas contas e o primeiro motivo', () => {
+    const f = new FalhasPorConta();
+    expect(f.resumo()).toBe('');
+    f.anotar('0190a1b2-c3d4-7e5f', new Error('banco caiu'));
+    f.anotar('0190a1b2-c3d4-7e5f', new Error('de novo'));
+    f.anotar('0290a1b2-c3d4-7e5f', new Error('outro'));
+    expect(f.resumo()).toBe(' · 2 contas com erro (0190a1b2: banco caiu)');
   });
 });

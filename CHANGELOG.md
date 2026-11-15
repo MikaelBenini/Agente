@@ -7,6 +7,13 @@ produção (`https://seupentefino.com.br`). Detalhes técnicos e o porquê de ca
 
 ## [Não publicado]
 
+### Corrigido (verificação final)
+
+- **Backup diário:** não estava agendado no servidor (só rodavam os backups feitos à mão). Agora o próprio deploy garante o backup todo dia às 3h e o vigia de disco e memória a cada 5 minutos.
+- **Bot do WhatsApp mais rápido com muitas barbearias:** as rotinas que passam por todas as contas (avisos, automações e avisos da assinatura) não seguram mais a resposta às mensagens dos clientes.
+- **Feriado no calendário:** a central de avisos não manda mais o resumo do dia nem o aviso de caixa aberto num dia marcado como fechado.
+- **Saúde do sistema:** mostra a última execução dos alertas da equipe, as filas de rotinas, de alertas e de limpeza, e quantas contas deram erro em cada rotina.
+
 ### Mudado (indique e ganhe mais visível)
 
 - A página inicial tem a chamada "Não tem barbearia? Ganhe indicando" logo abaixo do botão de teste, que leva até a seção, e o menu do topo ganhou "Indique e ganhe" (no computador). Antes a seção só aparecia perto do fim da página.

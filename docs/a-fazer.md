@@ -568,7 +568,7 @@ de ganho para o barbeiro:
 
 ## 9. Por último: verificação final do ecossistema
 
-- [ ] Rodar a [verificação final](verificacao-final.md) (pedido do dono em 11/11/2026): rotinas
+- [x] Rodar a [verificação final](verificacao-final.md) (feita em 15/11: números, segurança e produção conferidos; correções C1 a C6; ficam com o dono o backup no Kuma, uma restauração de teste e o Tag Assistant) (pedido do dono em 11/11/2026): rotinas
   automáticas, integrações, o dia do barbeiro, números que batem, segurança, produção e
   documentação. Só depois de todas as etapas acima, para nada ficar de fora. Lá já estão os
   achados V1 a V4 vistos em 11/11

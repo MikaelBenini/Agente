@@ -868,11 +868,16 @@ describe('configurações e saúde do sistema', () => {
     expect(s.banco).toBe('ok');
     expect(s.filas.map((f) => f.fila)).toEqual([
       'E-mails',
-      'WhatsApp (entrada e rotinas)',
+      'WhatsApp (mensagens e lembretes)',
       'WhatsApp (envio)',
       'Notificações no celular',
       'Eventos',
+      'WhatsApp (rotinas de todas as contas)',
+      'Alertas da equipe',
+      'Limpeza e despesas fixas',
     ]);
+    // Verificação final (C2): os alertas de hora em hora também têm a última execução.
+    expect(s.rotinas.map((r) => r.rotina)).toContain('alertas');
     expect(Array.isArray(s.conexoesCaidas)).toBe(true);
     expect(Array.isArray(s.errosRecentes)).toBe(true);
   });

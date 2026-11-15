@@ -8,6 +8,24 @@ set -euo pipefail
 cd /opt/barbearia
 # Tudo dentro de uma função: o bash lê o script inteiro antes de rodar, então copiar a versão
 # nova deste arquivo por cima dele mesmo (o cp lá embaixo) não embaralha a execução.
+# Verificação final (15/11): o backup diário dependia de alguém pôr a linha no cron à mão, e não
+# estava rodando (o Uptime Kuma só recebia os backups manuais). A cada deploy, as duas linhas
+# ficam garantidas: backup às 3h de Brasília (antes da limpeza das 3h30) e vigia a cada 5 min.
+# Troca as linhas antigas, postas à mão, para não rodar em dobro.
+garantir_cron() {
+  command -v crontab >/dev/null || { echo "Sem crontab: agende o backup.sh e o vigia.sh à mão." >&2; return 0; }
+  mkdir -p /opt/barbearia/backups
+  # Hora do servidor que corresponde às 3h em São Paulo (UTC−3), qualquer que seja o fuso dele.
+  local deslocamento hora atual
+  deslocamento=$(( 10#$(date +%z | cut -c2-3) * $( [[ "$(date +%z | cut -c1)" == "-" ]] && echo -1 || echo 1 ) ))
+  hora=$(( ((3 + 3 + deslocamento) % 24 + 24) % 24 ))
+  atual="$(crontab -l 2>/dev/null | grep -vE '# pente-fino:|backup\.sh|vigia\.sh' || true)"
+  printf '%s\n%s\n%s\n' "$atual" \
+    "0 $hora * * * cd /opt/barbearia && ./backup.sh >> /opt/barbearia/backups/backup.log 2>&1 # pente-fino:backup" \
+    "*/5 * * * * cd /opt/barbearia && ./vigia.sh >/dev/null 2>&1 # pente-fino:vigia" |
+    sed '/^$/d' | crontab -
+}
+
 principal() {
   SHA="${SSH_ORIGINAL_COMMAND:-${1:-}}"
   [[ "$SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "Envie o sha completo do commit." >&2; exit 2; }
@@ -32,6 +50,7 @@ principal() {
   for f in "$TMP"/*; do [[ -f "$f" && -d "$(basename "$f")" ]] && { rmdir "$(basename "$f")" 2>/dev/null || true; }; done
   cp -r "$TMP"/. .
   ./atualizar.sh "$SHA"
+  garantir_cron
   docker compose --env-file .env -f docker-compose.prod.yml up -d --remove-orphans caddy status >/dev/null
   if (( caddy_mudou )); then
     docker exec pente-fino-caddy-1 caddy reload --config /etc/caddy/Caddyfile
