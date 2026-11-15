@@ -18,7 +18,7 @@ produção (`https://seupentefino.com.br`). Detalhes técnicos e o porquê de ca
   - as perguntas frequentes, no fim, só são desenhadas quando chegam perto da tela;
   - os parágrafos não deixam mais uma palavra sozinha na última linha;
   - as tabelas que rolam para o lado esmaecem a borda enquanto há mais para ver.
-- **Suporte por chat em todo o painel:** um botão flutuante no canto abre a conversa com a equipe em qualquer tela (antes, só na Ajuda). A Ajuda não mostra mais o WhatsApp do suporte: o chat o substitui, e o e-mail continua.
+- **Suporte por chat em todo o painel:** um botão ao lado do sino de avisos abre a conversa com a equipe em qualquer tela (antes, só na Ajuda). A Ajuda não mostra mais o WhatsApp do suporte: o chat o substitui, e o e-mail continua.
 - Na comparação da página de vendas, "Bot de WhatsApp que agenda, incluso no plano" virou "sem custo por mensagem": o bot vem no Pro e no Premium, e no Agenda e no Básico com as Automações.
 
 ### Corrigido (verificação final)

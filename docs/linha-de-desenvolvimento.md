@@ -776,7 +776,7 @@ temos bot de WhatsApp, lucro real, comanda única e preço menor). Ordem de cons
     - `<meta name="text-scale" content="scale">` no layout e os `text-[Npx]` do site e da vitrine em rem;
     - `CorDoNavegador` (theme-color no cliente, para não travar a página no servidor) nas páginas `/s/...`, `accent-color` e `::selection` no site;
     - `.desenhar-perto` (`content-visibility: auto`) só nas perguntas frequentes (antes de `#indique` e `#video` o tamanho estimado deslocava o salto do link), `text-wrap: pretty` nos parágrafos e `.dica-rolagem` (esmaecer à direita por scroll timeline) nas tabelas roláveis;
-    - F6: `ChatFlutuante` (popover nativo, conversa montada só aberta) na casca, fora da Ajuda e do modo suporte; o WhatsApp do suporte saiu da Ajuda;
+    - F6: `BotaoSuporte` ao lado do sino (barra do celular e menu lateral) e `PainelSuporte` (popover nativo, conversa montada só aberta) na casca, fora da Ajuda e do modo suporte; o botão flutuante no canto de baixo cobria o "Enviar" do simulador do bot (CI); o WhatsApp do suporte saiu da Ajuda;
     - P4: frase do bot na comparação;
     - testes em `site-barbearia.spec.ts`, `suporte.spec.ts` e `web-moderna.spec.ts`.
   - **Pedido do dono em 2026-11-11:** a página tem de ser bonita e atrativa, no nível de uma landing page profissional (montada com uma skill de design de páginas). O barbeiro edita tudo pelo painel, sem ajuda: textos, fotos, seções e a ordem delas, cores, fonte e o estilo (modelos prontos para escolher e ajustar), com a prévia ao vivo antes de publicar. A página do Pente Fino (`/b/<slug>`), o link de agendamento e o "app da barbearia" seguem esse mesmo visual

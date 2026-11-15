@@ -246,7 +246,7 @@ U2 a U5 já feitos (#161).
   - registro no CHANGELOG.
 - [x] Lote 6k (push do chat): bateria verde e PR aberto (13/11)
 - [x] Merge pelo dono (lote 6k)
-- [x] **F6** Suporte por chat (pedido do dono em 11/11, detalhado em 12/11; entregas 1 e 2 em 13/11, conferido em 15/11: faltavam o botão flutuante no painel e tirar o WhatsApp da Ajuda, feitos no mesmo dia):
+- [x] **F6** Suporte por chat (pedido do dono em 11/11, detalhado em 12/11; entregas 1 e 2 em 13/11, conferido em 15/11: faltavam o chat em todo o painel (botão ao lado do sino: o flutuante no canto cobria botões) e tirar o WhatsApp da Ajuda, feitos no mesmo dia):
   - **Quem chama:** ícone flutuante no canto da tela, no site (visitante, que informa nome e
     contato) e no painel da barbearia (já logado: a conversa fica ligada à conta).
   - **Fila de espera:** ao abrir, a conversa entra na fila e o cliente vê que está aguardando
