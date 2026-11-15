@@ -8,7 +8,7 @@ import {
   PLANOS,
   precoPorMes,
 } from '@pente-fino/shared';
-import { Check, Minus, X } from 'lucide-react';
+import { Check, Contrast, X } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import {
@@ -247,7 +247,7 @@ export function PaginaComparativo({ c }: { c: Concorrente }) {
 
 const SINAL = {
   sim: { Icone: Check, texto: 'Sim', cor: 'text-acao-texto' },
-  parte: { Icone: Minus, texto: 'Em parte', cor: 'text-aviso-texto' },
+  parte: { Icone: Contrast, texto: 'Em parte', cor: 'text-aviso-texto' },
   nao: { Icone: X, texto: 'Não', cor: 'text-tinta-fraca' },
 } as const;
 
@@ -359,7 +359,7 @@ function TabelaResumo() {
           <Check aria-hidden className="size-4 text-acao-texto" /> sim
         </span>
         <span className="inline-flex items-center gap-1">
-          <Minus aria-hidden className="size-4 text-aviso-texto" /> em parte ou pago à parte
+          <Contrast aria-hidden className="size-4 text-aviso-texto" /> em parte ou pago à parte
         </span>
         <span className="inline-flex items-center gap-1">
           <X aria-hidden className="size-4 text-tinta-fraca" /> não
