@@ -9,7 +9,19 @@ set -euo pipefail
 cd "$(dirname "$0")"
 [[ -f .env ]] || { echo "Falta o .env: rode ./instalar.sh primeiro." >&2; exit 1; }
 
-compose() { docker compose --env-file .env -f docker-compose.prod.yml "$@"; }
+# Valor do .env com "$" (a chave do Asaas começa com "$aact_") vira uma variável para o Compose:
+# ele troca por vazio e escreve o valor inteiro no aviso, que vai para o log público do deploy.
+# Aqui o aviso sai sem o valor, e a conferência abaixo diz qual variável corrigir.
+compose() {
+  docker compose --env-file .env -f docker-compose.prod.yml "$@" \
+    2> >(sed -E 's/The "[^"]*" variable is not set\. Defaulting to a blank string\./Um valor do .env tem "$" sem aspas simples: o Compose leu vazio (valor escondido)./' >&2)
+}
+# Nomes (nunca os valores) das variáveis com "$" fora de aspas simples e sem "$$".
+cifroes="$(grep -E '^[A-Z0-9_]+=' .env | grep -vE "^[A-Z0-9_]+='.*'$" | awk -F= '{ v = substr($0, index($0, "=") + 1); gsub(/\$\$/, "", v); if (v ~ /\$/) print $1 }' || true)"
+if [[ -n "$cifroes" ]]; then
+  echo "ATENÇÃO: no .env, o valor de $(echo "$cifroes" | paste -sd, -) tem \"\$\" e o Compose lê vazio." >&2
+  echo "Ponha o valor entre aspas simples (VAR='valor') e rode ./atualizar.sh de novo." >&2
+fi
 atual="$(sed -n 's/^TAG=//p' .env)"
 nova="${1:-$atual}"
 if [[ "$nova" == "anterior" ]]; then

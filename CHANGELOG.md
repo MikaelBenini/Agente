@@ -7,6 +7,10 @@ produção (`https://seupentefino.com.br`). Detalhes técnicos e o porquê de ca
 
 ## [Não publicado]
 
+### Segurança (deploy)
+
+- Valor do `.env` com `$` (como a chave do Asaas) era lido como vazio pelo Docker Compose e aparecia inteiro no log público do deploy. O `atualizar.sh` agora esconde o valor do aviso e diz qual variável pôr entre aspas simples.
+
 ### Mudado (site da barbearia mais fino e suporte em todo o painel)
 
 - **Site da barbearia:**

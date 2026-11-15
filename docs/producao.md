@@ -19,6 +19,10 @@ nunca sai do servidor). Os arquivos vêm de `infra/` no repositório.
 3. `./atualizar.sh` — baixa as imagens, roda as migrações e sobe tudo; o Caddy emite o HTTPS.
 4. `./admin.sh --email voce@email.com --nome "Seu Nome"` — cria quem administra (`/admin`).
 5. E-mail e Asaas: `nano .env` (campos marcados com PREENCHER) e `./atualizar.sh` de novo.
+   **Valor com `$` vai entre aspas simples** (`ASAAS_API_KEY='$aact_...'`): sem elas, o Docker
+   Compose lê o `$` como variável, passa o valor **vazio** para a API e escreve o valor inteiro num
+   aviso, que vai para o log público do deploy (aconteceu em 15/11). O `atualizar.sh` avisa o nome
+   da variável que está assim e esconde o valor do aviso.
    O SMTP também pode ser configurado em `/admin → Configurações`.
 
 ## Asaas: cobrança e clube online
