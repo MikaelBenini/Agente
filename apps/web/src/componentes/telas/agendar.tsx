@@ -122,7 +122,7 @@ function Agendar({ slugDaRota }: { slugDaRota?: string }) {
   return <Formulario slug={slug} u={pagina.data} token={token} onTrocouUnidade={setSlug} />;
 }
 
-export // Pedido do dono em 15/11: com o visual ligado, a página inteira veste o tema (o escolhido ou o
+// Pedido do dono em 15/11: com o visual ligado, a página inteira veste o tema (o escolhido ou o
 // do site): as cores do app viram as da paleta, a fonte dos títulos e o canto dos botões também.
 const RAIOS: Record<VisualAgendamentoPublico['botoes'], [string, string]> = {
   retos: ['0px', '0px'],
@@ -166,7 +166,7 @@ function estiloDoVisual(v: VisualAgendamentoPublico): React.CSSProperties {
   } as React.CSSProperties;
 }
 
-function Moldura({
+export function Moldura({
   children,
   u,
 }: {
