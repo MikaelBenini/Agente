@@ -547,22 +547,22 @@ sem `npx`). O código já segue boa parte: diálogo nativo, autofill no login e 
 `one-time-code` no autenticador, prioridade na imagem principal. Onde ela ainda ajuda, em ordem
 de ganho para o barbeiro:
 
-- [ ] **Botão "Instalar o app"** para barbeiro e recepção (`pwa/install-web-app`): no Android, o
+- [x] **Botão "Instalar o app"** (feito em 15/11) para barbeiro e recepção (`pwa/install-web-app`): no Android, o
   pedido de instalação do navegador num botão; no iPhone, o passo a passo "Compartilhar → Adicionar
   à Tela de Início". Hoje o site diz que o app "vira ícone na tela", mas ninguém ensina como.
-- [ ] **Fechar a janela tocando fora** (`ui-behaviors/light-dismiss-a-dialog`): `closedby="any"`
+- [x] **Fechar a janela tocando fora** (feito em 15/11: busca, extrato, ficha do cliente, "Acesso pronto" e caixa fechado) (`ui-behaviors/light-dismiss-a-dialog`): `closedby="any"`
   no `Dialogo` de `@pente-fino/ui`, com o plano B do guia para o Safari; só nas janelas sem
   formulário pela metade (nas de formulário, tocar fora apagaria o que foi digitado).
-- [ ] **Página seguinte mais rápida** (`performance/improve-next-page-load-performance`): regras de
+- [x] **Página seguinte mais rápida** (15/11: já coberto; o guia manda não usar as regras em site que troca de página sem recarregar, e os links do Next já pré-carregam a página seguinte) (`performance/improve-next-page-load-performance`): regras de
   pré-carregamento no site para o caminho "página inicial → cadastro" e "→ planos" (o navegador que
   não entende ignora).
-- [ ] **Vídeo da página inicial só quando chegar nele** (`performance/lazy-load-video-and-audio`):
+- [x] **Vídeo da página inicial só quando chegar nele** (feito em 15/11) (`performance/lazy-load-video-and-audio`):
   `loading="lazy"` no vídeo, que fica abaixo da dobra (Chrome e Edge; os outros ignoram e seguem o
   `preload`).
-- [ ] **Erros de formulário anunciados e só depois de mexer no campo**
+- [x] **Erros de formulário anunciados e só depois de mexer no campo** (feito em 15/11)
   (`accessibility/accessible-error-announcement`, `forms/validate-input-after-interaction`):
   conferir os campos com máscara (`componentes/campos.tsx`) e o cadastro.
-- [ ] **Tabelas no celular** (`ui-atoms/responsive-table`): comparativo, planos e relatórios.
+- [x] **Tabelas no celular** (feito em 15/11 nas comparações e na página inicial; relatórios do app ficam como estão, já rolam para o lado) (`ui-atoms/responsive-table`): comparativo, planos e relatórios.
 - [ ] **Entrar com passkey** (`security/passkeys`, para depois): login sem senha, com a digital ou o
   rosto do celular; é um recurso novo e precisa de decisão do dono.
 
