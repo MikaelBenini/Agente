@@ -1,16 +1,15 @@
 // Vídeo novo do site (roteiro em apps/web/video/roteiro.md, aprovado pelo dono em 15/11).
 // Só fotos reais das telas (apps/web/video/fotos-video.mjs); preço e "14 dias" de dados.json,
-// gerado de @pente-fino/shared. Duas transições: deslizar e esmaecer.
+// gerado de @pente-fino/shared. Uma transição só (src/transicao.tsx).
 import React from 'react';
 import { AbsoluteFill, interpolate, useCurrentFrame } from 'remotion';
-import { linearTiming, TransitionSeries } from '@remotion/transitions';
-import { fade } from '@remotion/transitions/fade';
-import { slide } from '@remotion/transitions/slide';
+import { springTiming, TransitionSeries } from '@remotion/transitions';
+import { aproximar } from './transicao';
 import dados from './dados.json';
 import { COR, TEXTO } from './marca';
-import { Celular, JanelaNavegador, Legenda, Selo, Titulo, useEntrada } from './partes';
+import { Celular, JanelaNavegador, Texto, Titulo, useEntrada } from './partes';
 
-const TRANSICAO = 15;
+const TRANSICAO = 14;
 
 function Gancho() {
   const frame = useCurrentFrame();
@@ -108,13 +107,16 @@ const CENAS: Cena[] = [
       <>
         <JanelaNavegador
           foto="telas/02-financeiro.webp"
+          esquerda={700}
+          largura={1140}
           destaque={{ x: 420, y: 830, w: 700, h: 75 }}
         />
-        <Legenda
-          linhas={['Comissão, produto e despesas.', 'Sobrou R$ 10.477.']}
+        <Texto
+          titulo="Sobrou R$ 10.477"
           forte="R$ 10.477"
+          apoio="Depois da comissão, do produto e das despesas."
+          selo="Básico, Pro e Premium"
         />
-        <Selo texto="Básico, Pro e Premium" />
       </>
     ),
   },
@@ -124,10 +126,16 @@ const CENAS: Cena[] = [
       <>
         <JanelaNavegador
           foto="telas/03-margem.webp"
+          esquerda={700}
+          largura={1140}
           destaque={{ x: 1690, y: 520, w: 190, h: 640 }}
         />
-        <Legenda linhas={['O corte que mais vende', 'nem sempre é o que mais sobra.']} />
-        <Selo texto="Premium" />
+        <Texto
+          titulo="A margem de cada serviço"
+          forte="margem"
+          apoio="O corte que mais vende nem sempre é o que mais sobra."
+          selo="Premium"
+        />
       </>
     ),
   },
@@ -135,16 +143,19 @@ const CENAS: Cena[] = [
     segundos: 6,
     corpo: (
       <>
-        <AbsoluteFill style={{ background: COR.fundo }} />
-        <div style={{ position: 'absolute', left: 560, right: 40, top: 0, bottom: 0 }}>
-          <JanelaNavegador
-            foto="telas/04-agenda.webp"
-            largura={1280}
-            destaque={{ x: 945, y: 345, w: 440, h: 260 }}
-          />
-        </div>
-        <Celular foto="telas/04-link.webp" alturaFoto={1688} esquerda={120} />
-        <Legenda linhas={['O cliente marca sozinho,', 'até de madrugada.']} />
+        <JanelaNavegador
+          foto="telas/04-agenda.webp"
+          esquerda={880}
+          largura={980}
+          destaque={{ x: 945, y: 345, w: 440, h: 260 }}
+        />
+        <Celular foto="telas/04-link.webp" alturaFoto={1688} esquerda={660} />
+        <Texto
+          titulo="O cliente marca sozinho"
+          forte="sozinho"
+          apoio="Pelo link, a qualquer hora. Cai direto na agenda."
+          largura={500}
+        />
       </>
     ),
   },
@@ -152,10 +163,13 @@ const CENAS: Cena[] = [
     segundos: 5,
     corpo: (
       <>
-        <AbsoluteFill style={{ background: COR.fundo }} />
-        <Celular foto="telas/05-comanda.webp" alturaFoto={1328} />
-        <Legenda linhas={['Marcou, a comanda já existe.', 'O barbeiro só acrescenta.']} />
-        <Selo texto="Básico, Pro e Premium" />
+        <Celular foto="telas/05-comanda.webp" alturaFoto={1328} esquerda={1060} />
+        <Texto
+          titulo="A comanda já existe"
+          forte="já existe"
+          apoio="Marcou o horário, ela abre sozinha. O barbeiro só lança o extra."
+          selo="Básico, Pro e Premium"
+        />
       </>
     ),
   },
@@ -163,24 +177,24 @@ const CENAS: Cena[] = [
     segundos: 5,
     corpo: (
       <>
-        <div style={{ position: 'absolute', top: 0, bottom: 0, left: 40, right: 560 }}>
-          <JanelaNavegador
-            foto="telas/06-comissoes.webp"
-            largura={1280}
-            destaque={{ x: 790, y: 440, w: 220, h: 480 }}
-          />
-        </div>
+        <JanelaNavegador
+          foto="telas/06-comissoes.webp"
+          esquerda={700}
+          largura={960}
+          destaque={{ x: 790, y: 440, w: 220, h: 480 }}
+        />
         <Celular
           foto="telas/06-extrato.webp"
           alturaFoto={1688}
-          esquerda={1400}
+          esquerda={1440}
           destaque={{ x: 33, y: 503, w: 345, h: 287 }}
         />
-        <Legenda
-          linhas={['A comissão sai sozinha.', 'Sem planilha.']}
-          forte="A comissão sai sozinha."
+        <Texto
+          titulo="A comissão sai sozinha"
+          forte="sozinha"
+          apoio="Sem planilha. Cada barbeiro vê o extrato no celular."
+          selo="Básico, Pro e Premium"
         />
-        <Selo texto="Básico, Pro e Premium" esquerda />
       </>
     ),
   },
@@ -190,10 +204,16 @@ const CENAS: Cena[] = [
       <>
         <JanelaNavegador
           foto="telas/07-caixa.webp"
+          esquerda={700}
+          largura={1140}
           destaque={{ x: 1380, y: 320, w: 480, h: 450 }}
         />
-        <Legenda linhas={['Fechou o caixa:', 'a diferença aparece na hora.']} />
-        <Selo texto="Básico, Pro e Premium" />
+        <Texto
+          titulo="O caixa bate"
+          forte="bate"
+          apoio="Fechou, a diferença aparece na hora."
+          selo="Básico, Pro e Premium"
+        />
       </>
     ),
   },
@@ -203,10 +223,16 @@ const CENAS: Cena[] = [
       <>
         <JanelaNavegador
           foto="telas/08-lembretes.webp"
+          esquerda={700}
+          largura={1140}
           destaque={{ x: 405, y: 710, w: 1025, h: 335 }}
         />
-        <Legenda linhas={['Lembrete que confirma.', 'Horário vago que se preenche.']} />
-        <Selo texto="Lista de espera: com as Automações" />
+        <Texto
+          titulo="Menos cadeira vazia"
+          forte="vazia"
+          apoio="Lembrete que confirma. O horário vago vai para a lista de espera."
+          selo="Lista de espera: Automações"
+        />
       </>
     ),
   },
@@ -214,12 +240,13 @@ const CENAS: Cena[] = [
     segundos: 6,
     corpo: (
       <>
-        <JanelaNavegador foto="telas/09-bot.webp" />
-        <Legenda
-          linhas={['Seu WhatsApp marcando horário', 'sem custo por mensagem.']}
-          forte="sem custo por mensagem."
+        <JanelaNavegador foto="telas/09-bot.webp" esquerda={700} largura={1140} />
+        <Texto
+          titulo="Seu WhatsApp marcando horário"
+          forte="WhatsApp"
+          apoio="Sem custo por mensagem e sem inteligência artificial."
+          selo="Com as Automações"
         />
-        <Selo texto="Com as Automações" />
       </>
     ),
   },
@@ -227,8 +254,12 @@ const CENAS: Cena[] = [
     segundos: 5,
     corpo: (
       <>
-        <JanelaNavegador foto="telas/10-site-a.webp" />
-        <Legenda linhas={['Site com a cara da barbearia,', 'em minutos.']} />
+        <JanelaNavegador foto="telas/10-site-a.webp" esquerda={700} largura={1140} />
+        <Texto
+          titulo="Site com a cara da barbearia"
+          forte="cara"
+          apoio="Pronto em minutos, com o botão de agendar."
+        />
       </>
     ),
   },
@@ -238,10 +269,16 @@ const CENAS: Cena[] = [
       <>
         <JanelaNavegador
           foto="telas/11-clube.webp"
+          esquerda={700}
+          largura={1140}
           destaque={{ x: 405, y: 395, w: 1450, h: 230 }}
         />
-        <Legenda linhas={['Receita que se repete', 'todo mês.']} />
-        <Selo texto="Pro e Premium" />
+        <Texto
+          titulo="Receita todo mês"
+          forte="todo mês"
+          apoio="Clube de assinatura, com cobrança pelo link."
+          selo="Pro e Premium"
+        />
       </>
     ),
   },
@@ -261,8 +298,8 @@ export const Apresentacao: React.FC = () => (
         ? [
             <TransitionSeries.Transition
               key={`t${i}`}
-              presentation={i % 2 === 0 ? fade() : slide({ direction: 'from-right' })}
-              timing={linearTiming({ durationInFrames: TRANSICAO })}
+              presentation={aproximar()}
+              timing={springTiming({ config: { damping: 200 }, durationInFrames: TRANSICAO })}
             />,
           ]
         : []),

@@ -17,74 +17,110 @@ export function useEntrada(atraso = 0) {
   return spring({ frame: frame - atraso, fps, config: { damping: 16 } });
 }
 
-/** Legenda em até 2 linhas, sobre faixa escura (85%), com a palavra forte em amarelo. */
-export function Legenda({ linhas, forte }: { linhas: [string, string?]; forte?: string }) {
-  const e = useEntrada(6);
-  const pintar = (t: string) => {
-    if (!forte || !t.includes(forte)) return t;
-    const [a, b] = t.split(forte);
-    return (
-      <>
-        {a}
-        <span style={{ color: COR.amarelo }}>{forte}</span>
-        {b}
-      </>
-    );
-  };
+/**
+ * O texto da cena como parte da composição (pedido do dono em 15/11: sem cara de legenda dublada):
+ * na coluna da esquerda, a frase grande entra palavra por palavra, a palavra forte em amarelo, e a
+ * frase de apoio vem menor embaixo, com o selo do plano.
+ */
+export function Texto({
+  titulo,
+  apoio,
+  forte,
+  selo,
+  largura = 540,
+}: {
+  titulo: string;
+  apoio?: string;
+  forte?: string;
+  selo?: string;
+  largura?: number;
+}) {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const palavras = titulo.split(' ');
+  const fortes = new Set((forte ?? '').split(' ').filter(Boolean));
+  const apoioE = useEntrada(8 + palavras.length * 3);
+  const seloE = useEntrada(14 + palavras.length * 3);
   return (
     <div
       style={{
         position: 'absolute',
         left: 96,
-        right: 96,
-        bottom: 72,
+        top: 0,
+        bottom: 0,
+        width: largura,
         display: 'flex',
+        flexDirection: 'column',
         justifyContent: 'center',
-        opacity: e,
-        transform: `translateY(${(1 - e) * 30}px)`,
+        gap: 28,
       }}
     >
       <div
         style={{
-          background: 'rgba(11,11,11,0.85)',
-          borderRadius: 18,
-          padding: '22px 40px',
-          fontFamily: TEXTO,
-          fontWeight: 600,
-          fontSize: 56,
-          lineHeight: 1.2,
+          fontFamily: TITULO,
+          fontWeight: 700,
+          fontSize: 96,
+          lineHeight: 0.95,
+          textTransform: 'uppercase',
           color: COR.texto,
-          textAlign: 'center',
+          display: 'flex',
+          flexWrap: 'wrap',
+          columnGap: 22,
         }}
       >
-        <div>{pintar(linhas[0])}</div>
-        {linhas[1] && <div>{pintar(linhas[1])}</div>}
+        {palavras.map((pal, i) => {
+          const e = spring({ frame: frame - 4 - i * 3, fps, config: { damping: 18 } });
+          return (
+            <span
+              key={i}
+              style={{
+                display: 'inline-block',
+                opacity: e,
+                transform: `translateY(${(1 - e) * 40}px)`,
+                color:
+                  fortes.has(pal.replace(/[.,:]/g, '')) || fortes.has(pal)
+                    ? COR.amarelo
+                    : COR.texto,
+              }}
+            >
+              {pal}
+            </span>
+          );
+        })}
       </div>
-    </div>
-  );
-}
-
-/** Selo do plano (lido de RECURSOS no roteiro), no canto de cima. */
-export function Selo({ texto, esquerda = false }: { texto: string; esquerda?: boolean }) {
-  const e = useEntrada(10);
-  return (
-    <div
-      style={{
-        position: 'absolute',
-        top: 64,
-        ...(esquerda ? { left: 96 } : { right: 96 }),
-        opacity: e,
-        border: `3px solid ${COR.amarelo}`,
-        color: COR.amarelo,
-        borderRadius: 10,
-        padding: '8px 18px',
-        fontFamily: TEXTO,
-        fontWeight: 600,
-        fontSize: 34,
-        background: 'rgba(11,11,11,0.85)',
-      }}
-    >
-      {texto}
+      {apoio && (
+        <div
+          style={{
+            fontFamily: TEXTO,
+            fontWeight: 500,
+            fontSize: 44,
+            lineHeight: 1.25,
+            color: COR.suave,
+            opacity: apoioE,
+            transform: `translateY(${(1 - apoioE) * 20}px)`,
+          }}
+        >
+          {apoio}
+        </div>
+      )}
+      {selo && (
+        <div
+          style={{
+            alignSelf: 'flex-start',
+            opacity: seloE,
+            border: `3px solid ${COR.amarelo}`,
+            color: COR.amarelo,
+            borderRadius: 10,
+            padding: '8px 18px',
+            fontFamily: TEXTO,
+            fontWeight: 600,
+            fontSize: 32,
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {selo}
+        </div>
+      )}
     </div>
   );
 }
@@ -101,6 +137,7 @@ export function JanelaNavegador({
   larguraFoto = 1920,
   alturaFoto = 1200,
   largura = 1560,
+  esquerda,
 }: {
   foto: string;
   destaque?: Retangulo;
@@ -108,6 +145,8 @@ export function JanelaNavegador({
   alturaFoto?: number;
   /** Largura da janela na tela (menor quando divide a cena com o celular). */
   largura?: number;
+  /** Posição da janela; sem ela, centralizada. */
+  esquerda?: number;
 }) {
   const frame = useCurrentFrame();
   const { durationInFrames } = useVideoConfig();
@@ -115,12 +154,15 @@ export function JanelaNavegador({
   const zoom = interpolate(frame, [0, durationInFrames], [1, 1.08]);
   const L = largura;
   const escala = L / larguraFoto;
-  const H = Math.min(alturaFoto * escala, 820);
+  const H = Math.min(alturaFoto * escala, 900);
   const luz = useEntrada(18);
   return (
-    <AbsoluteFill style={{ background: COR.fundo, alignItems: 'center', paddingTop: 70 }}>
+    <AbsoluteFill>
       <div
         style={{
+          position: 'absolute',
+          left: esquerda ?? (1920 - L) / 2,
+          top: (1080 - H - 44) / 2,
           width: L,
           borderRadius: 18,
           overflow: 'hidden',
@@ -190,7 +232,7 @@ export function Celular({
   const e = useEntrada(4);
   const L = 380;
   const escala = L / 780;
-  const H = Math.min(alturaFoto * escala, 760);
+  const H = Math.min(alturaFoto * escala, 860);
   const subir = interpolate(frame, [20, 150], [0, Math.max(0, alturaFoto * escala - H) * 0.4], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
@@ -200,7 +242,7 @@ export function Celular({
     <div
       style={{
         position: 'absolute',
-        top: 90,
+        top: (1080 - H - 36) / 2,
         left: esquerda ?? (1920 - L - 36) / 2,
         padding: 18,
         borderRadius: 54,
