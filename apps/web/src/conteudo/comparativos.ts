@@ -1,9 +1,26 @@
 // Site N2: páginas de comparação. Regras (docs/pente-fino-melhorias.md, N2): só fatos conferidos
 // na página oficial de cada sistema, com a data e o link; tom justo, dizendo onde o outro é
-// melhor; sem logos. Ao mudar um preço aqui, atualizar CONFERIDO_EM e conferir a fonte de novo.
+// melhor (só nos dados: a página não faz propaganda do concorrente, pedido do dono em 15/11); sem logos. Ao mudar um preço aqui, atualizar CONFERIDO_EM e conferir a fonte de novo.
 
 /** Data da última conferência de todas as fontes abaixo (AAAA-MM-DD). */
 export const CONFERIDO_EM = '2026-11-12';
+
+/**
+ * Resumo para a tabela geral: sim, em parte (ou pago à parte), não, ou null quando o site do
+ * sistema não informa. `nota` tem no máximo duas ou três palavras.
+ */
+export type Sinal = { s: 'sim' | 'parte' | 'nao' | null; nota?: string };
+export interface Resumo {
+  /** Preço no mensal com 3 barbeiros, curto; null = o site não mostra. */
+  preco3: string | null;
+  /** Dias de teste, curto; null = o site não informa. */
+  teste: string | null;
+  whatsapp: Sinal;
+  comissao: Sinal;
+  lucro: Sinal;
+  notaFiscal: Sinal;
+  app: Sinal;
+}
 
 export interface Concorrente {
   slug: 'appbarber' | 'trinks' | 'booksy' | 'genda' | 'barbeiro-app' | 'bestbarbers';
@@ -21,10 +38,12 @@ export interface Concorrente {
   notaFiscal: string;
   lucroPorServico: string;
   appNasLojas: string;
-  /** Onde o concorrente é melhor (dito com todas as letras). */
+  /** Onde o concorrente é melhor: referência interna, não aparece no site (pedido do dono em 15/11). */
   ondeEleEMelhor: readonly string[];
   /** Onde o Pente Fino é melhor, só com fato que o plano entrega. */
   ondePenteFinoEMelhor: readonly string[];
+  /** Os mesmos fatos acima, resumidos para a tabela geral. */
+  resumo: Resumo;
 }
 
 export const CONCORRENTES: readonly Concorrente[] = [
@@ -53,6 +72,15 @@ export const CONCORRENTES: readonly Concorrente[] = [
       'Bot de WhatsApp com a conta da barbearia, sem custo por mensagem (incluso no Pro e no Premium; no Agenda e no Básico, com as Automações).',
       'Caixa do dia com a diferença apontada no fechamento.',
     ],
+    resumo: {
+      preco3: 'R$ 109,90',
+      teste: '30 dias',
+      whatsapp: { s: null },
+      comissao: { s: 'sim' },
+      lucro: { s: null },
+      notaFiscal: { s: 'sim', nota: 'módulo fiscal' },
+      app: { s: 'sim' },
+    },
   },
   {
     slug: 'trinks',
@@ -78,6 +106,15 @@ export const CONCORRENTES: readonly Concorrente[] = [
       'Preço de todos os planos publicado, com o que vem em cada um.',
       'Teste de 14 dias, contra 5.',
     ],
+    resumo: {
+      preco3: null,
+      teste: '5 dias',
+      whatsapp: { s: 'parte', nota: 'item adicional' },
+      comissao: { s: 'sim' },
+      lucro: { s: null },
+      notaFiscal: { s: 'parte', nota: 'item adicional' },
+      app: { s: 'sim' },
+    },
   },
   {
     slug: 'booksy',
@@ -103,6 +140,15 @@ export const CONCORRENTES: readonly Concorrente[] = [
       'Bot de WhatsApp com a conta da barbearia (incluso no Pro e no Premium; no Agenda e no Básico, com as Automações).',
       'Lucro e margem de cada serviço e produto (Premium).',
     ],
+    resumo: {
+      preco3: 'R$ 139,99 + impostos',
+      teste: '7 dias',
+      whatsapp: { s: null },
+      comissao: { s: null },
+      lucro: { s: null },
+      notaFiscal: { s: null },
+      app: { s: 'sim', nota: 'com marketplace' },
+    },
   },
   {
     slug: 'genda',
@@ -129,6 +175,15 @@ export const CONCORRENTES: readonly Concorrente[] = [
       'Bot e avisos sem cota de mensagens: o WhatsApp é o da barbearia.',
       'Lucro e margem de cada serviço e produto (Premium).',
     ],
+    resumo: {
+      preco3: 'R$ 79,90',
+      teste: '5 dias',
+      whatsapp: { s: 'parte', nota: 'com cota de mensagens' },
+      comissao: { s: null },
+      lucro: { s: null },
+      notaFiscal: { s: null },
+      app: { s: null },
+    },
   },
   {
     slug: 'barbeiro-app',
@@ -156,6 +211,15 @@ export const CONCORRENTES: readonly Concorrente[] = [
       'Caixa do dia com a diferença apontada no fechamento.',
       'Clube de assinatura com cobrança pelo link (Pro e Premium).',
     ],
+    resumo: {
+      preco3: 'R$ 39,90',
+      teste: '14 dias',
+      whatsapp: { s: 'parte', nota: 'Meta cobra cada mensagem' },
+      comissao: { s: 'sim' },
+      lucro: { s: null },
+      notaFiscal: { s: 'parte', nota: 'à parte' },
+      app: { s: 'parte', nota: 'só iPhone' },
+    },
   },
   {
     slug: 'bestbarbers',
@@ -181,6 +245,15 @@ export const CONCORRENTES: readonly Concorrente[] = [
       'Lucro e margem de cada serviço e produto (Premium).',
       'Caixa do dia com a diferença apontada no fechamento.',
     ],
+    resumo: {
+      preco3: null,
+      teste: null,
+      whatsapp: { s: null },
+      comissao: { s: 'sim' },
+      lucro: { s: null },
+      notaFiscal: { s: 'sim', nota: 'automática' },
+      app: { s: 'sim', nota: 'app próprio' },
+    },
   },
 ];
 
@@ -199,3 +272,12 @@ export const PENTE_FINO = {
   lucroPorServico: 'Sim, margem de cada serviço e produto (Premium)',
   appNasLojas: 'Não: abre no navegador e vira ícone na tela do celular',
 } as const;
+
+/** O Pente Fino na tabela geral (preço e teste vêm de @pente-fino/shared na página). */
+export const PENTE_FINO_RESUMO: Omit<Resumo, 'preco3' | 'teste'> = {
+  whatsapp: { s: 'sim', nota: 'sem custo por mensagem' },
+  comissao: { s: 'sim' },
+  lucro: { s: 'sim', nota: 'no Premium' },
+  notaFiscal: { s: 'nao' },
+  app: { s: 'nao', nota: 'navegador' },
+};

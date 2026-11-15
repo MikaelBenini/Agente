@@ -731,7 +731,7 @@ export default function Pagina() {
             Compare com o sistema que você usa
           </h3>
           <p className="text-tinta-suave">
-            Preço, teste grátis, WhatsApp, comissão e onde cada um é melhor, com a fonte e a data.
+            Preço, teste grátis, WhatsApp, comissão e lucro, lado a lado, com a fonte e a data.
           </p>
           <ul className="flex flex-wrap gap-2">
             {CONCORRENTES.map((c) => (
