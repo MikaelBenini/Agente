@@ -56,11 +56,15 @@ test('convite para instalar: quem fecha não vê de novo', async ({ page }, info
 test('janela só de leitura fecha tocando fora; a de formulário não', async ({ page }, info) => {
   await entrar(page, 'dono@demo.pentefino.dev');
   await page.goto('/clientes');
-  if (info.project.name === 'celular')
-    await page.getByRole('button', { name: 'Procurar', exact: true }).click();
-  else await page.keyboard.press('Control+k');
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   const busca = page.getByRole('dialog', { name: 'Procurar' });
-  await expect(busca).toBeVisible();
+  // O atalho só vale depois de a tela carregar: repete até abrir.
+  await expect(async () => {
+    if (info.project.name === 'celular')
+      await page.getByRole('button', { name: 'Procurar', exact: true }).click();
+    else await page.keyboard.press('Control+k');
+    await expect(busca).toBeVisible({ timeout: 1000 });
+  }).toPass();
   await page.mouse.click(4, 4);
   await expect(busca).toBeHidden();
 
@@ -72,17 +76,24 @@ test('janela só de leitura fecha tocando fora; a de formulário não', async ({
   await expect(novo.getByLabel('Nome')).toHaveValue('Não pode sumir');
 });
 
-test('campo com máscara: número pela metade vira erro só ao sair do campo', async ({ page }) => {
+test('cadastro: WhatsApp pela metade vira erro só ao sair do campo', async ({ page }) => {
   await page.goto('/cadastro');
   const campo = page.getByLabel('WhatsApp (opcional)');
-  await campo.pressSequentially('1198');
+  const erro = page.getByText('WhatsApp inválido: informe DDD e número.');
+  // Espera a tela ligar: a máscara só formata depois de carregar.
+  await expect(async () => {
+    await campo.fill('');
+    await campo.pressSequentially('1198');
+    await expect(campo).toHaveValue('(11) 98', { timeout: 1000 });
+  }).toPass();
   await expect(campo).toHaveAttribute('aria-invalid', 'false');
-  await expect(page.getByText('Número incompleto')).toHaveCount(0);
+  await expect(erro).toHaveCount(0);
   await campo.blur();
-  await expect(page.getByText('Número incompleto: confira o DDD e o número.')).toBeVisible();
+  await expect(erro).toBeVisible();
   await expect(campo).toHaveAttribute('aria-invalid', 'true');
+  await campo.focus();
   await campo.pressSequentially('887777');
-  await expect(page.getByText('Número incompleto')).toHaveCount(0);
+  await expect(erro).toHaveCount(0);
 });
 
 test('vídeo da página inicial só carrega perto de aparecer', async ({ page }) => {

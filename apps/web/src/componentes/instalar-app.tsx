@@ -53,7 +53,8 @@ function Resultado({ r }: { r: ReturnType<typeof useInstalarApp>['resultado'] })
 /** Perfil → App na tela do celular. */
 export function InstalarApp() {
   const { modo, instalar, resultado, ocupado } = useInstalarApp();
-  if (!modo) return null;
+  // Depois de instalar, o navegador não oferece de novo: a seção fica para mostrar o "Pronto".
+  if (!modo && !resultado) return null;
   return (
     <section className="flex flex-col gap-3" aria-labelledby="titulo-instalar">
       <h2
@@ -65,7 +66,7 @@ export function InstalarApp() {
       <div className="flex flex-col gap-3 rounded-lg border border-borda bg-superficie p-4">
         {modo === 'instalado' ? (
           <p className="text-tinta-suave">O Pente Fino já está instalado neste aparelho.</p>
-        ) : (
+        ) : !modo ? null : (
           <>
             <p className="text-tinta-suave">
               Abre direto, em tela cheia, como os outros apps. Sem loja de aplicativos.
