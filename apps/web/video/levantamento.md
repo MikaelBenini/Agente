@@ -49,8 +49,8 @@ R$ 10 por mês.
 
 ## Observações para o roteiro
 
-- O gancho mais forte é o nº 1 com o nº 2: "Faturou R$ 53 mil. Quanto sobrou?" (outubro fechado da
-  demonstração, R$ 53.114 de faturamento e R$ 10.815 de lucro).
+- O gancho mais forte é o nº 1 com o nº 2: "Faturou R$ 52.880. Quanto sobrou?" (outubro fechado da
+  demonstração no banco limpo do vídeo, R$ 52.880 de faturamento e R$ 10.477 de lucro).
 - O vídeo atual (08/11) mostra o bot marcando; o novo pode trocar essa cena pelo link de
   agendamento (nº 3), que vale em todos os planos, e deixar o bot para um anúncio.
 - Selo de plano em cada cena com função fora de "Todos".

@@ -39,3 +39,17 @@ desempenho no celular do barbeiro.
 - `banco.sh` e `servidores.sh`: banco e servidores só da gravação (leem o `.env`, não imprimem nada).
 
 O vídeo não tem som: as legendas fazem a explicação. Para narração, grave a voz por cima do MP4.
+
+## Vídeo novo (Remotion, 15/11)
+
+O vídeo novo é montado no Remotion (`apps/video`, fora do build e do CI) a partir de fotos reais:
+
+```bash
+./video/banco.sh && ./video/servidores.sh   # em outro terminal
+node video/fotos-video.mjs                  # fotos em apps/video/public/telas
+cd ../video && npm install && npm run dados && npm run render
+```
+
+Roteiro em `video/roteiro.md` e levantamento em `video/levantamento.md`. A prévia de 15/11 tem
+63 s, sem trilha. Pendente: regravar a cena do bot num dia útil, no horário de atendimento, e a
+trilha com licença comercial (anotar aqui a fonte e a licença).
