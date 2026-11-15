@@ -28,9 +28,12 @@ test('passkey: cria no Perfil, entra sem senha e apaga', async ({ page, context 
 
   await page.goto('/perfil');
   const secao = page.getByRole('region', { name: 'Entrar sem senha' });
+  await expect(secao.getByRole('button', { name: 'Criar passkey neste aparelho' })).toBeVisible();
+  // Conta a partir do que já existe (uma rodada interrompida pode ter deixado uma).
+  const antes = await secao.getByRole('listitem').count();
   await secao.getByRole('button', { name: 'Criar passkey neste aparelho' }).click();
   await expect(secao.getByRole('status')).toContainText('Pronto: da próxima vez');
-  await expect(secao.getByRole('listitem')).toHaveCount(1);
+  await expect(secao.getByRole('listitem')).toHaveCount(antes + 1);
 
   // Sai (sem cookies) e entra só com a passkey, sem digitar e-mail nem senha.
   await context.clearCookies();
@@ -47,11 +50,11 @@ test('passkey: cria no Perfil, entra sem senha e apaga', async ({ page, context 
   await page.waitForURL(noApp);
 
   await page.goto('/perfil');
-  await expect(secao.getByText(/usada em/)).toBeVisible();
-  await secao.getByRole('button', { name: 'Apagar' }).click();
+  await expect(secao.getByText(/usada em/).first()).toBeVisible();
+  await secao.getByRole('button', { name: 'Apagar' }).first().click();
   await page
     .getByRole('dialog', { name: 'Apagar esta passkey?' })
     .getByRole('button', { name: 'Apagar' })
     .click();
-  await expect(secao.getByRole('listitem')).toHaveCount(0);
+  await expect(secao.getByRole('listitem')).toHaveCount(antes);
 });
