@@ -7,6 +7,13 @@ produção (`https://seupentefino.com.br`). Detalhes técnicos e o porquê de ca
 
 ## [Não publicado]
 
+### Mudado (comparações mais curtas e visíveis na página inicial)
+
+- A tabela de "Como escolher o sistema" ficou de bater o olho: um sistema por linha e, em cada célula, um sinal (sim, em parte, não) com no máximo duas palavras. O nome do sistema leva ao detalhe. Onde o site do sistema não informa aparece um traço, com uma legenda, no lugar de "Não citado" e "A página não mostra o preço"; vale também nas páginas de cada sistema.
+- As páginas de comparação não fazem propaganda do concorrente: saíram "Onde o … é melhor" e "Para quem é cada um", e as fontes ficam citadas sem link.
+
+- O menu do topo ganhou **Comparar**, no computador. Embaixo da tabela "Mais que uma agenda bonita", a página inicial mostra **"Compare com o sistema que você usa"**, com um botão para cada comparação (AppBarber, Trinks, Booksy, GENDA, Barbeiro.app e BestBarbers) e o link para ver todos lado a lado. Antes, só o rodapé levava a elas.
+
 ### Adicionado (anúncios em vídeo)
 
 - Seis anúncios de 15 segundos para Reels, Status, TikTok e o feed: "Sobrou R$ 10.477", "O cliente marca sozinho" e "Seu WhatsApp marcando horário", cada um em 9:16 e quadrado, com o gancho, a função e o encerramento do vídeo do site e a mesma trilha.

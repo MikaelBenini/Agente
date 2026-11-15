@@ -277,32 +277,42 @@ test('N1: página por termo de busca tem H1, canonical, perguntas para o Google 
 });
 
 // ─── Site N2: comparações justas, com fonte e data ─────
-test('N2: comparação mostra os dois lados, a fonte com data e leva às outras', async ({ page }) => {
+test('N2: comparação curta, com fonte e data, sem propaganda do concorrente', async ({ page }) => {
   await page.goto('/comparativo/appbarber');
   await expect(
     page.getByRole('heading', { level: 1, name: 'Pente Fino ou AppBarber?' }),
   ).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Onde o AppBarber é melhor' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Por que o Pente Fino' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /é melhor/ })).toHaveCount(0);
   // Preço do Pente Fino lido da tabela de planos: 5 barbeiros cabem no Pro.
   const tabela = page.getByRole('table', { name: 'Pente Fino e AppBarber lado a lado' });
   await expect(tabela.getByRole('row', { name: /5 barbeiros/ })).toContainText('R$ 149,90 (Pro)');
+  // Sem "Não citado": o que vem depois fica, e o resto vira o traço.
+  await expect(tabela).not.toContainText('Não citado');
+  await expect(tabela.getByRole('row', { name: /WhatsApp/ })).toContainText('Lembrete de horário');
   await expect(page.getByText(/Conferido em 12\/11\/2026/)).toBeVisible();
-  await expect(page.getByRole('link', { name: 'https://appbarber.com.br/' })).toHaveAttribute(
-    'rel',
-    /nofollow/,
-  );
+  // A fonte é citada sem link para o concorrente.
+  await expect(page.getByText('AppBarber: appbarber.com.br')).toBeVisible();
+  await expect(page.locator('a[href*="appbarber.com.br"]')).toHaveCount(0);
   await page
     .getByRole('navigation', { name: 'Outras comparações' })
     .getByRole('link', { name: 'Como escolher o sistema' })
     .click();
   const geral = page.getByRole('table', { name: /^Pente Fino, AppBarber, Trinks, Booksy, GENDA/ });
   await expect(geral).toBeVisible();
-  // Sem preço claro na fonte, a tabela diz isso com todas as letras.
-  await expect(geral.getByText('A página não mostra o preço').first()).toBeVisible();
-  // Concorrente novo, conferido em 14/11, com a data na fonte.
-  await page.goto('/comparativo/barbeiro-app');
-  await expect(page.getByRole('heading', { name: 'Onde o Barbeiro.app é melhor' })).toBeVisible();
-  await expect(page.getByText(/conferido em 14\/11\/2026/)).toBeVisible();
+  // Tabela de bater o olho: um sistema por linha, o nome leva ao detalhe; sem texto genérico.
+  await expect(geral.getByRole('row')).toHaveCount(8);
+  await expect(geral).not.toContainText('não mostra o preço');
+  await expect(geral.getByLabel('O site não informa').first()).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Para quem é cada um' })).toHaveCount(0);
+  await geral.getByRole('link', { name: 'Barbeiro.app' }).click();
+  await expect(page).toHaveURL(/\/comparativo\/barbeiro-app$/);
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'Pente Fino ou Barbeiro.app?' }),
+  ).toBeVisible();
+  await expect(
+    page.getByText('Barbeiro.app: barbeiro.app/#planos (conferido em 14/11/2026)').first(),
+  ).toBeVisible();
 });
 
 // ─── Site N3: calculadoras grátis em endereço próprio ─────
@@ -446,4 +456,22 @@ test('vídeo da página toca mudo e o botão ativa o som', async ({ page }) => {
   await som.click();
   await expect(video).toHaveJSProperty('muted', false);
   await expect(som).toHaveCount(0);
+});
+
+test('página inicial leva às comparações: menu do topo e um link por sistema', async ({
+  page,
+}, info) => {
+  await page.goto('/');
+  const nav = page.getByRole('navigation', { name: 'Compare com o sistema que você usa' });
+  await expect(nav.getByRole('link', { name: /^Pente Fino x / })).toHaveCount(6);
+  await nav.getByRole('link', { name: 'Pente Fino x Trinks' }).click();
+  await expect(page).toHaveURL(/\/comparativo\/trinks$/);
+  // No celular o topo só tem Planos, Entrar e Testar grátis ("Comparar" fica no rodapé).
+  if (info.project.name === 'celular') return;
+  await page.goto('/');
+  await page
+    .getByRole('navigation', { name: 'Site' })
+    .getByRole('link', { name: 'Comparar' })
+    .click();
+  await expect(page).toHaveURL(/\/melhor-sistema-para-barbearia$/);
 });

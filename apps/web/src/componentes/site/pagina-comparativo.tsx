@@ -8,15 +8,42 @@ import {
   PLANOS,
   precoPorMes,
 } from '@pente-fino/shared';
+import { Check, Contrast, X } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { CONCORRENTES, CONFERIDO_EM, type Concorrente, PENTE_FINO } from '@/conteudo/comparativos';
+import {
+  CONCORRENTES,
+  CONFERIDO_EM,
+  type Concorrente,
+  PENTE_FINO,
+  PENTE_FINO_RESUMO,
+  type Sinal,
+} from '@/conteudo/comparativos';
 import { LinkCadastro } from './oferta-lancamento';
 import { TrilhaGoogle } from './trilha-google';
 
 const EQUIPES = [1, 3, 5] as const;
 
 const dataBr = (iso: string) => iso.split('-').reverse().join('/');
+
+/** Traço discreto quando o site do sistema não informa (legenda em `Fontes`). */
+const NaoInforma = () => (
+  <span aria-label="O site não informa" className="text-tinta-fraca">
+    —
+  </span>
+);
+
+/**
+ * Pedido do dono em 15/11: nada de "Não citado" repetido. Sem informação vira o traço; quando a
+ * frase traz algo depois ("Não citado; lembretes inclusos"), fica só essa parte.
+ */
+function valor(v: string | null): React.ReactNode {
+  if (!v) return <NaoInforma />;
+  const m = /^Não citado(?: na página de preços)?(?:[;:]\s*|\s*\((.*)\))?(.*)$/.exec(v);
+  if (!m) return v;
+  const resto = (m[1] ?? m[2] ?? '').trim();
+  return resto ? resto[0]!.toUpperCase() + resto.slice(1) : <NaoInforma />;
+}
 
 // Os concorrentes são sistemas completos (comanda, caixa, comissão): o Agenda, que é só a
 // agenda, fica fora desta comparação.
@@ -54,7 +81,7 @@ function Tabela({
 }: {
   legenda: string;
   colunas: readonly string[];
-  linhas: readonly (readonly string[])[];
+  linhas: readonly (readonly React.ReactNode[])[];
 }) {
   return (
     // Site D4: no celular a tabela rola para o lado; a área recebe foco para rolar pelo teclado.
@@ -76,8 +103,8 @@ function Tabela({
           </tr>
         </thead>
         <tbody className="divide-y divide-borda">
-          {linhas.map(([rotulo, ...valores]) => (
-            <tr key={rotulo}>
+          {linhas.map(([rotulo, ...valores], k) => (
+            <tr key={k}>
               <th scope="row" className="px-4 py-3 align-top font-medium">
                 {rotulo}
               </th>
@@ -100,16 +127,14 @@ function Fontes({ itens }: { itens: readonly Concorrente[] }) {
       <h2 className="mb-2 font-semibold text-tinta">Fontes</h2>
       <p className="mb-2">
         Conferido em {dataBr(CONFERIDO_EM)} nas páginas oficiais. Preço e plano mudam: confira
-        sempre na fonte. “Não citado” quer dizer que a página de preços não fala do assunto. As
-        marcas citadas pertencem aos seus donos.
+        sempre na fonte. O traço (—) quer dizer que o site do sistema não informa. As marcas citadas
+        pertencem aos seus donos.
       </p>
       <ul className="flex flex-col gap-1">
         {itens.map((c) => (
           <li key={c.slug}>
-            {c.nome}:{' '}
-            <a href={c.fonte} rel="nofollow noopener" className="underline underline-offset-4">
-              {c.fonte}
-            </a>
+            {/* Fonte citada sem link, para não mandar visita ao concorrente (pedido do dono). */}
+            {c.nome}: {c.fonte.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')}
             {c.conferidoEm && ` (conferido em ${dataBr(c.conferidoEm)})`}
           </li>
         ))}
@@ -179,7 +204,7 @@ export function PaginaComparativo({ c }: { c: Concorrente }) {
       <Cabecalho
         sobre="Comparação"
         titulo={`Pente Fino ou ${c.nome}?`}
-        texto={`Os dois organizam a agenda da barbearia. A diferença está no que cada um mostra depois do atendimento e em como cobra. Aqui vai o que cada página oficial diz, com o que o ${c.nome} faz melhor.`}
+        texto={`Os dois organizam a agenda da barbearia. A diferença está no que cada um mostra depois do atendimento e em como cobra. Aqui vai o que cada página oficial diz.`}
       />
       <div className="mx-auto flex max-w-4xl flex-col gap-12 px-4 pb-14 sm:px-6">
         <section className="flex flex-col gap-4" aria-labelledby="lado-a-lado">
@@ -198,19 +223,20 @@ export function PaginaComparativo({ c }: { c: Concorrente }) {
               ...EQUIPES.map((n) => [
                 `${n} ${n === 1 ? 'barbeiro' : 'barbeiros'}, por mês`,
                 penteFinoPara(n),
-                c.custo[n] ?? 'A página não mostra o preço',
+                valor(c.custo[n]),
               ]),
-              ['Teste grátis', `${DIAS_TESTE} dias, sem cartão`, c.teste],
-              ['WhatsApp', PENTE_FINO.whatsapp, c.whatsapp],
-              ['Comissão', PENTE_FINO.comissao, c.comissao],
-              ['Lucro por serviço', PENTE_FINO.lucroPorServico, c.lucroPorServico],
-              ['Nota fiscal', PENTE_FINO.notaFiscal, c.notaFiscal],
-              ['App nas lojas', PENTE_FINO.appNasLojas, c.appNasLojas],
+              ['Teste grátis', `${DIAS_TESTE} dias, sem cartão`, valor(c.teste)],
+              ['WhatsApp', PENTE_FINO.whatsapp, valor(c.whatsapp)],
+              ['Comissão', PENTE_FINO.comissao, valor(c.comissao)],
+              ['Lucro por serviço', PENTE_FINO.lucroPorServico, valor(c.lucroPorServico)],
+              ['Nota fiscal', PENTE_FINO.notaFiscal, valor(c.notaFiscal)],
+              ['App nas lojas', PENTE_FINO.appNasLojas, valor(c.appNasLojas)],
             ]}
           />
         </section>
-        <Lista titulo={`Onde o ${c.nome} é melhor`} itens={c.ondeEleEMelhor} />
-        <Lista titulo="Onde o Pente Fino é melhor" itens={c.ondePenteFinoEMelhor} />
+        {/* Pedido do dono em 15/11: sem fazer propaganda do concorrente (a lista do que ele faz
+            melhor fica só nos dados, fora da página). */}
+        <Lista titulo="Por que o Pente Fino" itens={c.ondePenteFinoEMelhor} />
       </div>
       <Fontes itens={[c]} />
       <Chamada />
@@ -219,9 +245,134 @@ export function PaginaComparativo({ c }: { c: Concorrente }) {
   );
 }
 
+const SINAL = {
+  sim: { Icone: Check, texto: 'Sim', cor: 'text-acao-texto' },
+  parte: { Icone: Contrast, texto: 'Em parte', cor: 'text-aviso-texto' },
+  nao: { Icone: X, texto: 'Não', cor: 'text-tinta-fraca' },
+} as const;
+
+function CelulaSinal({ sinal }: { sinal: Sinal }) {
+  if (!sinal.s) return <NaoInforma />;
+  const { Icone, texto, cor } = SINAL[sinal.s];
+  return (
+    <span className="inline-flex flex-col items-center gap-0.5">
+      <Icone aria-label={texto} className={`size-5 ${cor}`} />
+      {sinal.nota && <span className="text-xs leading-tight text-tinta-suave">{sinal.nota}</span>}
+    </span>
+  );
+}
+
+const COLUNAS_RESUMO = [
+  ['preco3', '3 barbeiros por mês'],
+  ['teste', 'Teste grátis'],
+  ['whatsapp', 'WhatsApp no plano'],
+  ['comissao', 'Comissão automática'],
+  ['lucro', 'Lucro de cada serviço'],
+  ['notaFiscal', 'Nota fiscal'],
+  ['app', 'App nas lojas'],
+] as const;
+
+/**
+ * Tabela geral de bater o olho (pedido do dono em 15/11: a de antes era grande e difícil): um
+ * sistema por linha, um sinal e no máximo duas palavras por célula; o detalhe fica na página de
+ * cada um, no link do nome.
+ */
+function TabelaResumo() {
+  const linhas = [
+    {
+      nome: 'Pente Fino',
+      href: null,
+      resumo: {
+        ...PENTE_FINO_RESUMO,
+        preco3: `${formatarMoeda(precoPorMes('basico', 'mensal'))}`,
+        teste: `${DIAS_TESTE} dias`,
+      },
+    },
+    ...CONCORRENTES.map((c) => ({
+      nome: c.nome,
+      href: `/comparativo/${c.slug}`,
+      resumo: c.resumo,
+    })),
+  ];
+  return (
+    <div className="flex flex-col gap-3">
+      <div
+        role="region"
+        aria-label="Os sistemas lado a lado, role para o lado"
+        tabIndex={0}
+        className="overflow-x-auto rounded-xl border border-borda focus-visible:outline-2 focus-visible:outline-foco"
+      >
+        <table className="w-full min-w-[46rem] text-center text-sm">
+          <caption className="sr-only">
+            Pente Fino, {CONCORRENTES.map((c) => c.nome).join(', ')} lado a lado
+          </caption>
+          <thead className="bg-superficie-2">
+            <tr>
+              <th scope="col" className="sticky left-0 bg-superficie-2 px-4 py-3 text-left">
+                <span className="sr-only">Sistema</span>
+              </th>
+              {COLUNAS_RESUMO.map(([, rotulo]) => (
+                <th key={rotulo} scope="col" className="px-3 py-3 font-semibold leading-tight">
+                  {rotulo}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-borda">
+            {linhas.map((l) => (
+              <tr key={l.nome} className={l.href ? '' : 'bg-modulo/5'}>
+                <th
+                  scope="row"
+                  className={`sticky left-0 px-4 py-3 text-left font-semibold whitespace-nowrap ${l.href ? 'bg-fundo' : 'bg-superficie font-denso text-base text-modulo-texto uppercase'}`}
+                >
+                  {l.href ? (
+                    <Link href={l.href} className="underline underline-offset-4">
+                      {l.nome}
+                    </Link>
+                  ) : (
+                    l.nome
+                  )}
+                </th>
+                {COLUNAS_RESUMO.map(([chave]) => {
+                  const v = l.resumo[chave];
+                  return (
+                    <td key={chave} className="px-3 py-3 align-middle">
+                      {typeof v === 'string' || v === null ? (
+                        v ? (
+                          <span className="font-medium whitespace-nowrap">{v}</span>
+                        ) : (
+                          <NaoInforma />
+                        )
+                      ) : (
+                        <CelulaSinal sinal={v} />
+                      )}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-tinta-suave">
+        <span className="inline-flex items-center gap-1">
+          <Check aria-hidden className="size-4 text-acao-texto" /> sim
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <Contrast aria-hidden className="size-4 text-aviso-texto" /> em parte ou pago à parte
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <X aria-hidden className="size-4 text-tinta-fraca" /> não
+        </span>
+        <span>— o site do sistema não informa</span>
+        <span>Clique no nome para ver o detalhe.</span>
+      </p>
+    </div>
+  );
+}
+
 /** /melhor-sistema-para-barbearia: como escolher e a tabela com todos. */
 export function PaginaComparativoGeral() {
-  const col = (f: (c: Concorrente) => string) => CONCORRENTES.map(f);
   return (
     <>
       <TrilhaGoogle
@@ -248,37 +399,7 @@ export function PaginaComparativoGeral() {
           <h2 id="tabela-geral" className="font-denso text-3xl font-bold uppercase">
             Os sistemas lado a lado
           </h2>
-          <Tabela
-            legenda={`Pente Fino, ${CONCORRENTES.map((c) => c.nome).join(', ')} lado a lado`}
-            colunas={['', 'Pente Fino', ...col((c) => c.nome)]}
-            linhas={[
-              ...EQUIPES.map((n) => [
-                `${n} ${n === 1 ? 'barbeiro' : 'barbeiros'}, por mês`,
-                penteFinoPara(n),
-                ...col((c) => c.custo[n] ?? 'A página não mostra o preço'),
-              ]),
-              ['Teste grátis', `${DIAS_TESTE} dias`, ...col((c) => c.teste)],
-              ['WhatsApp', PENTE_FINO.whatsapp, ...col((c) => c.whatsapp)],
-              ['Comissão', PENTE_FINO.comissao, ...col((c) => c.comissao)],
-              ['Lucro por serviço', PENTE_FINO.lucroPorServico, ...col((c) => c.lucroPorServico)],
-              ['Nota fiscal', PENTE_FINO.notaFiscal, ...col((c) => c.notaFiscal)],
-              ['App nas lojas', PENTE_FINO.appNasLojas, ...col((c) => c.appNasLojas)],
-            ]}
-          />
-        </section>
-        <section className="flex flex-col gap-3">
-          <h2 className="font-denso text-3xl font-bold uppercase">Para quem é cada um</h2>
-          <ul className="flex list-disc flex-col gap-2 pl-5 text-tinta-suave">
-            <li>
-              Quer saber quanto sobra no fim do mês, com comissão e caixa sem planilha: o Pente Fino
-              foi feito para isso.
-            </li>
-            <li>Quer o teste mais longo e app nas lojas: o AppBarber dá 30 dias.</li>
-            <li>Precisa emitir nota fiscal pelo sistema: o Trinks tem, como item adicional.</li>
-            <li>
-              Quer ser encontrado por clientes novos num aplicativo: o Booksy tem marketplace.
-            </li>
-          </ul>
+          <TabelaResumo />
         </section>
       </div>
       <Fontes itens={CONCORRENTES} />

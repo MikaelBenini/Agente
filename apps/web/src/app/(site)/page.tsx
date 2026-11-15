@@ -48,6 +48,7 @@ import { VideoApresentacao } from '@/componentes/site/video-apresentacao';
 import { FaixaIndique } from '@/componentes/site/faixa-indique';
 import { Celular, ConversaWhatsapp, Janela, TELAS, Vitrine } from '@/componentes/site/vitrine';
 import { ofertasJsonLd, URL_SITE } from '@/lib/site';
+import { CONCORRENTES } from '@/conteudo/comparativos';
 
 export const metadata: Metadata = {
   title: { absolute: 'Pente Fino · Gestão de barbearia que mostra o lucro real' },
@@ -648,7 +649,7 @@ export default function Pagina() {
         </div>
       </section>
 
-      {/* Comparação honesta, sem citar marcas. */}
+      {/* Comparação geral sem marcas; embaixo, o caminho para cada sistema. */}
       <section
         aria-labelledby="comparativo"
         className="mx-auto max-w-5xl px-4 py-16 sm:px-6 md:py-24"
@@ -721,6 +722,36 @@ export default function Pagina() {
           </span>
           Em parte, depende do plano ou é pago à parte. No Pente Fino, o selo mostra o plano.
         </p>
+        {/* As comparações com cada sistema (pedido do dono em 15/11: visíveis na página inicial). */}
+        <nav
+          aria-labelledby="compare-sistemas"
+          className="mt-10 flex flex-col gap-4 rounded-2xl border border-borda bg-superficie p-6"
+        >
+          <h3 id="compare-sistemas" className="font-denso text-2xl font-bold uppercase">
+            Compare com o sistema que você usa
+          </h3>
+          <p className="text-tinta-suave">
+            Preço, teste grátis, WhatsApp, comissão e lucro, lado a lado, com a fonte e a data.
+          </p>
+          <ul className="flex flex-wrap gap-2">
+            {CONCORRENTES.map((c) => (
+              <li key={c.slug}>
+                <Link
+                  href={`/comparativo/${c.slug}`}
+                  className="inline-flex min-h-11 items-center rounded-full border border-borda-forte px-4 font-semibold hover:bg-superficie-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foco"
+                >
+                  Pente Fino x {c.nome}
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <Link
+            href="/melhor-sistema-para-barbearia"
+            className="w-fit font-semibold text-modulo-texto underline underline-offset-4"
+          >
+            Ver todos lado a lado
+          </Link>
+        </nav>
       </section>
 
       {/* Cada papel, a sua pergunta. */}
