@@ -307,7 +307,12 @@ test('N2: comparação curta, com fonte e data, sem propaganda do concorrente', 
   await expect(page.getByRole('heading', { name: 'Para quem é cada um' })).toHaveCount(0);
   await geral.getByRole('link', { name: 'Barbeiro.app' }).click();
   await expect(page).toHaveURL(/\/comparativo\/barbeiro-app$/);
-  await expect(page.getByText(/conferido em 14\/11\/2026/)).toBeVisible();
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'Pente Fino ou Barbeiro.app?' }),
+  ).toBeVisible();
+  await expect(
+    page.getByText('Barbeiro.app: barbeiro.app/#planos (conferido em 14/11/2026)'),
+  ).toBeVisible();
 });
 
 // ─── Site N3: calculadoras grátis em endereço próprio ─────
