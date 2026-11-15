@@ -33,6 +33,9 @@ import {
   type ContatoSite,
   configTesteSchema,
   type ConfigClubeOnline,
+  FILA_ALERTAS_EQUIPE,
+  FILA_LIMPEZA,
+  FILA_WHATSAPP_ROTINAS,
   FILA_WHATSAPP_SAIDA,
   CHAVES_MODELO_EMAIL,
   cupomSchema,
@@ -101,6 +104,7 @@ const avisoOuNada = z.object({ aviso: avisoGeralSchema.nullable() });
 @Injectable()
 export class SaudeService implements OnModuleDestroy {
   private saida?: Queue;
+  private extras?: [string, Queue][];
 
   constructor(
     @Inject(Filas) private readonly filas: Filas,
@@ -197,13 +201,22 @@ export class SaudeService implements OnModuleDestroy {
   }
 
   private filasLidas(): [string, Queue][] {
-    this.saida ??= new Queue(FILA_WHATSAPP_SAIDA, { connection: { url: this.config.redisUrl } });
+    const conexao = { connection: { url: this.config.redisUrl } };
+    this.saida ??= new Queue(FILA_WHATSAPP_SAIDA, conexao);
+    // Verificação final (C1 e C2): as rotinas ganharam fila própria, e as filas de alertas e de
+    // limpeza não apareciam aqui (falha nelas passava em silêncio).
+    this.extras ??= [
+      ['WhatsApp (rotinas de todas as contas)', new Queue(FILA_WHATSAPP_ROTINAS, conexao)],
+      ['Alertas da equipe', new Queue(FILA_ALERTAS_EQUIPE, conexao)],
+      ['Limpeza e despesas fixas', new Queue(FILA_LIMPEZA, conexao)],
+    ];
     return [
       ['E-mails', this.filas.emails],
-      ['WhatsApp (entrada e rotinas)', this.filas.whatsappEntrada],
+      ['WhatsApp (mensagens e lembretes)', this.filas.whatsappEntrada],
       ['WhatsApp (envio)', this.saida],
       ['Notificações no celular', this.filas.notificacoes],
       ['Eventos', this.filas.eventos],
+      ...this.extras,
     ];
   }
 

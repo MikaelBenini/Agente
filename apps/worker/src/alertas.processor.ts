@@ -9,6 +9,7 @@ import {
   type OnApplicationShutdown,
   type OnModuleInit,
 } from '@nestjs/common';
+import { Batimento } from './batimento.js';
 import {
   contasDaPlataforma,
   criarPrisma,
@@ -211,7 +212,10 @@ export class AlertasProcessor implements OnModuleInit, OnApplicationShutdown {
   private push?: Worker<TrabalhoPushEquipe>;
   private prisma?: PrismaClient;
 
-  constructor(@Inject(CONFIGURACAO_WORKER) private readonly config: ConfiguracaoWorker) {}
+  constructor(
+    @Inject(CONFIGURACAO_WORKER) private readonly config: ConfiguracaoWorker,
+    @Inject(Batimento) private readonly batimento: Batimento,
+  ) {}
 
   onModuleInit(): void {
     if (!this.config.DATABASE_PLATAFORMA_URL) {
@@ -282,7 +286,11 @@ export class AlertasProcessor implements OnModuleInit, OnApplicationShutdown {
       );
       this.push.on('failed', (_j, e) => this.logger.error(`Push da equipe: ${e.message}`));
     } else this.logger.warn('Sem chaves VAPID: o push do chat para a equipe fica desligado.');
-    this.worker.on('completed', (_j, r) => this.logger.log(String(r)));
+    this.worker.on('completed', (j, r) => {
+      this.logger.log(String(r));
+      // Verificação final (C2): a Saúde do sistema mostra a última execução e o atraso.
+      if (j.name === 'alertas') void this.batimento.registrarRotina('alertas', r);
+    });
     this.worker.on('failed', (_j, e) => this.logger.error(`Alertas da equipe: ${e.message}`));
   }
 

@@ -4,6 +4,12 @@ export const FILA_EMAILS = 'emails';
 export const FILA_EVENTOS = 'eventos';
 /** Webhook do provedor de WhatsApp, já lido e conferido pela API. */
 export const FILA_WHATSAPP_ENTRADA = 'whatsapp-entrada';
+/**
+ * Rotinas que passam por todas as contas (avisos de 15 em 15 min, automações às 10 h, avisos da
+ * assinatura às 9 h). Fila própria (verificação final, V1): antes dividiam a fila das mensagens dos
+ * clientes, e uma rotina longa segurava a resposta do bot de todas as barbearias.
+ */
+export const FILA_WHATSAPP_ROTINAS = 'whatsapp-rotinas';
 /** Mensagens para enviar, uma por trabalho, espaçadas por número da barbearia. */
 export const FILA_WHATSAPP_SAIDA = 'whatsapp-saida';
 /** Notificações no celular (push do PWA). */
@@ -53,6 +59,8 @@ export const ROTINAS_WORKER = [
   { rotina: 'cobranca_manual', nome: 'Avisos da assinatura', prazoMin: 24 * 60 + 30 },
   { rotina: 'limpeza', nome: 'Limpeza de dados', prazoMin: 24 * 60 + 30 },
   { rotina: 'despesas_fixas', nome: 'Despesas que repetem todo mês', prazoMin: 24 * 60 + 30 },
+  // Verificação final: os alertas da equipe (de hora em hora) não apareciam na Saúde do sistema.
+  { rotina: 'alertas', nome: 'Alertas da equipe da administração', prazoMin: 90 },
 ] as const;
 export type RotinaWorker = (typeof ROTINAS_WORKER)[number]['rotina'];
 

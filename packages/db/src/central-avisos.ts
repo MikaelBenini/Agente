@@ -10,6 +10,7 @@ import {
   lerPreferenciasAvisos,
   vaiParaOCelular,
   dataLocal,
+  dataParaBanco,
   destinatariosDoAviso,
   diaDaSemana,
   podeAvisarAgora,
@@ -228,7 +229,18 @@ export async function rotinaDosAvisos(
       include: { profissionais: { where: { ativo: true }, include: { horarios: true } } },
     });
     const saida: SaidaDaRotina = { notificacoes: [], emails: [] };
+    // Verificação final (C4): dia marcado como fechado no calendário (feriado, folga) não tem
+    // comanda pendente nem resumo e caixa do fim do dia.
+    const fechadas = new Set(
+      (
+        await tx.calendarioUnidade.findMany({
+          where: { data: dataParaBanco(dataLocal(agora)), trabalha: false },
+          select: { unidadeId: true },
+        })
+      ).map((d) => d.unidadeId),
+    );
     for (const u of unidades) {
+      if (fechadas.has(u.id)) continue;
       // O horário de funcionamento da unidade, quando cadastrado, manda no fim do dia (os avisos
       // de resumo saem no fechamento); sem ele, o expediente da equipe.
       const daUnidade = lerFuncionamento(u.horarioFuncionamento).filter((t) => t.diaSemana === ds);

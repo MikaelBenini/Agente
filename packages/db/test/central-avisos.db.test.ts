@@ -184,6 +184,24 @@ describe('fim do dia', () => {
   });
 });
 
+describe('calendário da unidade (verificação final, C4)', () => {
+  it('dia fechado no calendário: nem pendente, nem resumo, nem caixa', async () => {
+    // Quarta, 02/12, marcada como feriado: comanda prevista e o fim do dia não avisam ninguém.
+    const quarta = new Date('2026-12-02T22:45:00Z');
+    await naMinhaConta(async (tx) => {
+      await tx.calendarioUnidade.create({
+        data: { unidadeId, data: dataParaBanco('2026-12-02'), trabalha: false, motivo: 'Feriado' },
+      });
+    });
+    const antesDono = (await avisosDe(donoId)).length;
+    const antesRecepcao = (await avisosDe(recepcaoId)).length;
+    const r = await rotinaDosAvisos(prisma, conta, quarta, 'https://app');
+    expect(r).toEqual({ notificacoes: [], emails: [] });
+    expect(await avisosDe(donoId)).toHaveLength(antesDono);
+    expect(await avisosDe(recepcaoId)).toHaveLength(antesRecepcao);
+  });
+});
+
 describe('fim do dia pelo horário de funcionamento (seção 7)', () => {
   it('a unidade que fecha às 17h manda o resumo depois das 17h30, mesmo com barbeiro até as 19h', async () => {
     const jardins = await naMinhaConta(async (tx) => {
