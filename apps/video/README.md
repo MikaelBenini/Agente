@@ -7,9 +7,12 @@ cd apps/video
 npm install
 npm run dados    # preço e "14 dias" de @pente-fino/shared (compile o shared antes)
 npm run studio   # prévia
-npm run render   # out/apresentacao.mp4
+npm run render   # gera a trilha (public/trilha.wav) e out/apresentacao.mp4
 ```
 
 As fotos das telas (`public/telas`) saem de `apps/web/video/fotos-video.mjs`, com o banco limpo
 da demonstração (`apps/web/video/banco.sh` e `servidores.sh`). Roteiro e levantamento em
 `apps/web/video/`. Padrão da marca: skill `video-pente-fino`.
+
+A duração de cada cena fica em `src/ritmo.json`, lida pelo vídeo e pelo `scripts/trilha.mjs`:
+mudou a cena, a trilha acompanha.

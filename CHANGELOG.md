@@ -7,6 +7,18 @@ produção (`https://seupentefino.com.br`). Detalhes técnicos e o porquê de ca
 
 ## [Não publicado]
 
+### Adicionado (indique e ganhe na página inicial)
+
+- A página inicial ganhou a seção **"Não tem barbearia? Ganhe indicando"**, para quem conhece barbeiros e quer divulgar. A pessoa escolhe quantas barbearias conhece e vê quanto ganharia por mês e em 12 meses (20% da mensalidade do Pro). O botão "Quero o meu link" leva ao cadastro de indicador. O FAQ ganhou a pergunta "Posso ganhar indicando sem ter barbearia?".
+
+### Corrigido (simulador do bot ao marcar pela conversa)
+
+- No painel do bot, aba Testar, escolher "1. Por aqui, na conversa" dava "Confira os campos destacados." e a conversa parava. Agora o simulador segue todos os passos do agendamento, inclusive "quer adicionar mais algum serviço?", "avisar se vagar antes" e o aniversário.
+
+### Mudado (vídeo da página inicial com som)
+
+- O vídeo da página inicial começa sozinho quando aparece na tela e pausa quando sai. Ele começa mudo, porque o navegador só deixa o autoplay sem som, e tem um botão **"Ativar som"** que volta ao começo com a trilha.
+
 ### Adicionado (aniversário pela conversa do WhatsApp)
 
 - Depois de marcar pelo WhatsApp, quem ainda não tem o aniversário na ficha recebe a pergunta "Quer receber um parabéns no seu aniversário?". O cliente responde o dia e o mês (por exemplo, 15/03) ou 0 para pular, e a data vai para a ficha. Quando o bot oferece o "avisar se vagar antes", a pergunta vem logo depois dessa resposta.

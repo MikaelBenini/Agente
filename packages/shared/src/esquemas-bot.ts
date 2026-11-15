@@ -1,6 +1,7 @@
 // Entradas e respostas da API do bot (Etapa 10). Mesma validação no painel e na API.
 import { z } from 'zod';
 import type { StatusConexaoWhatsapp } from './filas.js';
+import { PASSOS_AGENDA } from './agendar-bot.js';
 import {
   ACOES_BOT,
   MAXIMO_OPCOES,
@@ -80,16 +81,7 @@ export type HorarioBotEntrada = z.infer<typeof horarioBotSchema>;
 
 /** Agendamento em andamento no simulador (o painel devolve a sessão a cada mensagem). */
 const agendaSchema = z.object({
-  passo: z.enum([
-    'servico',
-    'profissional',
-    'dia',
-    'horario',
-    'confirmar',
-    'meus',
-    'acao',
-    'cancelar',
-  ]),
+  passo: z.enum(PASSOS_AGENDA),
   servicoIds: z.array(z.uuid()).max(10),
   profissionalId: z.uuid().nullable(),
   dia: z
@@ -103,6 +95,7 @@ const agendaSchema = z.object({
     .nullable(),
   erros: z.number().int().min(0).max(5),
   remarcarId: z.uuid().nullable().default(null),
+  temMais: z.boolean().optional(),
 });
 
 const sessaoSchema: z.ZodType<SessaoBot> = z.object({

@@ -2,14 +2,16 @@
 // Só fotos reais das telas (apps/web/video/fotos-video.mjs); preço e "14 dias" de dados.json,
 // gerado de @pente-fino/shared. Uma transição só (src/transicao.tsx).
 import React from 'react';
-import { AbsoluteFill, interpolate, useCurrentFrame } from 'remotion';
+import { AbsoluteFill, Audio, interpolate, staticFile, useCurrentFrame } from 'remotion';
 import { springTiming, TransitionSeries } from '@remotion/transitions';
 import { aproximar } from './transicao';
 import dados from './dados.json';
+import ritmo from './ritmo.json';
 import { COR, TEXTO } from './marca';
 import { Celular, JanelaNavegador, Texto, Titulo, useEntrada } from './partes';
 
-const TRANSICAO = 14;
+// Duração das cenas em ritmo.json, lida também pelo scripts/trilha.mjs (o som segue as cenas).
+const TRANSICAO = ritmo.transicao;
 
 function Gancho() {
   const frame = useCurrentFrame();
@@ -97,12 +99,11 @@ function Encerramento() {
   );
 }
 
-type Cena = { segundos: number; corpo: React.ReactNode };
+type Cena = { corpo: React.ReactNode };
 
 const CENAS: Cena[] = [
-  { segundos: 4, corpo: <Gancho /> },
+  { corpo: <Gancho /> },
   {
-    segundos: 6,
     corpo: (
       <>
         <JanelaNavegador
@@ -121,7 +122,6 @@ const CENAS: Cena[] = [
     ),
   },
   {
-    segundos: 6,
     corpo: (
       <>
         <JanelaNavegador
@@ -140,7 +140,6 @@ const CENAS: Cena[] = [
     ),
   },
   {
-    segundos: 6,
     corpo: (
       <>
         <JanelaNavegador
@@ -160,7 +159,6 @@ const CENAS: Cena[] = [
     ),
   },
   {
-    segundos: 5,
     corpo: (
       <>
         <Celular foto="telas/05-comanda.webp" alturaFoto={1328} esquerda={1060} />
@@ -174,7 +172,6 @@ const CENAS: Cena[] = [
     ),
   },
   {
-    segundos: 5,
     corpo: (
       <>
         <JanelaNavegador
@@ -199,7 +196,6 @@ const CENAS: Cena[] = [
     ),
   },
   {
-    segundos: 6,
     corpo: (
       <>
         <JanelaNavegador
@@ -218,7 +214,6 @@ const CENAS: Cena[] = [
     ),
   },
   {
-    segundos: 6,
     corpo: (
       <>
         <JanelaNavegador
@@ -237,7 +232,6 @@ const CENAS: Cena[] = [
     ),
   },
   {
-    segundos: 6,
     corpo: (
       <>
         <JanelaNavegador foto="telas/09-bot.webp" esquerda={700} largura={1140} />
@@ -251,7 +245,6 @@ const CENAS: Cena[] = [
     ),
   },
   {
-    segundos: 5,
     corpo: (
       <>
         <JanelaNavegador foto="telas/10-site-a.webp" esquerda={700} largura={1140} />
@@ -264,7 +257,6 @@ const CENAS: Cena[] = [
     ),
   },
   {
-    segundos: 5,
     corpo: (
       <>
         <JanelaNavegador
@@ -282,27 +274,33 @@ const CENAS: Cena[] = [
       </>
     ),
   },
-  { segundos: 9, corpo: <Encerramento /> },
+  { corpo: <Encerramento /> },
 ];
 
+if (ritmo.segundos.length !== CENAS.length) throw new Error('ritmo.json fora do número de cenas');
+const quadros = (i: number) => ritmo.segundos[i] * ritmo.fps;
+
 export const DURACAO =
-  CENAS.reduce((s, c) => s + c.segundos * 30, 0) - (CENAS.length - 1) * TRANSICAO;
+  CENAS.reduce((s, _c, i) => s + quadros(i), 0) - (CENAS.length - 1) * TRANSICAO;
 
 export const Apresentacao: React.FC = () => (
-  <TransitionSeries>
-    {CENAS.flatMap((c, i) => [
-      <TransitionSeries.Sequence key={`c${i}`} durationInFrames={c.segundos * 30}>
-        <AbsoluteFill style={{ background: COR.fundo }}>{c.corpo}</AbsoluteFill>
-      </TransitionSeries.Sequence>,
-      ...(i < CENAS.length - 1
-        ? [
-            <TransitionSeries.Transition
-              key={`t${i}`}
-              presentation={aproximar()}
-              timing={springTiming({ config: { damping: 200 }, durationInFrames: TRANSICAO })}
-            />,
-          ]
-        : []),
-    ])}
-  </TransitionSeries>
+  <>
+    <Audio src={staticFile('trilha.wav')} />
+    <TransitionSeries>
+      {CENAS.flatMap((c, i) => [
+        <TransitionSeries.Sequence key={`c${i}`} durationInFrames={quadros(i)}>
+          <AbsoluteFill style={{ background: COR.fundo }}>{c.corpo}</AbsoluteFill>
+        </TransitionSeries.Sequence>,
+        ...(i < CENAS.length - 1
+          ? [
+              <TransitionSeries.Transition
+                key={`t${i}`}
+                presentation={aproximar()}
+                timing={springTiming({ config: { damping: 200 }, durationInFrames: TRANSICAO })}
+              />,
+            ]
+          : []),
+      ])}
+    </TransitionSeries>
+  </>
 );

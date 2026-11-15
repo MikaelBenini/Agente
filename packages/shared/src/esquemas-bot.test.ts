@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { agendaNova, PASSOS_AGENDA } from './agendar-bot.js';
 import { MENU_BOT_PADRAO } from './bot.js';
 import {
   horarioBotSchema,
@@ -48,5 +49,24 @@ describe('esquemas do bot', () => {
       sessao: null,
     });
     expect(r).toMatchObject({ versao: 'rascunho', cliente: null, foraDoHorario: false });
+  });
+
+  // O painel devolve a sessão a cada mensagem: todo passo do agendamento tem de voltar aceito
+  // (antes, "Por aqui, na conversa" dava erro no simulador por causa do passo "canal").
+  it('simulação aceita a sessão em qualquer passo do agendamento', () => {
+    for (const passo of PASSOS_AGENDA) {
+      const r = simularBotSchema.safeParse({
+        unidadeId: '019a4b2c-0000-7000-8000-000000000001',
+        entrada: '1',
+        sessao: {
+          caminho: [],
+          ultimaEm: new Date().toISOString(),
+          comAtendente: false,
+          agenda: { ...agendaNova(), passo, temMais: true },
+        },
+      });
+      expect(r.success, passo).toBe(true);
+      expect(r.data?.sessao?.agenda?.temMais).toBe(true);
+    }
   });
 });

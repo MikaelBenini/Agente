@@ -45,6 +45,7 @@ import {
 import { SeloPlano } from '@/componentes/site/selo-plano';
 import { type Pergunta, Perguntas } from '@/componentes/site/perguntas';
 import { VideoApresentacao } from '@/componentes/site/video-apresentacao';
+import { FaixaIndique } from '@/componentes/site/faixa-indique';
 import { Celular, ConversaWhatsapp, Janela, TELAS, Vitrine } from '@/componentes/site/vitrine';
 import { ofertasJsonLd, URL_SITE } from '@/lib/site';
 
@@ -286,6 +287,11 @@ const PERGUNTAS: readonly Pergunta[] = [
     pergunta: 'E se eu quiser cancelar?',
     resposta:
       'Cancela quando quiser, sem multa. Os dados continuam disponíveis para consulta e você exporta tudo em planilha.',
+  },
+  {
+    pergunta: 'Posso ganhar indicando sem ter barbearia?',
+    resposta:
+      'Pode. Qualquer pessoa faz o cadastro grátis em Indique e ganhe, recebe um link e ganha 20% de cada mensalidade da barbearia indicada nos 12 primeiros meses, em Pix.',
   },
   {
     pergunta: 'Meus dados ficam seguros?',
@@ -777,6 +783,9 @@ export default function Pagina() {
         </div>
       </section>
       <OfertaLancamento />
+
+      {/* Indique e ganhe, para quem não tem barbearia (pedido do dono em 15/11). */}
+      <FaixaIndique />
 
       <section aria-labelledby="faq" className="mx-auto max-w-4xl px-4 pb-16 sm:px-6">
         <h2 id="faq" className="mb-6 font-denso text-4xl font-bold uppercase">

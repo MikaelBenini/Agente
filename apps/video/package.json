@@ -25,8 +25,9 @@
     "typescript": "5.9.3"
   },
   "scripts": {
-    "studio": "remotion studio",
-    "render": "remotion render Apresentacao out/apresentacao.mp4 --codec=h264 --crf=18",
+    "studio": "node scripts/trilha.mjs && remotion studio",
+    "trilha": "node scripts/trilha.mjs",
+    "render": "node scripts/trilha.mjs && remotion render Apresentacao out/apresentacao.mp4 --codec=h264 --crf=18",
     "dados": "node scripts/dados.mjs"
   },
   "allowScripts": {

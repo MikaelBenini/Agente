@@ -9,26 +9,29 @@ export const DIAS_POR_VEZ = 6;
 /** Quantos horários por página ("7. Ver mais horários"). */
 export const HORARIOS_POR_VEZ = 6;
 
-export type PassoAgenda =
+/** Passos do agendamento pela conversa (a lista também valida a sessão do simulador do painel). */
+export const PASSOS_AGENDA = [
   // Por onde marcar: conversa ou site (some quando a unidade não tem site ou o cliente já escolheu a conversa).
-  | 'canal'
-  | 'servico'
+  'canal',
+  'servico',
   // Depois do serviço: "quer adicionar mais algum?" (0 segue para o horário).
-  | 'mais_servico'
-  | 'profissional'
-  | 'dia'
-  | 'horario'
-  | 'confirmar'
+  'mais_servico',
+  'profissional',
+  'dia',
+  'horario',
+  'confirmar',
   // "Meus horários": escolher qual, o que fazer e confirmar o cancelamento.
-  | 'meus'
-  | 'acao'
-  | 'cancelar'
+  'meus',
+  'acao',
+  'cancelar',
   // Depois de marcar: "quer que eu avise se vagar antes?" (Etapa 14).
-  | 'antecipar'
+  'antecipar',
   // Depois de marcar, para quem ainda não tem: o dia do aniversário (pedido do dono em 13/11).
-  | 'aniversario'
+  'aniversario',
   // Remarcação rápida depois do "Não veio" por atraso: o número já marca (Etapa 14).
-  | 'atraso';
+  'atraso',
+] as const;
+export type PassoAgenda = (typeof PASSOS_AGENDA)[number];
 
 /** Estado do agendamento guardado na sessão do número. */
 export interface AgendaNaConversa {

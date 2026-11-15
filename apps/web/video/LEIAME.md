@@ -51,5 +51,11 @@ cd ../video && npm install && npm run dados && npm run render
 ```
 
 Roteiro em `video/roteiro.md` e levantamento em `video/levantamento.md`. A prévia de 15/11 tem
-63 s, sem trilha. Pendente: regravar a cena do bot num dia útil, no horário de atendimento, e a
-trilha com licença comercial (anotar aqui a fonte e a licença).
+63 s. Pendente: regravar a cena do bot num dia útil, no horário de atendimento.
+
+Trilha: sintetizada por `apps/video/scripts/trilha.mjs` (sem biblioteca de música, então sem
+licença de terceiros). Segue as cenas de `src/ritmo.json`: tique no número subindo, impacto no
+risco do faturamento, batida a 120 bpm, whoosh em cada transição e acorde no encerramento. O
+`npm run render` gera o `public/trilha.wav` antes (o arquivo fica fora do git). No site o vídeo
+toca mudo quando aparece na tela (o navegador só deixa o autoplay sem som), com o botão "Ativar
+som".
