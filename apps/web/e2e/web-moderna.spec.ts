@@ -111,3 +111,15 @@ test('comparação no celular: um cartão por linha, com o nome da coluna', asyn
   );
   expect(rolagem).toBeLessThanOrEqual(tela);
 });
+
+test('textos respeitam o tamanho de letra do celular e a página de vendas desenha perto', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await expect(page.locator('meta[name="text-scale"]')).toHaveAttribute('content', 'scale');
+  await expect(page.locator('section[aria-labelledby="faq"]')).toHaveCSS(
+    'content-visibility',
+    'auto',
+  );
+  await expect(page.locator('p').first()).toHaveCSS('text-wrap-style', 'pretty');
+});

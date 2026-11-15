@@ -111,6 +111,15 @@ h3 {
   text-wrap: balance;
 }
 
+/* Parágrafos sem palavra sozinha na última linha (guia improve-text-layout-and-legibility;
+   quem não entende quebra como antes). */
+p,
+li,
+figcaption,
+blockquote {
+  text-wrap: pretty;
+}
+
 ::selection {
   background: var(--modulo);
   color: var(--sobre-modulo);
@@ -589,5 +598,89 @@ dialog[open]::backdrop {
   }
   details {
     display: none;
+  }
+}
+
+/* Troca de página do site da barbearia (pedido do dono em 15/11; guia de view transitions do
+   Next): o conteúdo esmaece e sobe um pouco; o cabeçalho fica parado; sem movimento para quem
+   pediu menos movimento no aparelho. */
+::view-transition {
+  pointer-events: none;
+}
+::view-transition-group(site-cabecalho) {
+  animation: none;
+  z-index: 100;
+}
+::view-transition-old(site-cabecalho) {
+  display: none;
+}
+::view-transition-new(site-cabecalho) {
+  animation: none;
+}
+::view-transition-old(.site-pagina) {
+  animation: 160ms ease-in both site-pagina-sai;
+}
+::view-transition-new(.site-pagina) {
+  animation: 260ms ease-out 80ms both site-pagina-entra;
+}
+@keyframes site-pagina-sai {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes site-pagina-entra {
+  from {
+    opacity: 0;
+    translate: 0 12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+}
+
+/* Seções da página de vendas depois da última âncora (#indique): o navegador só desenha quando
+   chegam perto da tela (guia defer-rendering-heavy-content). Antes de uma âncora, não: o tamanho
+   estimado muda ao desenhar e o salto do link (#video, #indique) cairia no lugar errado. O tamanho estimado evita a barra de rolagem
+   pular; "auto" guarda o tamanho real depois da primeira vez. */
+.desenhar-perto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 900px;
+}
+
+/* Site da barbearia: seleção de texto e controles do navegador na cor da casa (guia
+   browser-ui-theming). */
+.site-personalizado {
+  accent-color: var(--site-destaque);
+}
+.site-personalizado ::selection {
+  background: color-mix(in srgb, var(--site-destaque) 45%, transparent);
+  color: inherit;
+}
+
+/* Tabela que rola para o lado: a borda direita esmaece enquanto há mais para ver e some no fim
+   (guia scrollability-affordance-hints, versão "fade"). Só a direita: a primeira coluna fica
+   presa à esquerda e não pode sumir. Sem suporte, fica como antes (a barra de rolagem aparece). */
+@property --dica-fim {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+.dica-rolagem {
+  --dica-tamanho: 3rem;
+  mask:
+    linear-gradient(black, black) no-clip subtract,
+    linear-gradient(to right, transparent, black) 100% 0 / var(--dica-fim) 100% no-repeat no-clip;
+  animation: dica-rolagem-fim linear both;
+  animation-timeline: scroll(self inline);
+  animation-range: calc(100% - var(--dica-tamanho)) 100%;
+}
+@keyframes dica-rolagem-fim {
+  from {
+    --dica-fim: var(--dica-tamanho);
   }
 }

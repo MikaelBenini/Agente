@@ -9,9 +9,8 @@ import {
   PERGUNTAS_AJUDA,
   type ArtigoAjuda,
 } from '@pente-fino/shared';
-import { linkWhatsappSuporte } from '@/lib/contato';
 import { Campo } from '@pente-fino/ui';
-import { ArrowLeft, ArrowRight, BookOpen, Lightbulb, Mail, MessageCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpen, Lightbulb, Mail } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
@@ -189,8 +188,7 @@ function Artigo({ artigo, onVoltar }: { artigo: ArtigoAjuda; onVoltar: () => voi
 }
 
 function Contato() {
-  // Painel M10: WhatsApp e horário do suporte quando o dono cadastrar (lib/contato.ts).
-  const whatsapp = linkWhatsappSuporte();
+  // Admin F6: o chat substitui o WhatsApp do suporte (pedido do dono em 11/11); fica o e-mail.
   return (
     <section
       id="contato"
@@ -202,16 +200,6 @@ function Contato() {
       </h2>
       {/* Admin F6: o chat com a equipe, ligado à conta (o e-mail fica como alternativa). */}
       <ChatAjuda />
-      {whatsapp && (
-        <a
-          href={whatsapp}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={`${classeLink} flex items-center gap-2`}
-        >
-          <MessageCircle aria-hidden className="size-4" /> WhatsApp do suporte
-        </a>
-      )}
       <a href={`mailto:${EMAIL_CONTATO}`} className={`${classeLink} flex items-center gap-2`}>
         <Mail aria-hidden className="size-4" /> {EMAIL_CONTATO}
       </a>

@@ -770,6 +770,15 @@ temos bot de WhatsApp, lucro real, comanda única e preço menor). Ordem de cons
     - C4: `rotinaDosAvisos` pula a unidade com o dia fechado no calendário (teste em `central-avisos.db.test.ts`);
     - C5: `garantir_cron` no `implantar.sh` (backup às 3h de Brasília, qualquer que seja o fuso do servidor, e vigia a cada 5 min, trocando as linhas antigas);
     - C6: plano Agenda e Automações no `docs/CLAUDE.md`.
+  - [x] **Site mais fino e suporte em todo o painel (pedidos do dono em 15/11; skill modern-web-guidance e o guia de view transitions do Next 16):**
+    - `<ViewTransition enter/exit="site-pagina">` no `<main>` do `SiteDaBarbearia`, cabeçalho com `viewTransitionName` e CSS em `globals.css` (sem animação com `prefers-reduced-motion`);
+    - `AJUSTE_TITULO` em `site-barbearia/fontes.ts` (`cap-height 0.8` na Big Shoulders, medido no navegador; as outras já têm `size-adjust` do Next);
+    - `<meta name="text-scale" content="scale">` no layout e os `text-[Npx]` do site e da vitrine em rem;
+    - `CorDoNavegador` (theme-color no cliente, para não travar a página no servidor) nas páginas `/s/...`, `accent-color` e `::selection` no site;
+    - `.desenhar-perto` (`content-visibility: auto`) só nas perguntas frequentes (antes de `#indique` e `#video` o tamanho estimado deslocava o salto do link), `text-wrap: pretty` nos parágrafos e `.dica-rolagem` (esmaecer à direita por scroll timeline) nas tabelas roláveis;
+    - F6: `BotaoSuporte` ao lado do sino (barra do celular e menu lateral) e `PainelSuporte` (popover nativo, conversa montada só aberta) na casca, fora da Ajuda e do modo suporte; o botão flutuante no canto de baixo cobria o "Enviar" do simulador do bot (CI); o WhatsApp do suporte saiu da Ajuda;
+    - P4: frase do bot na comparação;
+    - testes em `site-barbearia.spec.ts`, `suporte.spec.ts` e `web-moderna.spec.ts`.
   - **Pedido do dono em 2026-11-11:** a página tem de ser bonita e atrativa, no nível de uma landing page profissional (montada com uma skill de design de páginas). O barbeiro edita tudo pelo painel, sem ajuda: textos, fotos, seções e a ordem delas, cores, fonte e o estilo (modelos prontos para escolher e ajustar), com a prévia ao vivo antes de publicar. A página do Pente Fino (`/b/<slug>`), o link de agendamento e o "app da barbearia" seguem esse mesmo visual
 - [ ] **Domínio próprio** (ex.: `agendar.barbeariadojoao.com.br`): o dono informa o domínio, o sistema mostra o registro CNAME para apontar para o Pente Fino e confere sozinho; o Caddy emite o certificado na hora (on-demand TLS, liberado só para domínios cadastrados e conferidos); vale para a página, o agendamento e o app; Premium, ou extra nos outros planos
 - [ ] **"App da barbearia" sem loja**: a página da barbearia instala no celular do cliente com o nome e a logo da barbearia (não do Pente Fino) e abre direto em "Agendar" e "Meus horários" — a resposta ao "app próprio" dos concorrentes, sem esperar loja nem pagar mais

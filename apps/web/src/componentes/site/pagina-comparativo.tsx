@@ -92,7 +92,7 @@ function Tabela({
         role="region"
         aria-label={`${legenda}, role para o lado`}
         tabIndex={0}
-        className="overflow-x-auto rounded-xl border border-borda focus-visible:outline-2 focus-visible:outline-foco"
+        className="dica-rolagem overflow-x-auto rounded-xl border border-borda focus-visible:outline-2 focus-visible:outline-foco"
       >
         <table
           className={`w-full min-w-[36rem] text-left text-sm @max-[36rem]:block @max-[36rem]:min-w-0`}
@@ -317,7 +317,7 @@ function TabelaResumo() {
         role="region"
         aria-label="Os sistemas lado a lado, role para o lado"
         tabIndex={0}
-        className="overflow-x-auto rounded-xl border border-borda focus-visible:outline-2 focus-visible:outline-foco"
+        className="dica-rolagem overflow-x-auto rounded-xl border border-borda focus-visible:outline-2 focus-visible:outline-foco"
       >
         <table className="w-full min-w-[46rem] text-center text-sm">
           <caption className="sr-only">

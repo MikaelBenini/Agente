@@ -23,6 +23,9 @@ export const metadata: Metadata = {
   title: { default: 'Pente Fino', template: '%s · Pente Fino' },
   description: 'Gestão de barbearia: saiba quanto sobra, não só quanto entrou.',
   applicationName: 'Pente Fino',
+  // Respeita o tamanho de letra escolhido no celular (guia respect-os-text-scale): os textos
+  // estão em rem e a raiz não fixa tamanho.
+  other: { 'text-scale': 'scale' },
   metadataBase: new URL(URL_SITE),
   openGraph: { type: 'website', locale: 'pt_BR', siteName: 'Pente Fino' },
   twitter: { card: 'summary_large_image' },

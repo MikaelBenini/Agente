@@ -183,7 +183,8 @@ const COMPARATIVO: {
     planilha: false,
   },
   {
-    recurso: 'Bot de WhatsApp que agenda, incluso no plano',
+    // P4: o bot vem incluso no Pro e no Premium; no Agenda e no Básico, com as Automações (selo).
+    recurso: 'Bot de WhatsApp que agenda, sem custo por mensagem',
     nos: true,
     plano: 'bot',
     agenda: 'parcial',
@@ -673,7 +674,7 @@ export default function Pagina() {
           role="region"
           aria-label="Comparação, role para o lado"
           tabIndex={0}
-          className="revelar relative overflow-x-auto rounded-2xl border border-borda focus-visible:outline-2 focus-visible:outline-foco"
+          className="dica-rolagem revelar relative overflow-x-auto rounded-2xl border border-borda focus-visible:outline-2 focus-visible:outline-foco"
         >
           <table className="w-full min-w-[36rem] text-left">
             <caption className="sr-only">
@@ -830,7 +831,10 @@ export default function Pagina() {
       {/* Indique e ganhe, para quem não tem barbearia (pedido do dono em 15/11). */}
       <FaixaIndique />
 
-      <section aria-labelledby="faq" className="mx-auto max-w-4xl px-4 pb-16 sm:px-6">
+      <section
+        aria-labelledby="faq"
+        className="desenhar-perto mx-auto max-w-4xl px-4 pb-16 sm:px-6"
+      >
         <h2 id="faq" className="mb-6 font-denso text-4xl font-bold uppercase">
           Perguntas frequentes
         </h2>

@@ -24,12 +24,15 @@ import {
 } from '@pente-fino/shared';
 import { CalendarCheck, Clock, MapPin, Menu, MessageCircle, Star } from 'lucide-react';
 import Link from 'next/link';
-import type { CSSProperties, ReactNode } from 'react';
-import { CLASSES_FONTES, FONTE_TITULO } from './fontes';
+import { ViewTransition, type CSSProperties, type ReactNode } from 'react';
+import { AJUSTE_TITULO, CLASSES_FONTES, FONTE_TITULO } from './fontes';
 
 // Paleta do tema: verde-garrafa, papel e tinta. O destaque é a cor que o dono escolhe.
 const VERDE = 'bg-[var(--site-escuro)]';
-const TITULO = 'font-[family-name:var(--site-titulo)] font-normal';
+// font-size-adjust: a fonte reserva fica do tamanho da escolhida enquanto ela carrega (guia
+// visually-stable-font-fallbacks); sem ajuste, "none".
+const TITULO =
+  'font-[family-name:var(--site-titulo)] font-normal [font-size-adjust:var(--site-ajuste-titulo)]';
 const BOTAO =
   'site-botao inline-flex min-h-11 items-center justify-center rounded-[var(--site-raio)] px-6 py-3 font-semibold transition-[filter] duration-[var(--ritmo-rapido)] hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2';
 const BOTAO_DESTAQUE = `${BOTAO} bg-[var(--site-destaque)] text-[var(--site-escuro)] focus-visible:outline-[var(--site-destaque)]`;
@@ -131,13 +134,14 @@ export function SiteDaBarbearia({ dados: brutos, pagina, base, agendar }: Props)
     ),
     '--site-destaque': CORES_SITE[site.cor].hex,
     '--site-titulo': FONTE_TITULO[site.fonte],
+    '--site-ajuste-titulo': AJUSTE_TITULO[site.fonte],
     '--site-raio': RAIO[site.botoes],
   } as CSSProperties;
   const temH1 = blocos.some((b) => b.tipo === 'banner' || b.tipo === 'cabecalho');
   const css = limparCssSite(site.css);
   return (
     <div
-      className={`${CLASSES_FONTES} site-personalizado site-tema-${site.tema} @container min-h-dvh bg-[var(--site-papel)] font-[family-name:var(--site-fonte-texto)] text-[17px] leading-relaxed text-[var(--site-tinta)]`}
+      className={`${CLASSES_FONTES} site-personalizado site-tema-${site.tema} @container min-h-dvh bg-[var(--site-papel)] font-[family-name:var(--site-fonte-texto)] text-[1.0625rem] leading-relaxed text-[var(--site-tinta)]`}
       style={estilo}
     >
       {css && (
@@ -145,16 +149,19 @@ export function SiteDaBarbearia({ dados: brutos, pagina, base, agendar }: Props)
         <style dangerouslySetInnerHTML={{ __html: `.site-personalizado{${css}}` }} />
       )}
       <Cabecalho dados={dados} pagina={pagina} base={base} />
-      <main>
-        {!temH1 && (
-          <h1 className="sr-only">
-            {ROTULO_PAGINA[pagina]}: {dados.barbearia}
-          </h1>
-        )}
-        {blocos.map((b) => (
-          <Bloco key={b.id} bloco={b} dados={dados} base={base} />
-        ))}
-      </main>
+      {/* Troca de página com esmaecer curto (pedido do dono em 15/11); o cabeçalho fica parado. */}
+      <ViewTransition enter="site-pagina" exit="site-pagina" default="none">
+        <main>
+          {!temH1 && (
+            <h1 className="sr-only">
+              {ROTULO_PAGINA[pagina]}: {dados.barbearia}
+            </h1>
+          )}
+          {blocos.map((b) => (
+            <Bloco key={b.id} bloco={b} dados={dados} base={base} />
+          ))}
+        </main>
+      </ViewTransition>
       <Rodape dados={dados} base={base} />
     </div>
   );
@@ -230,7 +237,10 @@ function Cabecalho({ dados, pagina, base }: Props) {
   const mostraNome = config.mostrar !== 'logo' || !dados.site.logo;
   const agendar = <AcaoPrincipal dados={dados} className={BOTAO_DESTAQUE} />;
   return (
-    <header className={`${VERDE} site-cabecalho sticky top-0 z-30 text-[var(--site-claro)]`}>
+    <header
+      className={`${VERDE} site-cabecalho sticky top-0 z-30 text-[var(--site-claro)]`}
+      style={{ viewTransitionName: 'site-cabecalho' }}
+    >
       <div className={`${LARGURA} flex items-center justify-between gap-4 py-4`}>
         <Link
           href={base || '/'}
@@ -247,10 +257,12 @@ function Cabecalho({ dados, pagina, base }: Props) {
                 className="h-11 w-auto max-w-[140px] object-contain"
               />
             ) : (
-              <Monograma nome={dados.barbearia} className="size-11 text-[22px]" />
+              <Monograma nome={dados.barbearia} className="size-11 text-[1.375rem]" />
             ))}
           {mostraNome && (
-            <span className={`${TITULO} line-clamp-2 text-[18px] leading-tight @2xl:text-[24px]`}>
+            <span
+              className={`${TITULO} line-clamp-2 text-[1.125rem] leading-tight @2xl:text-[1.5rem]`}
+            >
               {dados.barbearia}
             </span>
           )}
@@ -334,7 +346,7 @@ function Bloco({ bloco, dados, base }: { bloco: BlocoSite; dados: SitePublico; b
 
 function Titulo2({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <h2 className={`${TITULO} text-[40px] leading-[1.05] @2xl:text-[52px] ${className ?? ''}`}>
+    <h2 className={`${TITULO} text-[2.5rem] leading-[1.05] @2xl:text-[3.25rem] ${className ?? ''}`}>
       {children}
     </h2>
   );
@@ -372,20 +384,20 @@ function Banner({ bloco, dados, base }: { bloco: BlocoSite; dados: SitePublico; 
         className={`${LARGURA} site-entrada relative flex min-h-[440px] flex-col justify-end gap-7 pt-16 pb-16 @2xl:min-h-[540px] @2xl:pt-28 @2xl:pb-20`}
       >
         <h1
-          className={`${TITULO} max-w-[11em] text-[44px] leading-none @2xl:text-[72px] @5xl:text-[88px]`}
+          className={`${TITULO} max-w-[11em] text-[2.75rem] leading-none @2xl:text-[4.5rem] @5xl:text-[5.5rem]`}
         >
           {bloco.titulo || dados.barbearia}
         </h1>
         {bloco.texto && (
-          <p className="max-w-[32em] text-[19px] whitespace-pre-line text-[var(--site-claro-suave)] @2xl:text-[20px]">
+          <p className="max-w-[32em] text-[1.1875rem] whitespace-pre-line text-[var(--site-claro-suave)] @2xl:text-[1.25rem]">
             {bloco.texto}
           </p>
         )}
         <div className="flex flex-wrap gap-3">
-          <AcaoPrincipal dados={dados} className={`${BOTAO_DESTAQUE} text-[18px]`} />
+          <AcaoPrincipal dados={dados} className={`${BOTAO_DESTAQUE} text-[1.125rem]`} />
           <Link
             href={`${base}/servicos`}
-            className={`${BOTAO} border border-white text-[18px] text-white focus-visible:outline-white`}
+            className={`${BOTAO} border border-white text-[1.125rem] text-white focus-visible:outline-white`}
           >
             Ver serviços e preços
           </Link>
@@ -407,7 +419,7 @@ function FaixaServicos({ dados }: { dados: SitePublico }) {
     <ul aria-hidden={copia || undefined} className="flex shrink-0 items-center gap-10 pr-10">
       {itens.map((s) => (
         <li key={s.id} className="flex items-baseline gap-3 whitespace-nowrap">
-          <span className={`${TITULO} text-[22px]`}>{s.nome}</span>
+          <span className={`${TITULO} text-[1.375rem]`}>{s.nome}</span>
           <span className="font-semibold text-[var(--site-destaque)]">
             {formatarMoeda(s.preco)}
           </span>
@@ -431,7 +443,7 @@ function FaixaServicos({ dados }: { dados: SitePublico }) {
       </div>
       <label
         htmlFor="pausar-faixa"
-        className="absolute top-1/2 right-2 flex min-h-11 -translate-y-1/2 cursor-pointer items-center rounded-[var(--site-raio)] bg-[var(--site-escuro)] px-3 text-[13px] text-[var(--site-claro-suave)] peer-focus-visible:outline-2 peer-focus-visible:outline-white"
+        className="absolute top-1/2 right-2 flex min-h-11 -translate-y-1/2 cursor-pointer items-center rounded-[var(--site-raio)] bg-[var(--site-escuro)] px-3 text-[0.8125rem] text-[var(--site-claro-suave)] peer-focus-visible:outline-2 peer-focus-visible:outline-white"
       >
         Pausar
       </label>
@@ -479,7 +491,9 @@ function Destaques({ dados }: { dados: SitePublico }) {
             {i.icone}
             <span className="min-w-0">
               <strong className="block">{i.titulo}</strong>
-              <span className="block text-[15px] text-[var(--site-tinta-suave)]">{i.texto}</span>
+              <span className="block text-[0.9375rem] text-[var(--site-tinta-suave)]">
+                {i.texto}
+              </span>
             </span>
           </li>
         ))}
@@ -505,7 +519,7 @@ function Sobre({ bloco, dados, base }: { bloco: BlocoSite; dados: SitePublico; b
         <div className="flex min-w-0 flex-col gap-5 @3xl:w-1/2">
           {bloco.titulo && <Titulo2>{bloco.titulo}</Titulo2>}
           {bloco.texto && (
-            <p className="text-[19px] whitespace-pre-line text-[var(--site-tinta-media)]">
+            <p className="text-[1.1875rem] whitespace-pre-line text-[var(--site-tinta-media)]">
               {bloco.texto}
             </p>
           )}
@@ -523,7 +537,7 @@ function Sobre({ bloco, dados, base }: { bloco: BlocoSite; dados: SitePublico; b
       <div className="site-revelar mx-auto flex max-w-3xl flex-col gap-5 text-center">
         {bloco.titulo && <Titulo2>{bloco.titulo}</Titulo2>}
         {bloco.texto && (
-          <p className="text-[19px] whitespace-pre-line text-[var(--site-tinta-media)]">
+          <p className="text-[1.1875rem] whitespace-pre-line text-[var(--site-tinta-media)]">
             {bloco.texto}
           </p>
         )}
@@ -567,9 +581,9 @@ function ServicosDestaque({
               key={s.id}
               className="site-revelar site-cartao flex flex-col gap-3 border-t-2 border-[var(--site-escuro)] bg-[var(--site-cartao)] px-1 pt-6 pb-2"
             >
-              <h3 className={`${TITULO} text-[30px] leading-tight`}>{s.nome}</h3>
+              <h3 className={`${TITULO} text-[1.875rem] leading-tight`}>{s.nome}</h3>
               <p className="text-[var(--site-tinta-suave)]">{duracao(s.duracaoMin)}</p>
-              <p className={`${TITULO} text-[36px] leading-none`}>{formatarMoeda(s.preco)}</p>
+              <p className={`${TITULO} text-[2.25rem] leading-none`}>{formatarMoeda(s.preco)}</p>
               {temAgendamento(dados) && (
                 <Link
                   href={linkAgendar(dados)}
@@ -620,10 +634,10 @@ function EquipeResumo({
                   className="site-foto-cor size-24 shrink-0 rounded-full border-2 border-[var(--site-destaque)] object-cover"
                 />
               ) : (
-                <Monograma nome={p.nome} className="size-24 border-2 text-[44px]" />
+                <Monograma nome={p.nome} className="size-24 border-2 text-[2.75rem]" />
               )}
               <div className="min-w-0">
-                <h3 className={`${TITULO} text-[30px] leading-tight`}>{p.nome}</h3>
+                <h3 className={`${TITULO} text-[1.875rem] leading-tight`}>{p.nome}</h3>
                 {p.foco && <p className="text-[var(--site-claro-suave)]">{p.foco}</p>}
               </div>
             </li>
@@ -653,7 +667,7 @@ function Galeria({ bloco, dados }: { bloco: BlocoSite; dados: SitePublico }) {
                   className="site-foto-zoom aspect-square w-full object-cover"
                 />
                 {f.titulo && (
-                  <figcaption className="absolute bottom-2 left-2 max-w-[calc(100%-1rem)] bg-[var(--site-escuro)] px-2.5 py-1 text-[14px] text-white">
+                  <figcaption className="absolute bottom-2 left-2 max-w-[calc(100%-1rem)] bg-[var(--site-escuro)] px-2.5 py-1 text-[0.875rem] text-white">
                     {f.titulo}
                   </figcaption>
                 )}
@@ -701,17 +715,17 @@ function PlanosDoClube({ dados }: { dados: SitePublico }) {
             key={p.id}
             className="site-revelar site-cartao flex flex-col gap-4 border-t-[3px] border-[var(--site-destaque)] bg-[var(--site-cartao)] p-8"
           >
-            <h2 className={`${TITULO} text-[30px] leading-tight`}>{p.nome}</h2>
-            <p className={`${TITULO} text-[40px] leading-none`}>
+            <h2 className={`${TITULO} text-[1.875rem] leading-tight`}>{p.nome}</h2>
+            <p className={`${TITULO} text-[2.5rem] leading-none`}>
               {formatarMoeda(p.valor)}
-              <span className="font-[family-name:var(--site-fonte-texto)] text-[16px] text-[var(--site-tinta-suave)]">
+              <span className="font-[family-name:var(--site-fonte-texto)] text-[1rem] text-[var(--site-tinta-suave)]">
                 {' '}
                 por mês
               </span>
             </p>
             {p.descricao && <p className="text-[var(--site-tinta-media)]">{p.descricao}</p>}
             {p.inclui.length > 0 && (
-              <ul className="flex flex-col gap-1 text-[15px] text-[var(--site-tinta-media)]">
+              <ul className="flex flex-col gap-1 text-[0.9375rem] text-[var(--site-tinta-media)]">
                 {p.inclui.map((i) => (
                   <li key={i}>{i}</li>
                 ))}
@@ -747,7 +761,9 @@ function BotoesComLink({ bloco }: { bloco: BlocoSite }) {
     <section
       className={`${LARGURA} site-revelar flex flex-col items-center gap-6 py-16 text-center`}
     >
-      {bloco.titulo && <Titulo2 className="text-[34px] @2xl:text-[44px]">{bloco.titulo}</Titulo2>}
+      {bloco.titulo && (
+        <Titulo2 className="text-[2.125rem] @2xl:text-[2.75rem]">{bloco.titulo}</Titulo2>
+      )}
       <div className="flex flex-wrap justify-center gap-3">
         {itens.map((i, n) => (
           <a
@@ -778,11 +794,11 @@ function Depoimentos({ bloco }: { bloco: BlocoSite }) {
             key={i}
             className="site-revelar site-cartao flex flex-col gap-4 border-t-[3px] border-[var(--site-destaque)] bg-[var(--site-cartao)] p-8"
           >
-            <blockquote className={`${TITULO} text-[23px] leading-snug whitespace-pre-line`}>
+            <blockquote className={`${TITULO} text-[1.4375rem] leading-snug whitespace-pre-line`}>
               “{d.texto}”
             </blockquote>
             {d.titulo && (
-              <figcaption className="text-[15px] text-[var(--site-tinta-suave)]">
+              <figcaption className="text-[0.9375rem] text-[var(--site-tinta-suave)]">
                 {d.titulo}
               </figcaption>
             )}
@@ -797,9 +813,11 @@ function CabecalhoPagina({ bloco }: { bloco: BlocoSite }) {
   return (
     <section className="bg-[var(--site-escuro2)] text-[var(--site-claro)]">
       <div className={`${LARGURA} site-entrada flex flex-col gap-4 pt-20 pb-14`}>
-        <h1 className={`${TITULO} text-[44px] leading-none @2xl:text-[72px]`}>{bloco.titulo}</h1>
+        <h1 className={`${TITULO} text-[2.75rem] leading-none @2xl:text-[4.5rem]`}>
+          {bloco.titulo}
+        </h1>
         {bloco.texto && (
-          <p className="max-w-[36em] text-[19px] whitespace-pre-line text-[var(--site-claro-suave)]">
+          <p className="max-w-[36em] text-[1.1875rem] whitespace-pre-line text-[var(--site-claro-suave)]">
             {bloco.texto}
           </p>
         )}
@@ -838,7 +856,9 @@ function TabelaServicos({ dados }: { dados: SitePublico }) {
       )}
       {grupos.map((g) => (
         <section key={g.nome} id={ancora(g.nome)} className="flex scroll-mt-6 flex-col">
-          <h2 className={`${TITULO} mb-4 text-[36px] leading-tight @2xl:text-[44px]`}>{g.nome}</h2>
+          <h2 className={`${TITULO} mb-4 text-[2.25rem] leading-tight @2xl:text-[2.75rem]`}>
+            {g.nome}
+          </h2>
           <ul>
             {g.itens.map((s) => (
               <li
@@ -846,21 +866,21 @@ function TabelaServicos({ dados }: { dados: SitePublico }) {
                 className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t border-[var(--site-linha)] py-5"
               >
                 <div className="min-w-0">
-                  <h3 className="text-[20px] font-semibold">{s.nome}</h3>
-                  <p className="text-[15px] text-[var(--site-tinta-suave)]">
+                  <h3 className="text-[1.25rem] font-semibold">{s.nome}</h3>
+                  <p className="text-[0.9375rem] text-[var(--site-tinta-suave)]">
                     {duracao(s.duracaoMin)}
                   </p>
                   {(() => {
                     const com = quemFaz(dados.equipe, s.id);
                     return com.length > 0 && com.length < dados.equipe.length ? (
-                      <p className="text-[14px] text-[var(--site-tinta-suave)]">
+                      <p className="text-[0.875rem] text-[var(--site-tinta-suave)]">
                         Com {com.map((p) => p.nome).join(' e ')}
                       </p>
                     ) : null;
                   })()}
                 </div>
                 <div className="flex items-center gap-5">
-                  <span className={`${TITULO} text-[30px] leading-none`}>
+                  <span className={`${TITULO} text-[1.875rem] leading-none`}>
                     {formatarMoeda(s.preco)}
                   </span>
                   {temAgendamento(dados) && (
@@ -902,15 +922,17 @@ function Barbeiros({ dados }: { dados: SitePublico }) {
           ) : (
             <div
               aria-hidden
-              className={`${VERDE} ${TITULO} flex aspect-[4/5] w-full max-w-[360px] items-center justify-center text-[160px] text-[var(--site-destaque)] @3xl:flex-1`}
+              className={`${VERDE} ${TITULO} flex aspect-[4/5] w-full max-w-[360px] items-center justify-center text-[10rem] text-[var(--site-destaque)] @3xl:flex-1`}
             >
               {inicialDoNome(p.nome)}
             </div>
           )}
           <div className="flex min-w-0 flex-col gap-4 @3xl:flex-1">
             <div>
-              <h2 className={`${TITULO} text-[48px] leading-none @2xl:text-[56px]`}>{p.nome}</h2>
-              {p.foco && <p className="mt-2 text-[19px] text-[var(--site-realce)]">{p.foco}</p>}
+              <h2 className={`${TITULO} text-[3rem] leading-none @2xl:text-[3.5rem]`}>{p.nome}</h2>
+              {p.foco && (
+                <p className="mt-2 text-[1.1875rem] text-[var(--site-realce)]">{p.foco}</p>
+              )}
             </div>
             {p.sobre && (
               <p className="max-w-[32em] whitespace-pre-line text-[var(--site-tinta-media)]">
@@ -918,7 +940,7 @@ function Barbeiros({ dados }: { dados: SitePublico }) {
               </p>
             )}
             {p.servicoIds.length > 0 && (
-              <p className="text-[15px] text-[var(--site-tinta-suave)]">
+              <p className="text-[0.9375rem] text-[var(--site-tinta-suave)]">
                 Faz:{' '}
                 {dados.servicos
                   .filter((sv) => p.servicoIds.includes(sv.id))
@@ -947,8 +969,8 @@ function Contato({ dados }: { dados: SitePublico }) {
       <div className="flex flex-col gap-9">
         {dados.endereco && (
           <div>
-            <h2 className={`${TITULO} mb-2 text-[32px]`}>Onde fica</h2>
-            <p className="text-[19px]">{dados.endereco}</p>
+            <h2 className={`${TITULO} mb-2 text-[2rem]`}>Onde fica</h2>
+            <p className="text-[1.1875rem]">{dados.endereco}</p>
             <a
               href={linkDoMapa(dados.endereco)}
               target="_blank"
@@ -962,7 +984,7 @@ function Contato({ dados }: { dados: SitePublico }) {
         )}
         {dados.horario.length > 0 && (
           <table className="w-full max-w-md border-collapse">
-            <caption className={`${TITULO} pb-2 text-left text-[32px]`}>Horário</caption>
+            <caption className={`${TITULO} pb-2 text-left text-[2rem]`}>Horário</caption>
             <tbody>
               {dados.horario.map((h) => (
                 <tr key={h.dias} className="border-b border-[var(--site-linha)] last:border-0">
@@ -981,7 +1003,7 @@ function Contato({ dados }: { dados: SitePublico }) {
         )}
       </div>
       <div className="flex flex-col gap-4 self-start bg-[var(--site-cartao)] p-8">
-        <h2 className={`${TITULO} text-[32px]`}>Fale com a gente</h2>
+        <h2 className={`${TITULO} text-[2rem]`}>Fale com a gente</h2>
         {dados.whatsapp && (
           <a
             href={dados.whatsapp}
@@ -1021,15 +1043,15 @@ function Perguntas({ bloco }: { bloco: BlocoSite }) {
     <section className="bg-[var(--site-cartao)]">
       <div className="mx-auto flex max-w-3xl flex-col px-4 py-20 @2xl:px-6">
         {bloco.titulo && (
-          <Titulo2 className="mb-6 text-[36px] @2xl:text-[44px]">{bloco.titulo}</Titulo2>
+          <Titulo2 className="mb-6 text-[2.25rem] @2xl:text-[2.75rem]">{bloco.titulo}</Titulo2>
         )}
         {itens.map((q, i) => (
           <details key={i} className="group border-b border-[var(--site-linha)] py-4">
-            <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 text-[19px] font-semibold [&::-webkit-details-marker]:hidden">
+            <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 text-[1.1875rem] font-semibold [&::-webkit-details-marker]:hidden">
               {q.titulo}
               <span
                 aria-hidden
-                className="text-[24px] leading-none text-[var(--site-tinta-suave)] transition-transform duration-[var(--ritmo)] group-open:rotate-45"
+                className="text-[1.5rem] leading-none text-[var(--site-tinta-suave)] transition-transform duration-[var(--ritmo)] group-open:rotate-45"
               >
                 +
               </span>
@@ -1050,14 +1072,14 @@ function FaixaAgendar({ bloco, dados }: { bloco: BlocoSite; dados: SitePublico }
         className={`${LARGURA} site-revelar flex flex-wrap items-center justify-between gap-6 py-16`}
       >
         <div className="max-w-2xl">
-          <p className={`${TITULO} text-[34px] leading-tight @2xl:text-[42px]`}>
+          <p className={`${TITULO} text-[2.125rem] leading-tight @2xl:text-[2.625rem]`}>
             {bloco.titulo || 'Marque seu horário'}
           </p>
           {bloco.texto && <p className="mt-1.5 whitespace-pre-line">{bloco.texto}</p>}
         </div>
         <AcaoPrincipal
           dados={dados}
-          className={`${BOTAO} bg-[var(--site-escuro)] text-[18px] text-[var(--site-claro)] focus-visible:outline-[var(--site-escuro)]`}
+          className={`${BOTAO} bg-[var(--site-escuro)] text-[1.125rem] text-[var(--site-claro)] focus-visible:outline-[var(--site-escuro)]`}
         />
       </div>
     </section>
@@ -1082,11 +1104,11 @@ function Rodape({ dados, base }: { dados: SitePublico; base: string }) {
         className={`${LARGURA} grid grid-cols-[repeat(auto-fit,minmax(min(100%,210px),1fr))] gap-10 pt-16 pb-10`}
       >
         <div className="flex flex-col gap-2">
-          <span className={`${TITULO} text-[24px] text-[var(--site-claro)]`}>
+          <span className={`${TITULO} text-[1.5rem] text-[var(--site-claro)]`}>
             {dados.barbearia}
           </span>
           {dados.site.slogan && <span>{dados.site.slogan}</span>}
-          {r.texto && <span className="text-[14px] whitespace-pre-line">{r.texto}</span>}
+          {r.texto && <span className="text-[0.875rem] whitespace-pre-line">{r.texto}</span>}
         </div>
         {r.endereco && dados.endereco && (
           <div className="flex flex-col gap-1.5">
@@ -1151,7 +1173,7 @@ function Rodape({ dados, base }: { dados: SitePublico; base: string }) {
         )}
       </div>
       <div
-        className={`${LARGURA} flex flex-wrap justify-between gap-3 border-t border-[var(--site-rodape-linha)] pt-5 pb-8 text-[14px] text-[var(--site-rodape-suave)]`}
+        className={`${LARGURA} flex flex-wrap justify-between gap-3 border-t border-[var(--site-rodape-linha)] pt-5 pb-8 text-[0.875rem] text-[var(--site-rodape-suave)]`}
       >
         <span>{dados.barbearia}</span>
         {r.creditos && (

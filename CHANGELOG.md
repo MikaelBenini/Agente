@@ -7,6 +7,20 @@ produção (`https://seupentefino.com.br`). Detalhes técnicos e o porquê de ca
 
 ## [Não publicado]
 
+### Mudado (site da barbearia mais fino e suporte em todo o painel)
+
+- **Site da barbearia:**
+  - a troca entre as páginas (Início, Serviços, Equipe...) tem um esmaecer curto, com o cabeçalho parado; quem pediu menos movimento no aparelho não vê animação;
+  - os títulos com a fonte "Moderna condensada" não pulam mais enquanto a fonte carrega;
+  - no celular, a barra do navegador fica na cor do cabeçalho do tema, e a seleção de texto na cor da barbearia.
+- **Textos que respeitam o tamanho de letra do celular:** quem aumenta a letra nas configurações do aparelho vê o site da barbearia e o painel maiores (Chrome no Android, a partir da versão 146).
+- **Página de vendas:**
+  - as perguntas frequentes, no fim, só são desenhadas quando chegam perto da tela;
+  - os parágrafos não deixam mais uma palavra sozinha na última linha;
+  - as tabelas que rolam para o lado esmaecem a borda enquanto há mais para ver.
+- **Suporte por chat em todo o painel:** um botão ao lado do sino de avisos abre a conversa com a equipe em qualquer tela (antes, só na Ajuda). A Ajuda não mostra mais o WhatsApp do suporte: o chat o substitui, e o e-mail continua.
+- Na comparação da página de vendas, "Bot de WhatsApp que agenda, incluso no plano" virou "sem custo por mensagem": o bot vem no Pro e no Premium, e no Agenda e no Básico com as Automações.
+
 ### Corrigido (verificação final)
 
 - **Backup diário:** não estava agendado no servidor (só rodavam os backups feitos à mão). Agora o próprio deploy garante o backup todo dia às 3h e o vigia de disco e memória a cada 5 minutos.

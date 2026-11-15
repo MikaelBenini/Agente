@@ -9,6 +9,7 @@ import {
   type AvisoGeral as AvisoGeralTipo,
   type ItemMenu,
 } from '@pente-fino/shared';
+import { BotaoSuporte, PainelSuporte } from './chat-flutuante';
 import { ConviteInstalar } from './instalar-app';
 import { Botao, Carregando, cn, EstadoVazio } from '@pente-fino/ui';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -193,6 +194,8 @@ export function Casca({ children }: { children: ReactNode }) {
         <MenuInferior />
       </div>
       <BuscaGlobal />
+      {/* Admin F6: o painel do chat com o suporte (no modo suporte, a equipe já está na conta). */}
+      {!usuario.data?.modoSuporte && <PainelSuporte />}
     </Contexto>
   );
 }
@@ -245,7 +248,10 @@ function MenuLateral() {
         >
           <Marca />
         </Link>
-        <BotaoAvisos className="grid size-11 shrink-0 place-items-center rounded-md text-tinta-suave hover:bg-superficie-2 hover:text-tinta focus-visible:outline-2 focus-visible:outline-foco" />
+        <div className="flex items-center">
+          <BotaoSuporteDoPainel />
+          <BotaoAvisos className="grid size-11 shrink-0 place-items-center rounded-md text-tinta-suave hover:bg-superficie-2 hover:text-tinta focus-visible:outline-2 focus-visible:outline-foco" />
+        </div>
       </div>
       <SeletorUnidade />
       <button
@@ -519,6 +525,7 @@ function BarraTopo() {
         >
           <Search aria-hidden className="size-5" />
         </button>
+        <BotaoSuporteDoPainel />
         <BotaoAvisos className="relative grid size-11 shrink-0 place-items-center rounded-md text-tinta-suave hover:bg-superficie-2 hover:text-tinta focus-visible:outline-2 focus-visible:outline-foco" />
         <SeletorUnidade compacto />
       </div>
@@ -932,5 +939,13 @@ function AvisoConexao() {
             : `${recusados.length} ${recusados.length === 1 ? 'lançamento foi recusado' : 'lançamentos foram recusados'}. Confira em Comandas.`}
       </p>
     </div>
+  );
+}
+
+/** O botão do chat ao lado do sino, fora do modo suporte (lá, a equipe já está na conta). */
+function BotaoSuporteDoPainel() {
+  if (useUsuario().data?.modoSuporte) return null;
+  return (
+    <BotaoSuporte className="grid size-11 shrink-0 place-items-center rounded-md text-tinta-suave hover:bg-superficie-2 hover:text-tinta focus-visible:outline-2 focus-visible:outline-foco" />
   );
 }
