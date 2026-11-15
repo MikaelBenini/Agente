@@ -79,8 +79,17 @@ const EXPLICACAO: Partial<Record<TipoBloco, string>> = {
     'Endereço e telefone vêm de Configurações, em Unidades; o horário, do expediente da equipe; o Instagram, da aba Tema.',
 };
 
+type Secao = 'site' | 'agendamento' | 'enderecos';
+
 export function TelaMinhaPagina() {
   const { unidades, unidadeAtiva, usuario } = useApp();
+  // Pedido do dono em 15/11: a tela estava bagunçada, com endereço, agendamento e domínio
+  // empilhados antes do editor. Agora cada assunto tem a sua aba; o site vem primeiro. A aba fica
+  // aqui (fora do editor) para continuar a mesma quando troca a unidade.
+  const secaoDoLink = useSearchParams().get('secao');
+  const [secao, setSecao] = useState<Secao>(
+    secaoDoLink === 'agendamento' || secaoDoLink === 'enderecos' ? secaoDoLink : 'site',
+  );
   const permitidas = unidades.filter(
     (u) =>
       u.ativa &&
@@ -131,6 +140,8 @@ export function TelaMinhaPagina() {
               unidadeId={escolhida}
               inicial={painel.data!}
               previa={previa.data!}
+              secao={secao}
+              onSecao={setSecao}
             />
           )}
         </Estado>
@@ -163,10 +174,14 @@ function Editor({
   unidadeId,
   inicial,
   previa,
+  secao,
+  onSecao,
 }: {
   unidadeId: string;
   inicial: SitePainel;
   previa: SitePublico;
+  secao: Secao;
+  onSecao: (s: Secao) => void;
 }) {
   const cliente = useQueryClient();
   const [site, setSite] = useState<SiteBarbearia>(inicial.rascunho);
@@ -182,12 +197,6 @@ function Editor({
   };
   const [pagina, setPagina] = useState<PaginaSite>('inicio');
   const [aba, setAba] = useState('blocos');
-  // Pedido do dono em 15/11: a tela estava bagunçada, com endereço, agendamento e domínio
-  // empilhados antes do editor. Agora cada assunto tem a sua aba; o site vem primeiro.
-  const secaoDoLink = useSearchParams().get('secao');
-  const [secao, setSecao] = useState<'site' | 'agendamento' | 'enderecos'>(
-    secaoDoLink === 'agendamento' || secaoDoLink === 'enderecos' ? secaoDoLink : 'site',
-  );
   const [celular, setCelular] = useState(false);
   const [salvando, setSalvando] = useState<'salvo' | 'salvando' | 'erro'>('salvo');
   const [erro, setErro] = useState<string | null>(null);
@@ -367,7 +376,7 @@ function Editor({
         <Abas
           rotulo="Minha página"
           atual={secao}
-          onTrocar={(id) => setSecao(id as typeof secao)}
+          onTrocar={(id) => onSecao(id as Secao)}
           abas={[
             {
               id: 'site',
@@ -495,13 +504,17 @@ function Editor({
             {
               id: 'agendamento',
               rotulo: 'Página de agendamento',
-              conteudo: <VisualDoAgendamento unidadeId={unidadeId} slug={situacao.slug} />,
+              conteudo: (
+                <div className="max-w-3xl">
+                  <VisualDoAgendamento unidadeId={unidadeId} slug={situacao.slug} />
+                </div>
+              ),
             },
             {
               id: 'enderecos',
               rotulo: 'Endereço e domínio',
               conteudo: (
-                <div className="flex flex-col gap-4">
+                <div className="flex max-w-3xl flex-col gap-4">
                   <Enderecos
                     unidadeId={unidadeId}
                     situacao={situacao}
