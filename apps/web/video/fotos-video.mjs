@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 
 const AQUI = path.dirname(fileURLToPath(import.meta.url));
-const DESTINO = path.resolve(AQUI, '../../video/public/telas');
+const DESTINO = process.env.DESTINO ?? path.resolve(AQUI, '../../video/public/telas');
 const B = process.env.VIDEO_BASE ?? 'http://localhost:3200';
 await mkdir(DESTINO, { recursive: true });
 const navegador = await chromium.launch();
@@ -18,6 +18,9 @@ const espera = (ms) => new Promise((r) => setTimeout(r, ms));
 const hojeSP = new Date(Date.now() - 3 * 3600_000);
 const domingo = hojeSP.getUTCDay() === 0;
 const sabado = new Date(hojeSP.getTime() - 86_400_000).toISOString().slice(0, 10);
+
+// Conversa do bot na foto 9: oi, agendar, por aqui, Corte + Barba, sem mais, Diego, dia, horário, confirmar.
+const CONVERSA_BOT = (process.env.CONVERSA_BOT ?? 'oi,1,1,3,0,1,1,1,1').split(',');
 
 const computador = { viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 };
 const celular = {
@@ -96,16 +99,52 @@ const api = (p, metodo, caminho, corpo) =>
   await p.getByRole('tab', { name: 'Agendamento', exact: true }).click();
   await p.getByText('Lembretes pelo WhatsApp').first().scrollIntoViewIfNeeded();
   await salvar(p, '08-lembretes', 1920);
-  // 9. O bot marcando (simulador do painel, aba Testar).
-  await p.goto(`${B}/bot`);
-  await p.getByRole('tab', { name: 'Testar' }).click();
-  const msg = p.getByPlaceholder('Mensagem do cliente');
-  for (const t of ['oi', '1', '1', '2']) {
-    await msg.fill(t);
-    await msg.press('Enter');
-    await espera(1500);
+  // 9. O bot marcando (simulador do painel, aba Testar). O simulador usa a hora de agora: fora do
+  // horário ou num feriado ele abre com "estamos fechados". Só neste banco do vídeo, o dia de hoje
+  // vira dia de trabalho no calendário e o bot fica 24 h no ar durante a foto; depois volta tudo.
+  const unidadesBot = await (await api(p, 'get', 'unidades')).json();
+  const centroBot = unidadesBot.find((u) => u.nome === 'Centro') ?? unidadesBot[0];
+  const hoje = hojeSP.toISOString().slice(0, 10);
+  const calendario = await (
+    await api(p, 'get', `unidades/${centroBot.id}/calendario?de=${hoje}&ate=${hoje}`)
+  ).json();
+  const diaAntes = Array.isArray(calendario) ? calendario.find((d) => d.data === hoje) : null;
+  await api(p, 'put', `unidades/${centroBot.id}/calendario/${hoje}`, { trabalha: true });
+  const todoDia = [0, 1, 2, 3, 4, 5, 6].map((d) => ({ diaSemana: d, inicioMin: 0, fimMin: 1440 }));
+  await api(p, 'put', `bot/horario/${centroBot.id}`, { turnos: todoDia });
+  try {
+    await p.goto(`${B}/bot`);
+    await p.getByRole('tab', { name: 'Testar' }).click();
+    await p
+      .getByLabel('Unidade')
+      .selectOption({ label: 'Centro' })
+      .catch(() => {});
+    await p
+      .getByLabel('Testar')
+      .selectOption({ label: 'O menu publicado' })
+      .catch(() => {});
+    const msg = p.getByPlaceholder('Mensagem do cliente');
+    for (const t of CONVERSA_BOT) {
+      await msg.fill(t);
+      await msg.press('Enter');
+      await espera(1500);
+    }
+    // A conversa fica maior que a tela: rola até o "Pronto, horário marcado!".
+    await p.getByText('Pronto, horário marcado!').scrollIntoViewIfNeeded();
+    await p.evaluate(() => {
+      document.activeElement?.blur?.();
+      window.scrollTo(0, document.documentElement.scrollHeight);
+    });
+    await salvar(p, '09-bot', 1920);
+  } finally {
+    await api(p, 'put', `bot/horario/${centroBot.id}`, { turnos: null });
+    if (diaAntes)
+      await api(p, 'put', `unidades/${centroBot.id}/calendario/${hoje}`, {
+        trabalha: diaAntes.trabalha,
+        motivo: diaAntes.motivo,
+      });
+    else await api(p, 'delete', `unidades/${centroBot.id}/calendario/${hoje}`);
   }
-  await salvar(p, '09-bot', 1920);
   // 11. Clube de assinatura. A demonstração não tem clube: cria um plano e assinantes pela
   // própria API, só neste banco do vídeo (uma vez).
   const unidadesClube = await (await api(p, 'get', 'unidades')).json();
@@ -129,12 +168,11 @@ const api = (p, metodo, caminho, corpo) =>
       })
     ).json();
     const clientes = await (await api(p, 'get', 'clientes?busca=')).json();
-    const hoje = new Date().toISOString().slice(0, 10);
     for (const c of clientes.slice(0, 9))
       await api(p, 'post', 'clube/adesoes', {
         clienteId: c.id,
         itemClubeId: item.id,
-        inicio: hoje,
+        inicio: hojeSP.toISOString().slice(0, 10),
       });
   }
   await p.goto(`${B}/clube`);

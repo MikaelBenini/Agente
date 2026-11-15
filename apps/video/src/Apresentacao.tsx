@@ -234,7 +234,12 @@ const CENAS: Cena[] = [
   {
     corpo: (
       <>
-        <JanelaNavegador foto="telas/09-bot.webp" esquerda={700} largura={1140} />
+        <JanelaNavegador
+          foto="telas/09-bot.webp"
+          esquerda={700}
+          largura={1140}
+          destaque={{ x: 835, y: 660, w: 545, h: 360 }}
+        />
         <Texto
           titulo="Seu WhatsApp marcando horário"
           forte="WhatsApp"
