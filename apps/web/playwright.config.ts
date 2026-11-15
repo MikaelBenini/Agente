@@ -56,6 +56,8 @@ export default defineConfig({
         // Sem WhatsApp de verdade: a tela de conexão mostra um QR de teste.
         WHATSAPP_PROVEDOR: 'falso',
         COBRANCA_PROVEDOR: 'falso',
+        // Passkey: o navegador do teste apresenta a porta do site de teste.
+        PASSKEY_ORIGENS: `http://localhost:${PORTA_WEB}`,
       },
       timeout: 60_000,
     },

@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { AssistenteEquipe } from '@/componentes/assistente-equipe';
 import { MeusPrecos } from '@/componentes/meus-precos';
+import { MinhasPasskeys } from '@/componentes/minhas-passkeys';
 import { InstalarApp } from '@/componentes/instalar-app';
 import { NotificacoesAparelho } from '@/componentes/notificacoes-aparelho';
 import { PreferenciasDeAvisos } from '@/componentes/preferencias-avisos';
@@ -93,6 +94,8 @@ export default function Perfil() {
       <PreferenciasDeAvisos />
 
       <AssistenteEquipe />
+
+      <MinhasPasskeys />
 
       <TrocarSenha />
     </div>

@@ -563,7 +563,7 @@ de ganho para o barbeiro:
   (`accessibility/accessible-error-announcement`, `forms/validate-input-after-interaction`):
   conferir os campos com máscara (`componentes/campos.tsx`) e o cadastro.
 - [x] **Tabelas no celular** (feito em 15/11 nas comparações e na página inicial; relatórios do app ficam como estão, já rolam para o lado) (`ui-atoms/responsive-table`): comparativo, planos e relatórios.
-- [ ] **Entrar com passkey** (`security/passkeys`, para depois): login sem senha, com a digital ou o
+- [x] **Entrar com passkey** (feito em 15/11) (`security/passkeys`, para depois): login sem senha, com a digital ou o
   rosto do celular; é um recurso novo e precisa de decisão do dono.
 
 ## 9. Por último: verificação final do ecossistema
