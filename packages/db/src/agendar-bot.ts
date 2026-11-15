@@ -33,6 +33,8 @@ import {
   type VagaLiberada,
   deveOferecerAntecipar,
   TEXTO_PERGUNTA_ANTECIPAR,
+  TEXTO_PERGUNTA_ANIVERSARIO,
+  lerAniversario,
 } from '@pente-fino/shared';
 import {
   calcularLivres,
@@ -201,6 +203,19 @@ const seguir = (a: AgendaNaConversa, respostas: string[]): PassoDaAgenda => ({
   agenda: a,
   voltarAoMenu: false,
 });
+
+/**
+ * Depois de marcar: pergunta o aniversário a quem ainda não tem na ficha (pedido do dono em
+ * 13/11). Na simulação do painel também pergunta, sem gravar nada.
+ */
+async function precisaAniversario(tx: Tx, d: DadosDaConversa): Promise<boolean> {
+  if (!d.clienteId) return false;
+  const c = await tx.cliente.findUnique({
+    where: { id: d.clienteId },
+    select: { aniversario: true },
+  });
+  return !!c && !c.aniversario;
+}
 
 /** Profissional (pula quando só um atende) e, depois, os dias. */
 async function irParaProfissional(tx: Tx, a: AgendaNaConversa, d: DadosDaConversa) {
@@ -523,9 +538,32 @@ export async function passoDaAgenda(
           minutoLocal(escolhido) - 15,
           agenda.remarcarId,
         );
-        return sair(['Combinado! Se vagar um horário antes do seu, eu te aviso por aqui. 😉']);
+        const fim = 'Combinado! Se vagar um horário antes do seu, eu te aviso por aqui. 😉';
+        if (await precisaAniversario(tx, d))
+          return seguir({ ...agenda, passo: 'aniversario', opcoes: [], erros: 0 }, [
+            fim,
+            TEXTO_PERGUNTA_ANIVERSARIO,
+          ]);
+        return sair([fim]);
       }
+      if (await precisaAniversario(tx, d))
+        return seguir({ ...agenda, passo: 'aniversario', opcoes: [], erros: 0 }, [
+          'Tudo bem! Te esperamos.',
+          TEXTO_PERGUNTA_ANIVERSARIO,
+        ]);
       return sair(['Tudo bem! Te esperamos.']);
+    }
+    case 'aniversario': {
+      if (um === 0) return sair(['Sem problema! Te esperamos.']);
+      const data = lerAniversario(entrada ?? '');
+      if (!data)
+        return naoServiu(agenda, 'Mande o dia e o mês, por exemplo 15/03, ou 0 para pular.');
+      if (!d.simulacao && d.clienteId)
+        await tx.cliente.update({
+          where: { id: d.clienteId },
+          data: { aniversario: new Date(`${data}T00:00:00Z`) },
+        });
+      return sair(['Anotado! 🎉 Te esperamos.']);
     }
     case 'meus': {
       if (um === 0) return sair([]);
@@ -723,6 +761,8 @@ export async function passoDaAgenda(
             primeiroPossivel,
             jaNaLista: false,
           });
+        // Sem a pergunta do "avisar se vagar antes", já pede o aniversário (se faltar).
+        const perguntarAniversario = !perguntar && (await precisaAniversario(tx, d));
         return {
           respostas: [
             textoMarcado(
@@ -732,6 +772,7 @@ export async function passoDaAgenda(
               d.regras.toleranciaAtrasoMin,
             ),
             ...(perguntar ? [TEXTO_PERGUNTA_ANTECIPAR] : []),
+            ...(perguntarAniversario ? [TEXTO_PERGUNTA_ANIVERSARIO] : []),
           ],
           agenda: perguntar
             ? {
@@ -741,7 +782,9 @@ export async function passoDaAgenda(
                 opcoes: [],
                 erros: 0,
               }
-            : null,
+            : perguntarAniversario
+              ? { ...agenda, passo: 'aniversario', remarcarId: null, opcoes: [], erros: 0 }
+              : null,
           voltarAoMenu: false,
           comandaId: criado.comandaId,
           agendamento: { id: criado.agendamentoId, inicio: agenda.escolha!.inicio },
