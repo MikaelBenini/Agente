@@ -7,6 +7,10 @@ produção (`https://seupentefino.com.br`). Detalhes técnicos e o porquê de ca
 
 ## [Não publicado]
 
+### Adicionado (anúncios em vídeo)
+
+- Seis anúncios de 15 segundos para Reels, Status, TikTok e o feed: "Sobrou R$ 10.477", "O cliente marca sozinho" e "Seu WhatsApp marcando horário", cada um em 9:16 e quadrado, com o gancho, a função e o encerramento do vídeo do site e a mesma trilha.
+
 ### Adicionado (indique e ganhe na página inicial)
 
 - A página inicial ganhou a seção **"Não tem barbearia? Ganhe indicando"**, para quem conhece barbeiros e quer divulgar. A pessoa escolhe quantas barbearias conhece e vê quanto ganharia por mês e em 12 meses (20% da mensalidade do Pro). O botão "Quero o meu link" leva ao cadastro de indicador. O FAQ ganhou a pergunta "Posso ganhar indicando sem ter barbearia?".

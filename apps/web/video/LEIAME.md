@@ -61,3 +61,9 @@ risco do faturamento, batida a 120 bpm, whoosh em cada transição e acorde no e
 `npm run render` gera o `public/trilha.wav` antes (o arquivo fica fora do git). No site o vídeo
 toca mudo quando aparece na tela (o navegador só deixa o autoplay sem som), com o botão "Ativar
 som".
+
+## Anúncios (15/11)
+
+Seis anúncios de 15 s em `apps/video/anuncios` (lucro, agenda e bot, cada um em 9:16 e quadrado),
+gerados por `npm run anuncios` em `apps/video`. H.264 com crf 22 e AAC, cerca de 1 MB cada. Não vão
+para o site: são para Reels, Status, TikTok e o feed.

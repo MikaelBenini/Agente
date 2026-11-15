@@ -27,6 +27,7 @@
   "scripts": {
     "studio": "node scripts/trilha.mjs && remotion studio",
     "trilha": "node scripts/trilha.mjs",
+    "anuncios": "node scripts/anuncios.mjs",
     "render": "node scripts/trilha.mjs && remotion render Apresentacao out/apresentacao.mp4 --codec=h264 --crf=18",
     "dados": "node scripts/dados.mjs"
   },

@@ -196,7 +196,21 @@ test('impressão das comandas e exportação para o contador baixam pelo /api', 
   test.skip(info.project.name === 'celular', 'arquivos no computador');
   await entrar(page, 'dono@demo.pentefino.dev');
   await page.goto('/comandas');
+  // Domingo e feriado não têm comanda (o botão fica desabilitado): volta até um dia com comandas.
   const link = page.getByRole('link', { name: 'Imprimir 4 por folha' });
+  const dia = page.locator('#comandas-dia');
+  for (let volta = 1; volta <= 7; volta++) {
+    if (
+      await link.waitFor({ timeout: 3000 }).then(
+        () => true,
+        () => false,
+      )
+    )
+      break;
+    const antes = new Date(`${await dia.inputValue()}T12:00:00Z`);
+    antes.setUTCDate(antes.getUTCDate() - 1);
+    await dia.fill(antes.toISOString().slice(0, 10));
+  }
   await expect(link).toBeVisible();
   const pdf = await page.request.get((await link.getAttribute('href'))!);
   expect(pdf.headers()['content-type']).toBe('application/pdf');

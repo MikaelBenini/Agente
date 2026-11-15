@@ -1,10 +1,12 @@
 // Trilha do vídeo, sintetizada aqui mesmo (sem biblioteca de música, sem licença de terceiros).
 // Segue as cenas de src/ritmo.json: tique no número subindo, impacto no risco, batida a 120 bpm,
 // whoosh em cada transição, subida antes do encerramento e um acorde no fim.
-//   node scripts/trilha.mjs   →   public/trilha.wav
+//   node scripts/trilha.mjs                                   →   public/trilha.wav
+//   node scripts/trilha.mjs ritmo-anuncio.json trilha-anuncio  →   public/trilha-anuncio.wav
 import { readFileSync, writeFileSync } from 'node:fs';
 
-const ritmo = JSON.parse(readFileSync(new URL('../src/ritmo.json', import.meta.url)));
+const [arquivoRitmo = 'ritmo.json', nome = 'trilha'] = process.argv.slice(2);
+const ritmo = JSON.parse(readFileSync(new URL(`../src/${arquivoRitmo}`, import.meta.url)));
 const TAXA = 44100;
 const q = (quadros) => quadros / ritmo.fps;
 // Início de cada cena, em segundos (a transição sobrepõe o fim de uma ao começo da outra).
@@ -223,5 +225,5 @@ for (let i = 0; i < N; i++) {
   wav.writeInt16LE(Math.round(E[i] * g * 32767), 44 + i * 4);
   wav.writeInt16LE(Math.round(D[i] * g * 32767), 46 + i * 4);
 }
-writeFileSync(new URL('../public/trilha.wav', import.meta.url), wav);
-console.log(`public/trilha.wav: ${DURACAO.toFixed(2)} s`);
+writeFileSync(new URL(`../public/${nome}.wav`, import.meta.url), wav);
+console.log(`public/${nome}.wav: ${DURACAO.toFixed(2)} s`);
