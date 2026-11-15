@@ -495,8 +495,8 @@ PR, mergeado quando o CI passar (autorização do dono para os próximos):
 - [ ] **Vídeo novo com todas as funções** (pedido do dono em 12/11, depois da página de vendas):
   - [x] **montagem (15/11):** projeto em `apps/video`, com a transição de aproximar, o texto ao
     lado da tela (no lugar da legenda), a trilha sintetizada por código e, no site, o vídeo tocando
-    mudo quando aparece, com o botão "Ativar som". Falta: regravar a cena do bot num dia útil,
-    exportar as versões do site e os anúncios 9:16 e quadrado;
+    mudo quando aparece, com o botão "Ativar som". As versões do site foram exportadas com a cena
+    do bot regravada. Falta: os anúncios 9:16 e quadrado;
   - [x] **levantamento feito e aprovado** (15/11, `apps/web/video/levantamento.md`); roteiro em `apps/web/video/roteiro.md`, aprovado pelo dono em 15/11 (gravar e montar);
   - **antes de gerar o vídeo** (pedido do dono em 12/11): percorrer o sistema inteiro, tela por
     tela e papel por papel (dono, gestor, recepção e barbeiro, no computador e no celular), e

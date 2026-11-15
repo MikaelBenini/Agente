@@ -50,8 +50,10 @@ node video/fotos-video.mjs                  # fotos em apps/video/public/telas
 cd ../video && npm install && npm run dados && npm run render
 ```
 
-Roteiro em `video/roteiro.md` e levantamento em `video/levantamento.md`. A prévia de 15/11 tem
-63 s. Pendente: regravar a cena do bot num dia útil, no horário de atendimento.
+Roteiro em `video/roteiro.md` e levantamento em `video/levantamento.md`. Tem 63 s e está no site
+desde 15/11 (`apps/web/public/video`: MP4 com crf 26 e AAC, WebM VP9 com crf 38 e Opus, capa JPG
+do quadro 95). Para o bot, o `fotos-video.mjs` abre o dia no calendário e deixa o bot 24 h no ar
+só durante a foto, no banco do vídeo, e depois volta tudo (o simulador usa a hora de agora).
 
 Trilha: sintetizada por `apps/video/scripts/trilha.mjs` (sem biblioteca de música, então sem
 licença de terceiros). Segue as cenas de `src/ritmo.json`: tique no número subindo, impacto no
