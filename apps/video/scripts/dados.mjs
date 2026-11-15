@@ -7,5 +7,8 @@ const dados = {
   diasTeste: DIAS_TESTE,
   basicoMensal: formatarMoeda(precoPorMes('basico', 'mensal')),
 };
-await writeFile(new URL('../src/dados.json', import.meta.url), `${JSON.stringify(dados, null, 2)}\n`);
+await writeFile(
+  new URL('../src/dados.json', import.meta.url),
+  `${JSON.stringify(dados, null, 2)}\n`,
+);
 console.log(dados);

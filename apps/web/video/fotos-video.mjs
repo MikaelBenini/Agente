@@ -14,6 +14,10 @@ const B = process.env.VIDEO_BASE ?? 'http://localhost:3200';
 await mkdir(DESTINO, { recursive: true });
 const navegador = await chromium.launch();
 const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+// No domingo a unidade da demonstração não abre: agenda e caixa mostram o sábado.
+const hojeSP = new Date(Date.now() - 3 * 3600_000);
+const domingo = hojeSP.getUTCDay() === 0;
+const sabado = new Date(hojeSP.getTime() - 86_400_000).toISOString().slice(0, 10);
 
 const computador = { viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 };
 const celular = {
@@ -24,7 +28,12 @@ const celular = {
 };
 
 async function entrar(email, opcoes) {
-  const ctx = await navegador.newContext({ colorScheme: 'dark', locale: 'pt-BR', ...opcoes });
+  const ctx = await navegador.newContext({
+    colorScheme: 'dark',
+    locale: 'pt-BR',
+    timezoneId: 'America/Sao_Paulo',
+    ...opcoes,
+  });
   const p = await ctx.newPage();
   await p.goto(`${B}/entrar`);
   await p.getByLabel('E-mail').fill(email);
@@ -62,12 +71,18 @@ const api = (p, metodo, caminho, corpo) =>
   // 2. Lucro do mês (outubro fechado).
   await p.goto(`${B}/financeiro`);
   await p.getByRole('button', { name: 'Mês anterior' }).first().click();
-  await p.getByText(/outubro/i).first().waitFor();
+  await p
+    .getByText(/outubro/i)
+    .first()
+    .waitFor();
   await salvar(p, '02-financeiro', 1920);
   // 3. Margem de cada serviço.
   await p.goto(`${B}/resultados?aba=itens`);
   await p.getByRole('button', { name: 'Mês anterior' }).first().click();
-  await p.getByText(/outubro/i).first().waitFor();
+  await p
+    .getByText(/outubro/i)
+    .first()
+    .waitFor();
   await p.getByText('Corte + Barba').first().waitFor({ timeout: 60000 });
   await salvar(p, '03-margem', 1920);
   // 6a. Comissões do mês (aba do Financeiro, outubro).
@@ -116,7 +131,11 @@ const api = (p, metodo, caminho, corpo) =>
     const clientes = await (await api(p, 'get', 'clientes?busca=')).json();
     const hoje = new Date().toISOString().slice(0, 10);
     for (const c of clientes.slice(0, 9))
-      await api(p, 'post', 'clube/adesoes', { clienteId: c.id, itemClubeId: item.id, inicio: hoje });
+      await api(p, 'post', 'clube/adesoes', {
+        clienteId: c.id,
+        itemClubeId: item.id,
+        inicio: hoje,
+      });
   }
   await p.goto(`${B}/clube`);
   await p.getByRole('heading', { level: 1 }).waitFor();
@@ -134,7 +153,12 @@ const api = (p, metodo, caminho, corpo) =>
   const publicado = await publicar('tradicional');
   const endereco = `${B}/s/${publicado.siteSlug ?? 'demo-centro'}`;
   await ctx.close();
-  const site = await navegador.newContext({ colorScheme: 'dark', locale: 'pt-BR', ...computador });
+  const site = await navegador.newContext({
+    colorScheme: 'dark',
+    locale: 'pt-BR',
+    timezoneId: 'America/Sao_Paulo',
+    ...computador,
+  });
   const s = await site.newPage();
   await s.goto(endereco);
   await espera(1500);
@@ -154,14 +178,17 @@ const api = (p, metodo, caminho, corpo) =>
 // ─── Recepção, no computador ───────────────────────────────────────────────
 {
   const { ctx, p } = await entrar('recepcao.centro@demo.pentefino.dev', computador);
-  // 4b. A agenda do dia.
+  // 4b. A agenda do dia (no domingo a unidade não abre: o sábado anterior).
   await p.goto(`${B}/agenda`);
   await p.getByRole('heading', { level: 1 }).waitFor();
+  if (domingo) await p.getByRole('button', { name: 'Anterior', exact: true }).click();
   await espera(1200);
   await salvar(p, '04-agenda', 1920);
-  // 7. Caixa do dia.
+  // 7. Caixa do dia (no domingo, o do sábado).
   await p.goto(`${B}/caixa`);
   await p.getByRole('heading', { level: 1 }).waitFor();
+  if (domingo) await p.getByLabel('Dia').fill(sabado);
+  await p.evaluate(() => document.activeElement?.blur?.());
   await espera(800);
   await salvar(p, '07-caixa', 1920);
   await ctx.close();
@@ -169,7 +196,12 @@ const api = (p, metodo, caminho, corpo) =>
 
 // ─── Cliente, no celular: o link de agendamento ───────────────────────────
 {
-  const ctx = await navegador.newContext({ colorScheme: 'dark', locale: 'pt-BR', ...celular });
+  const ctx = await navegador.newContext({
+    colorScheme: 'dark',
+    locale: 'pt-BR',
+    timezoneId: 'America/Sao_Paulo',
+    ...celular,
+  });
   const p = await ctx.newPage();
   await p.goto(`${B}/b/demo-centro`);
   await p.getByRole('heading', { level: 1 }).waitFor();

@@ -1,7 +1,7 @@
 {
-  "name": "video",
+  "name": "@pente-fino/video",
   "version": "1.0.0",
-  "description": "My Remotion video",
+  "description": "Vídeo do site e dos anúncios (Remotion), fora do build e do CI",
   "repository": {},
   "license": "UNLICENSED",
   "engines": {
@@ -25,10 +25,9 @@
     "typescript": "5.9.3"
   },
   "scripts": {
-    "dev": "remotion studio",
-    "build": "remotion bundle",
-    "upgrade": "remotion upgrade",
-    "lint": "eslint src && tsc"
+    "studio": "remotion studio",
+    "render": "remotion render Apresentacao out/apresentacao.mp4 --codec=h264 --crf=18",
+    "dados": "node scripts/dados.mjs"
   },
   "allowScripts": {
     "esbuild": false
