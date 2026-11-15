@@ -98,6 +98,8 @@ export function FormularioCadastro() {
     CadastroContaEntrada
   >({
     resolver: zodResolver(cadastroContaSchema),
+    // Erro ao sair do campo, nunca enquanto digita (guia forms/validate-input-after-interaction).
+    mode: 'onTouched',
     defaultValues: {
       plano: daUrl(params.get('plano'), PLANOS, 'pro'),
       ciclo: daUrl(params.get('ciclo'), CICLOS, 'mensal'),

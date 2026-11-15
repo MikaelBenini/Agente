@@ -13,14 +13,16 @@ export interface SelecaoProps extends SelectHTMLAttributes<HTMLSelectElement> {
 
 export function Selecao({ id, rotulo, erro, dica, opcoes, className, ...props }: SelecaoProps) {
   return (
-    <div className="flex flex-col gap-1.5">
+    // O erro que aparece (ao sair do campo ou no envio) é lido com calma, sem repetir o texto
+    // (guia accessible-error-announcement); o rótulo e o valor não mudam, então só ele é lido.
+    <div className="flex flex-col gap-1.5" aria-live="polite" aria-relevant="additions">
       <label htmlFor={id} className="text-sm font-medium text-tinta">
         {rotulo}
       </label>
       <div className="relative">
         <select
           id={id}
-          aria-invalid={erro ? true : undefined}
+          aria-invalid={erro ? true : false}
           aria-describedby={erro ? `${id}-erro` : dica ? `${id}-dica` : undefined}
           className={cn(
             'min-h-11 w-full appearance-none rounded-md border bg-superficie pr-10 pl-3 text-base text-tinta',

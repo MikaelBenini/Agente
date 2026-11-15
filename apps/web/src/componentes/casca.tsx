@@ -9,6 +9,7 @@ import {
   type AvisoGeral as AvisoGeralTipo,
   type ItemMenu,
 } from '@pente-fino/shared';
+import { ConviteInstalar } from './instalar-app';
 import { Botao, Carregando, cn, EstadoVazio } from '@pente-fino/ui';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -171,6 +172,7 @@ export function Casca({ children }: { children: ReactNode }) {
           <AvisoConfirmarEmail />
           <AvisoAssinatura />
           <AvisoWhatsapp />
+          <ConviteInstalar />
           {/* As conversas do bot ficam fechadas no modo suporte (admin F5). */}
           {!usuario.data?.modoSuporte && <AvisoConversas />}
           <main

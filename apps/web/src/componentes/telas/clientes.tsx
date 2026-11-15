@@ -261,6 +261,7 @@ function FichaCliente({ id, onFechar }: { id: string | null; onFechar: () => voi
     <Dialogo
       aberto={id !== null}
       titulo={c?.nome ?? 'Cliente'}
+      fecharTocandoFora
       descricao={
         c
           ? `${c.visitas} ${c.visitas === 1 ? 'visita' : 'visitas'}${c.ultimaVisita ? ` · última em ${formatarData(c.ultimaVisita)}` : ''}`

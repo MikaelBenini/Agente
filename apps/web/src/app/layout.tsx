@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Barlow, Barlow_Condensed } from 'next/font/google';
 import { Provedores } from '@/componentes/provedores';
 import { URL_SITE } from '@/lib/site';
+import { SCRIPT_INSTALAR } from '@/lib/instalar-script';
 import { SCRIPT_TEMA } from '@/lib/tema';
 import './globals.css';
 
@@ -49,6 +50,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: SCRIPT_TEMA }} />
+        <script dangerouslySetInnerHTML={{ __html: SCRIPT_INSTALAR }} />
       </head>
       <body className="min-h-dvh">
         <Provedores>{children}</Provedores>

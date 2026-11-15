@@ -83,40 +83,57 @@ function Tabela({
   colunas: readonly string[];
   linhas: readonly (readonly React.ReactNode[])[];
 }) {
+  // Guia ui-atoms/responsive-table: na largura de celular a tabela vira um cartão por linha, com o
+  // nome da coluna antes de cada valor (pelo tamanho da própria área, @container); mais larga,
+  // rola para o lado com a primeira coluna presa.
   return (
-    // Site D4: no celular a tabela rola para o lado; a área recebe foco para rolar pelo teclado.
-    <div
-      role="region"
-      aria-label={`${legenda}, role para o lado`}
-      tabIndex={0}
-      className="overflow-x-auto rounded-xl border border-borda focus-visible:outline-2 focus-visible:outline-foco"
-    >
-      <table className="w-full min-w-[36rem] text-left text-sm">
-        <caption className="sr-only">{legenda}</caption>
-        <thead className="bg-superficie-2">
-          <tr>
-            {colunas.map((c, i) => (
-              <th key={c} scope="col" className={`px-4 py-3 font-semibold ${i ? '' : 'w-44'}`}>
-                {c}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-borda">
-          {linhas.map(([rotulo, ...valores], k) => (
-            <tr key={k}>
-              <th scope="row" className="px-4 py-3 align-top font-medium">
-                {rotulo}
-              </th>
-              {valores.map((v, i) => (
-                <td key={i} className="px-4 py-3 align-top text-tinta-suave">
-                  {v}
-                </td>
+    <div className="@container">
+      <div
+        role="region"
+        aria-label={`${legenda}, role para o lado`}
+        tabIndex={0}
+        className="overflow-x-auto rounded-xl border border-borda focus-visible:outline-2 focus-visible:outline-foco"
+      >
+        <table
+          className={`w-full min-w-[36rem] text-left text-sm @max-[36rem]:block @max-[36rem]:min-w-0`}
+        >
+          <caption className="sr-only">{legenda}</caption>
+          <thead className={`bg-superficie-2 @max-[36rem]:hidden`}>
+            <tr>
+              {colunas.map((c, i) => (
+                <th
+                  key={c || i}
+                  scope="col"
+                  className={`px-4 py-3 font-semibold ${i ? '' : 'sticky left-0 w-44 bg-superficie-2'}`}
+                >
+                  {c}
+                </th>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className={`divide-y divide-borda @max-[36rem]:block`}>
+            {linhas.map(([rotulo, ...valores], k) => (
+              <tr key={k} className={`@max-[36rem]:block @max-[36rem]:py-2`}>
+                <th
+                  scope="row"
+                  className={`sticky left-0 bg-fundo px-4 py-3 align-top font-medium @max-[36rem]:static @max-[36rem]:block @max-[36rem]:pb-1`}
+                >
+                  {rotulo}
+                </th>
+                {valores.map((v, i) => (
+                  <td
+                    key={i}
+                    data-coluna={colunas[i + 1]}
+                    className={`px-4 py-3 align-top text-tinta-suave @max-[36rem]:block @max-[36rem]:py-1 @max-[36rem]:before:block @max-[36rem]:before:text-xs @max-[36rem]:before:font-semibold @max-[36rem]:before:text-tinta @max-[36rem]:before:content-[attr(data-coluna)]`}
+                  >
+                    {v}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
