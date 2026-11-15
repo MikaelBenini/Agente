@@ -99,9 +99,8 @@ test('comparação no celular: um cartão por linha, com o nome da coluna', asyn
   const rotulo = await celula.evaluate((td) => getComputedStyle(td, '::before').content);
   expect(rotulo).toContain('Pente Fino');
   // Nada rola para o lado na tela.
-  const larguras = await page.evaluate(() => [
-    document.documentElement.scrollWidth,
-    document.documentElement.clientWidth,
-  ]);
-  expect(larguras[0]).toBeLessThanOrEqual(larguras[1]);
+  const [rolagem, tela] = await page.evaluate(
+    () => [document.documentElement.scrollWidth, document.documentElement.clientWidth] as const,
+  );
+  expect(rolagem).toBeLessThanOrEqual(tela);
 });
