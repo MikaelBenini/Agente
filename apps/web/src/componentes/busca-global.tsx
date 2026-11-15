@@ -73,7 +73,7 @@ export function BuscaGlobal() {
   }, [abrir]);
   const onFechar = () => setAberto(false);
   return (
-    <Dialogo aberto={aberto} titulo="Procurar" onFechar={onFechar}>
+    <Dialogo aberto={aberto} titulo="Procurar" onFechar={onFechar} fecharTocandoFora>
       {aberto && <CaixaDeBusca onFechar={onFechar} />}
     </Dialogo>
   );

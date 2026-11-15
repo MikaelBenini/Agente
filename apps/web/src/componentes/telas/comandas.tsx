@@ -1054,6 +1054,7 @@ function AbrirCaixa({
     <Dialogo
       aberto={aberto}
       titulo="O caixa de hoje não foi aberto"
+      fecharTocandoFora
       descricao="Abra agora com o troco que está na gaveta. Depois, o pagamento é registrado."
       onFechar={onFechar}
     >

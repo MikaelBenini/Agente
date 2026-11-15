@@ -16,13 +16,15 @@ export function Campo({ id, rotulo, dica, erro, className, ...props }: CampoProp
   const idDica = dica ? `${id}-dica` : undefined;
   const idErro = erro ? `${id}-erro` : undefined;
   return (
-    <div className="flex flex-col gap-1.5">
+    // O erro que aparece (ao sair do campo ou no envio) é lido com calma, sem repetir o texto
+    // (guia accessible-error-announcement); o rótulo e o valor não mudam, então só ele é lido.
+    <div className="flex flex-col gap-1.5" aria-live="polite" aria-relevant="additions">
       <label htmlFor={id} className="text-sm font-medium text-tinta">
         {rotulo}
       </label>
       <input
         id={id}
-        aria-invalid={erro ? true : undefined}
+        aria-invalid={erro ? true : false}
         aria-describedby={[idErro, idDica].filter(Boolean).join(' ') || undefined}
         className={cn(
           'min-h-11 w-full rounded-md border bg-superficie px-3 text-base text-tinta placeholder:text-tinta-fraca',

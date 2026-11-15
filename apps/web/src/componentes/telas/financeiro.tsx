@@ -740,6 +740,7 @@ function Extrato({
     <Dialogo
       aberto={resumo !== null}
       titulo={`Extrato de ${resumo?.nome ?? ''}`}
+      fecharTocandoFora
       onFechar={onFechar}
       largura="larga"
     >
