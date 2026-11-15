@@ -37,13 +37,7 @@ async function entrar(browser: Browser, email: string, celular: boolean): Promis
 }
 
 /** Grava a captura e a versão com metade da largura. */
-async function gravar(
-  page: Page,
-  nome: string,
-  largura: number,
-  altura: number,
-  rolar = 0,
-) {
+async function gravar(page: Page, nome: string, largura: number, altura: number, rolar = 0) {
   await page.waitForLoadState('networkidle');
   if (rolar) await page.mouse.wheel(0, rolar);
   await page.waitForTimeout(800);
