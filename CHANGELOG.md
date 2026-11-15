@@ -15,7 +15,7 @@ produção (`https://seupentefino.com.br`). Detalhes técnicos e o porquê de ca
   - no celular, a barra do navegador fica na cor do cabeçalho do tema, e a seleção de texto na cor da barbearia.
 - **Textos que respeitam o tamanho de letra do celular:** quem aumenta a letra nas configurações do aparelho vê o site da barbearia e o painel maiores (Chrome no Android, a partir da versão 146).
 - **Página de vendas:**
-  - abre mais leve no celular (as seções lá de baixo só são desenhadas quando chegam perto);
+  - as perguntas frequentes, no fim, só são desenhadas quando chegam perto da tela;
   - os parágrafos não deixam mais uma palavra sozinha na última linha;
   - as tabelas que rolam para o lado esmaecem a borda enquanto há mais para ver.
 - **Suporte por chat em todo o painel:** um botão flutuante no canto abre a conversa com a equipe em qualquer tela (antes, só na Ajuda). A Ajuda não mostra mais o WhatsApp do suporte: o chat o substitui, e o e-mail continua.

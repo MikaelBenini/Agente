@@ -643,8 +643,9 @@ dialog[open]::backdrop {
   }
 }
 
-/* Seções longas da página de vendas, abaixo da dobra: o navegador só desenha quando chegam perto
-   da tela (guia defer-rendering-heavy-content). O tamanho estimado evita a barra de rolagem
+/* Seções da página de vendas depois da última âncora (#indique): o navegador só desenha quando
+   chegam perto da tela (guia defer-rendering-heavy-content). Antes de uma âncora, não: o tamanho
+   estimado muda ao desenhar e o salto do link (#video, #indique) cairia no lugar errado. O tamanho estimado evita a barra de rolagem
    pular; "auto" guarda o tamanho real depois da primeira vez. */
 .desenhar-perto {
   content-visibility: auto;

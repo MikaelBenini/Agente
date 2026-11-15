@@ -572,7 +572,8 @@ de ganho para o barbeiro:
 - [x] Fonte reserva dos títulos sem pular (a Big Shoulders ficou sem o ajuste do Next)
 - [x] Textos que respeitam o tamanho de letra do celular (`text-scale` e textos do site em rem)
 - [x] Barra do navegador e seleção na cor do tema da barbearia
-- [x] Página de vendas mais leve (seções de baixo desenhadas perto da tela), parágrafos sem palavra
+- [x] Página de vendas: perguntas frequentes desenhadas perto da tela (as seções antes das âncoras
+  ficam como estão, para os links do alto da página caírem no lugar certo), parágrafos sem palavra
   sozinha e dica de rolagem nas tabelas
 
 ## 9. Por último: verificação final do ecossistema

@@ -768,7 +768,7 @@ temos bot de WhatsApp, lucro real, comanda única e preço menor). Ordem de cons
     - `AJUSTE_TITULO` em `site-barbearia/fontes.ts` (`cap-height 0.8` na Big Shoulders, medido no navegador; as outras já têm `size-adjust` do Next);
     - `<meta name="text-scale" content="scale">` no layout e os `text-[Npx]` do site e da vitrine em rem;
     - `CorDoNavegador` (theme-color no cliente, para não travar a página no servidor) nas páginas `/s/...`, `accent-color` e `::selection` no site;
-    - `.desenhar-perto` (`content-visibility: auto`) nas seções de baixo da página de vendas, `text-wrap: pretty` nos parágrafos e `.dica-rolagem` (esmaecer à direita por scroll timeline) nas tabelas roláveis;
+    - `.desenhar-perto` (`content-visibility: auto`) só nas perguntas frequentes (antes de `#indique` e `#video` o tamanho estimado deslocava o salto do link), `text-wrap: pretty` nos parágrafos e `.dica-rolagem` (esmaecer à direita por scroll timeline) nas tabelas roláveis;
     - F6: `ChatFlutuante` (popover nativo, conversa montada só aberta) na casca, fora da Ajuda e do modo suporte; o WhatsApp do suporte saiu da Ajuda;
     - P4: frase do bot na comparação;
     - testes em `site-barbearia.spec.ts`, `suporte.spec.ts` e `web-moderna.spec.ts`.
