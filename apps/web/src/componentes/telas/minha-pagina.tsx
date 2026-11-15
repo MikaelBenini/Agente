@@ -53,6 +53,7 @@ import { Abas, Botao, Campo, CampoTexto, cn, ModalConfirmacao, Selecao } from '@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowDown, ArrowUp, ExternalLink, Eye, EyeOff, Monitor, Smartphone } from 'lucide-react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { createContext, useContext, useEffect, useMemo, useState, type MouseEvent } from 'react';
 import { renovarSite } from '@/app/(app)/pagina/acoes';
 import { api, ErroApi } from '@/lib/api';
@@ -181,6 +182,12 @@ function Editor({
   };
   const [pagina, setPagina] = useState<PaginaSite>('inicio');
   const [aba, setAba] = useState('blocos');
+  // Pedido do dono em 15/11: a tela estava bagunçada, com endereço, agendamento e domínio
+  // empilhados antes do editor. Agora cada assunto tem a sua aba; o site vem primeiro.
+  const secaoDoLink = useSearchParams().get('secao');
+  const [secao, setSecao] = useState<'site' | 'agendamento' | 'enderecos'>(
+    secaoDoLink === 'agendamento' || secaoDoLink === 'enderecos' ? secaoDoLink : 'site',
+  );
   const [celular, setCelular] = useState(false);
   const [salvando, setSalvando] = useState<'salvo' | 'salvando' | 'erro'>('salvo');
   const [erro, setErro] = useState<string | null>(null);
@@ -353,135 +360,169 @@ function Editor({
             .
           </Aviso>
         )}
-        <Enderecos
-          unidadeId={unidadeId}
-          situacao={situacao}
-          onMudou={(r) => {
-            setSituacao(situacaoDe(r));
-            void cliente.invalidateQueries({ queryKey: chave(unidadeId) });
-          }}
-        />
-        <VisualDoAgendamento unidadeId={unidadeId} slug={situacao.slug} />
-        <DominioProprio
-          unidadeId={unidadeId}
-          situacao={situacao}
-          onMudou={(r) => {
-            setSituacao(situacaoDe(r));
-            void cliente.invalidateQueries({ queryKey: chave(unidadeId) });
-          }}
-        />
         {problema && <Aviso tom="erro">{problema}</Aviso>}
         {erro && <Aviso tom="erro">{erro}</Aviso>}
         {aviso && <Aviso tom="sucesso">{aviso}</Aviso>}
 
-        <div className="flex flex-wrap items-start gap-6">
-          <div className="flex w-full max-w-md min-w-0 flex-[1_1_340px] flex-col gap-4">
-            <Selecao
-              id="pagina-editada"
-              rotulo="Página"
-              value={pagina}
-              onChange={(e) => setPagina(e.target.value as PaginaSite)}
-              opcoes={PAGINAS_SITE.filter((p) => paginaLigada(site, p)).map((p) => ({
-                valor: p,
-                rotulo: ROTULO_PAGINA[p],
-              }))}
-            />
-            <fieldset className="flex flex-col gap-1 rounded-md border border-borda p-3">
-              <legend className="px-1 text-sm font-medium">Páginas extras</legend>
-              {PAGINAS_EXTRAS.map((p) => (
-                <Marcar
-                  key={p}
-                  id={`pagina-extra-${p}`}
-                  rotulo={
-                    p === 'galeria'
-                      ? 'Galeria: fotos dos trabalhos'
-                      : 'Clube: os planos de assinatura, com o botão Assinar'
-                  }
-                  marcado={paginaLigada(site, p)}
-                  onMudar={(v) => {
-                    if (v) {
-                      mudar(ligarPagina(site, p));
-                      setPagina(p);
-                    } else {
-                      if (pagina === p) setPagina('inicio');
-                      mudar(desligarPagina(site, p));
-                    }
-                  }}
-                />
-              ))}
-              <p className="text-sm text-tinta-suave">
-                Ligada, a página entra no menu do site. Desligar apaga o que estava nela.
-              </p>
-            </fieldset>
-            <Abas
-              rotulo="Montar a página"
-              atual={aba}
-              onTrocar={setAba}
-              abas={[
-                {
-                  id: 'blocos',
-                  rotulo: 'Blocos',
-                  conteudo: (
-                    <ListaDeBlocos
-                      site={site}
-                      pagina={pagina}
-                      barbearia={previa.barbearia}
-                      equipe={previa.equipe}
-                      onMudar={mudar}
-                    />
-                  ),
-                },
-                { id: 'tema', rotulo: 'Tema', conteudo: <Tema site={site} onMudar={mudar} /> },
-                {
-                  id: 'cabecalho-rodape',
-                  rotulo: 'Cabeçalho e rodapé',
-                  conteudo: <CabecalhoERodape site={site} onMudar={mudar} />,
-                },
-              ]}
-            />
-          </div>
+        <Abas
+          rotulo="Minha página"
+          atual={secao}
+          onTrocar={(id) => setSecao(id as typeof secao)}
+          abas={[
+            {
+              id: 'site',
+              rotulo: 'Site',
+              conteudo: (
+                <>
+                  <div className="flex flex-wrap items-start gap-6">
+                    <div className="flex w-full max-w-md min-w-0 flex-[1_1_340px] flex-col gap-4">
+                      <Selecao
+                        id="pagina-editada"
+                        rotulo="Página"
+                        value={pagina}
+                        onChange={(e) => setPagina(e.target.value as PaginaSite)}
+                        opcoes={PAGINAS_SITE.filter((p) => paginaLigada(site, p)).map((p) => ({
+                          valor: p,
+                          rotulo: ROTULO_PAGINA[p],
+                        }))}
+                      />
+                      <fieldset className="flex flex-col gap-1 rounded-md border border-borda p-3">
+                        <legend className="px-1 text-sm font-medium">Páginas extras</legend>
+                        {PAGINAS_EXTRAS.map((p) => (
+                          <Marcar
+                            key={p}
+                            id={`pagina-extra-${p}`}
+                            rotulo={
+                              p === 'galeria'
+                                ? 'Galeria: fotos dos trabalhos'
+                                : 'Clube: os planos de assinatura, com o botão Assinar'
+                            }
+                            marcado={paginaLigada(site, p)}
+                            onMudar={(v) => {
+                              if (v) {
+                                mudar(ligarPagina(site, p));
+                                setPagina(p);
+                              } else {
+                                if (pagina === p) setPagina('inicio');
+                                mudar(desligarPagina(site, p));
+                              }
+                            }}
+                          />
+                        ))}
+                        <p className="text-sm text-tinta-suave">
+                          Ligada, a página entra no menu do site. Desligar apaga o que estava nela.
+                        </p>
+                      </fieldset>
+                      <Abas
+                        rotulo="Montar a página"
+                        atual={aba}
+                        onTrocar={setAba}
+                        abas={[
+                          {
+                            id: 'blocos',
+                            rotulo: 'Blocos',
+                            conteudo: (
+                              <ListaDeBlocos
+                                site={site}
+                                pagina={pagina}
+                                barbearia={previa.barbearia}
+                                equipe={previa.equipe}
+                                onMudar={mudar}
+                              />
+                            ),
+                          },
+                          {
+                            id: 'tema',
+                            rotulo: 'Tema',
+                            conteudo: <Tema site={site} onMudar={mudar} />,
+                          },
+                          {
+                            id: 'cabecalho-rodape',
+                            rotulo: 'Cabeçalho e rodapé',
+                            conteudo: <CabecalhoERodape site={site} onMudar={mudar} />,
+                          },
+                        ]}
+                      />
+                    </div>
 
-          <section aria-label="Prévia" className="flex min-w-0 flex-[999_1_520px] flex-col gap-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 className="text-lg font-semibold">Prévia: {ROTULO_PAGINA[pagina]}</h2>
-              <div
-                role="group"
-                aria-label="Ver como"
-                className="inline-flex overflow-hidden rounded-md border border-borda"
-              >
-                {[
-                  { cel: false, rotulo: 'Computador', Icone: Monitor },
-                  { cel: true, rotulo: 'Celular', Icone: Smartphone },
-                ].map(({ cel, rotulo, Icone }) => (
-                  <button
-                    key={rotulo}
-                    type="button"
-                    aria-pressed={celular === cel}
-                    onClick={() => setCelular(cel)}
-                    className={cn(
-                      'inline-flex min-h-11 items-center gap-2 px-3 text-sm font-medium',
-                      celular === cel
-                        ? 'bg-tinta text-fundo'
-                        : 'bg-superficie text-tinta-suave hover:text-tinta',
-                    )}
-                  >
-                    <Icone aria-hidden className="size-4" />
-                    {rotulo}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div
-              onClickCapture={naPrevia}
-              className={cn(
-                'mx-auto h-[78vh] w-full overflow-y-auto border border-borda bg-white shadow-sm transition-[max-width] duration-[var(--ritmo)]',
-                celular ? 'max-w-[390px] rounded-[28px]' : 'max-w-none rounded-lg',
-              )}
-            >
-              <SiteDaBarbearia dados={dadosDaPrevia} pagina={pagina} base={base} />
-            </div>
-          </section>
-        </div>
+                    <section
+                      aria-label="Prévia"
+                      className="flex min-w-0 flex-[999_1_520px] flex-col gap-3"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <h2 className="text-lg font-semibold">Prévia: {ROTULO_PAGINA[pagina]}</h2>
+                        <div
+                          role="group"
+                          aria-label="Ver como"
+                          className="inline-flex overflow-hidden rounded-md border border-borda"
+                        >
+                          {[
+                            { cel: false, rotulo: 'Computador', Icone: Monitor },
+                            { cel: true, rotulo: 'Celular', Icone: Smartphone },
+                          ].map(({ cel, rotulo, Icone }) => (
+                            <button
+                              key={rotulo}
+                              type="button"
+                              aria-pressed={celular === cel}
+                              onClick={() => setCelular(cel)}
+                              className={cn(
+                                'inline-flex min-h-11 items-center gap-2 px-3 text-sm font-medium',
+                                celular === cel
+                                  ? 'bg-tinta text-fundo'
+                                  : 'bg-superficie text-tinta-suave hover:text-tinta',
+                              )}
+                            >
+                              <Icone aria-hidden className="size-4" />
+                              {rotulo}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div
+                        onClickCapture={naPrevia}
+                        className={cn(
+                          'mx-auto h-[78vh] w-full overflow-y-auto border border-borda bg-white shadow-sm transition-[max-width] duration-[var(--ritmo)]',
+                          celular ? 'max-w-[390px] rounded-[28px]' : 'max-w-none rounded-lg',
+                        )}
+                      >
+                        <SiteDaBarbearia dados={dadosDaPrevia} pagina={pagina} base={base} />
+                      </div>
+                    </section>
+                  </div>
+                </>
+              ),
+            },
+            {
+              id: 'agendamento',
+              rotulo: 'Página de agendamento',
+              conteudo: <VisualDoAgendamento unidadeId={unidadeId} slug={situacao.slug} />,
+            },
+            {
+              id: 'enderecos',
+              rotulo: 'Endereço e domínio',
+              conteudo: (
+                <div className="flex flex-col gap-4">
+                  <Enderecos
+                    unidadeId={unidadeId}
+                    situacao={situacao}
+                    onMudou={(r) => {
+                      setSituacao(situacaoDe(r));
+                      void cliente.invalidateQueries({ queryKey: chave(unidadeId) });
+                    }}
+                  />
+                  <DominioProprio
+                    unidadeId={unidadeId}
+                    situacao={situacao}
+                    onMudou={(r) => {
+                      setSituacao(situacaoDe(r));
+                      void cliente.invalidateQueries({ queryKey: chave(unidadeId) });
+                    }}
+                  />
+                </div>
+              ),
+            },
+          ]}
+        />
 
         <ModalConfirmacao
           aberto={confirmarTirar}
@@ -1583,8 +1624,8 @@ function FormVisual({
   return (
     <div className="flex flex-col gap-4">
       <p className="text-sm text-tinta-suave">
-        A página onde o cliente marca o horário pode ter a cara da barbearia: cor, logotipo, foto de
-        capa e um recado. Vale assim que salvar; não depende de publicar o site.
+        A página onde o cliente marca o horário pode ter a cara da barbearia: o estilo, a cor, o
+        logotipo, a foto de capa e um recado. Vale assim que salvar; não depende de publicar o site.
       </p>
       <Marcar
         id="visual-ativo"
@@ -1594,6 +1635,55 @@ function FormVisual({
       />
       {v.ativo && (
         <>
+          {/* Pedido do dono em 15/11: a página inteira muda com o tema, não só os botões. */}
+          <fieldset className="flex flex-col gap-2">
+            <legend className="mb-1 text-sm font-medium">Estilo da página</legend>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {([undefined, ...TEMAS_SITE] as const).map((t) => {
+                const paleta = PALETAS_SITE[t ?? 'tradicional'];
+                return (
+                  <label
+                    key={t ?? 'site'}
+                    className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md border border-borda p-3 has-[:checked]:border-tinta has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-foco"
+                  >
+                    <input
+                      type="radio"
+                      name="tema-agendamento"
+                      checked={v.tema === t}
+                      onChange={() => mudar({ tema: t })}
+                      className="sr-only"
+                    />
+                    <span
+                      aria-hidden
+                      className="flex h-9 w-12 shrink-0 overflow-hidden rounded border border-borda"
+                    >
+                      {t ? (
+                        <>
+                          <span className="w-1/2" style={{ background: paleta.papel }} />
+                          <span className="w-1/4" style={{ background: paleta.escuro }} />
+                          <span className="w-1/4" style={{ background: CORES_SITE[v.cor].hex }} />
+                        </>
+                      ) : (
+                        <span className="grid w-full place-items-center bg-superficie-2 text-xs font-semibold text-tinta-suave">
+                          site
+                        </span>
+                      )}
+                    </span>
+                    <span className="flex flex-col">
+                      <span className="font-semibold">
+                        {t ? ROTULO_TEMA[t].nome : 'Igual ao site'}
+                      </span>
+                      <span className="text-sm text-tinta-suave">
+                        {t
+                          ? ROTULO_TEMA[t].descricao
+                          : 'O mesmo tema, a mesma fonte e os mesmos botões do site publicado.'}
+                      </span>
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+          </fieldset>
           <fieldset className="flex flex-col gap-2">
             <legend className="mb-1 text-sm font-medium">Cor dos botões</legend>
             <div className="flex flex-wrap gap-3">
@@ -1673,6 +1763,12 @@ function FormVisual({
             rotulo="Mostrar o link “Ver o site da barbearia” (quando o site estiver publicado)"
             marcado={v.linkSite}
             onMudar={(linkSite) => mudar({ linkSite })}
+          />
+          <Marcar
+            id="visual-marca"
+            rotulo="Mostrar “Agendamento pelo Pente Fino” no fim da página"
+            marcado={v.marcaPenteFino !== false}
+            onMudar={(marcaPenteFino) => mudar({ marcaPenteFino })}
           />
         </>
       )}

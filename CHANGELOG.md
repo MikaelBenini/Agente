@@ -7,6 +7,17 @@ produção (`https://seupentefino.com.br`). Detalhes técnicos e o porquê de ca
 
 ## [Não publicado]
 
+### Mudado (Minha página organizada e página de agendamento com tema)
+
+- **Minha página** em três abas: **Site** (o editor com a prévia, que antes ficava lá embaixo), **Página de agendamento** e **Endereço e domínio**. A barra de publicar continua no topo.
+- A página de agendamento veste o **tema inteiro**: fundo, cartões, texto, fonte dos títulos e o canto dos botões, não só a cor. Dá para escolher "Igual ao site" (o padrão) ou um dos quatro temas.
+- Nova opção: **"Mostrar 'Agendamento pelo Pente Fino' no fim da página"**. A barbearia pode desligar.
+- **Aba Clube do site:** os planos aparecem assim que estão cadastrados, sem esperar o recebimento online. Até o Asaas aprovar o cadastro, o botão vira "Assinar pelo WhatsApp" (ou "Assine na barbearia", sem WhatsApp); aprovado, assina pelo link. Sem planos, o Clube sai do menu e a página mostra "Perguntar pelo WhatsApp" no lugar do aviso interno de antes.
+
+### Corrigido
+
+- O botão "Assinar" do site aparecia com o cadastro no Asaas ainda em análise ou recusado, e a assinatura falhava. Agora só aparece com o cadastro aprovado.
+
 ### Mudado (comparações mais curtas e visíveis na página inicial)
 
 - A tabela de "Como escolher o sistema" ficou de bater o olho: um sistema por linha e, em cada célula, um sinal (sim, em parte, não) com no máximo duas palavras. O nome do sistema leva ao detalhe. Onde o site do sistema não informa aparece um traço, com uma legenda, no lugar de "Não citado" e "A página não mostra o preço"; vale também nas páginas de cada sistema.

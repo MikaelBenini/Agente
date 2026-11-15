@@ -1,5 +1,6 @@
 'use client';
 
+import { CLASSES_FONTES, FONTE_TITULO } from '@/componentes/site-barbearia/fontes';
 import {
   dataLocal,
   formatarDiaPorExtenso,
@@ -121,7 +122,51 @@ function Agendar({ slugDaRota }: { slugDaRota?: string }) {
   return <Formulario slug={slug} u={pagina.data} token={token} onTrocouUnidade={setSlug} />;
 }
 
-export function Moldura({
+export // Pedido do dono em 15/11: com o visual ligado, a página inteira veste o tema (o escolhido ou o
+// do site): as cores do app viram as da paleta, a fonte dos títulos e o canto dos botões também.
+const RAIOS: Record<VisualAgendamentoPublico['botoes'], [string, string]> = {
+  retos: ['0px', '0px'],
+  arredondados: ['8px', '12px'],
+  pilula: ['22px', '18px'],
+};
+const misturar = (a: string, b: string, pct: number) => `color-mix(in srgb, ${a} ${pct}%, ${b})`;
+/** Fundo escuro? (luminância do papel), para os textos de erro e aviso e os controles nativos. */
+function papelEscuro(hex: string) {
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+  return 0.2126 * r! + 0.7152 * g! + 0.0722 * b! < 0.4;
+}
+function estiloDoVisual(v: VisualAgendamentoPublico): React.CSSProperties {
+  const p = v.paleta;
+  const escuro = papelEscuro(p.papel);
+  const [raio, raioGrande] = RAIOS[v.botoes];
+  return {
+    colorScheme: escuro ? 'dark' : 'light',
+    '--fundo': p.papel,
+    '--superficie': p.cartao,
+    '--superficie-2': misturar(p.tinta, p.cartao, 6),
+    '--superficie-3': misturar(p.tinta, p.cartao, 12),
+    '--borda': p.linha,
+    '--borda-forte': misturar(p.tinta, p.linha, 35),
+    '--tinta': p.tinta,
+    '--tinta-suave': p.tintaSuave,
+    '--tinta-fraca': p.tintaSuave,
+    '--acao': v.cor,
+    '--sobre-acao': p.escuro,
+    '--acao-texto': p.realce,
+    '--modulo': v.cor,
+    '--modulo-texto': p.realce,
+    '--sobre-modulo': p.escuro,
+    '--foco': p.tinta,
+    '--perigo-texto': escuro ? '#ff8b7c' : '#b0261a',
+    '--aviso-texto': escuro ? '#f8b25c' : '#934f00',
+    // Os tokens do Tailwind são "inline": troca a fonte por baixo de font-denso.
+    '--font-barlow-condensed': FONTE_TITULO[v.fonte],
+    '--radius-md': raio,
+    '--radius-lg': raioGrande,
+  } as React.CSSProperties;
+}
+
+function Moldura({
   children,
   u,
 }: {
@@ -134,15 +179,14 @@ export function Moldura({
   };
 }) {
   const visual = u?.visual ?? null;
-  // Lote 7l: com o visual da barbearia ligado, a cor dela vira a cor dos botões e da marcação.
-  const estilo = visual
-    ? ({ '--acao': visual.cor, '--sobre-acao': '#14271C' } as React.CSSProperties)
-    : undefined;
+  const estilo = visual ? estiloDoVisual(visual) : undefined;
   return (
     <div
       style={estilo}
-      className="isolate mx-auto flex min-h-dvh w-full max-w-xl flex-col gap-6 px-[max(1rem,env(safe-area-inset-left))] pt-[max(1.5rem,env(safe-area-inset-top))] pr-[max(1rem,env(safe-area-inset-right))] pb-10"
+      className={`${visual ? CLASSES_FONTES : ''} isolate mx-auto flex min-h-dvh w-full max-w-xl flex-col gap-6 px-[max(1rem,env(safe-area-inset-left))] pt-[max(1.5rem,env(safe-area-inset-top))] pr-[max(1rem,env(safe-area-inset-right))] pb-10`}
     >
+      {/* O fundo do tema cobre a tela toda, não só a coluna do meio. */}
+      {visual && <div aria-hidden className="fixed inset-0 -z-20 bg-fundo" />}
       {visual?.capa && visual.capaNoFundo && (
         // Pedido do dono em 14/11: a foto da unidade no fundo, com uma camada escura por cima.
         <div aria-hidden className="fixed inset-0 -z-10">
@@ -204,9 +248,11 @@ export function Moldura({
         </header>
       )}
       <main className="flex flex-1 flex-col gap-6">{children}</main>
-      <footer className="flex items-center gap-2 text-sm text-tinta-fraca">
-        <IconeMarca className="size-5" /> Agendamento pelo Pente Fino
-      </footer>
+      {visual?.marcaPenteFino !== false && (
+        <footer className="flex items-center gap-2 text-sm text-tinta-fraca">
+          <IconeMarca className="size-5" /> Agendamento pelo Pente Fino
+        </footer>
+      )}
     </div>
   );
 }

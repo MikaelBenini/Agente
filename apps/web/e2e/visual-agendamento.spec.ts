@@ -17,6 +17,9 @@ test('visual da página de agendamento: liga, aparece no link e desliga', async 
   await page.goto('/pagina');
   // Espera a tela carregar: o seletor de unidade só aparece depois.
   await expect(page.getByRole('heading', { level: 1, name: 'Minha página' })).toBeVisible();
+  // Cada assunto na sua aba (pedido do dono em 15/11): o site vem primeiro.
+  await expect(page.getByRole('tab', { name: 'Site', selected: true })).toBeVisible();
+  await page.getByRole('tab', { name: 'Página de agendamento' }).click();
   await expect(page.getByRole('region', { name: 'Página de agendamento' })).toBeVisible();
   const unidade = page.getByLabel('Unidade', { exact: true });
   if (await unidade.isVisible()) await unidade.selectOption({ label: 'Jardins' });
@@ -27,12 +30,22 @@ test('visual da página de agendamento: liga, aparece no link e desliga', async 
   const ligar = secao.getByLabel('Usar o visual da barbearia na página de agendamento');
   if (!(await ligar.isChecked())) await secao.getByText('Usar o visual da barbearia').click();
   await secao.getByLabel('Título (opcional)').fill(titulo);
+  // A página inteira veste o tema escolhido, e a barbearia pode tirar a marca do Pente Fino.
+  await secao.getByRole('radio', { name: /^Clube/ }).check({ force: true });
+  const marca = secao.getByLabel('Mostrar “Agendamento pelo Pente Fino” no fim da página');
+  if (await marca.isChecked())
+    await secao.getByText('Mostrar “Agendamento pelo Pente Fino” no fim da página').click();
   await secao.getByRole('button', { name: 'Salvar página de agendamento' }).click();
   await expect(secao.getByText('Salvo.')).toBeVisible();
 
   const cliente = await (await browser.newContext()).newPage();
   await cliente.goto('/b/demo-jardins');
   await expect(cliente.getByText(titulo)).toBeVisible();
+  await expect(cliente.getByText('Agendamento pelo Pente Fino')).toHaveCount(0);
+  const fundo = await cliente
+    .locator('div.fixed.inset-0.-z-20')
+    .evaluate((d) => getComputedStyle(d).backgroundColor);
+  expect(fundo).toBe('rgb(35, 26, 22)');
 
   await secao.getByText('Usar o visual da barbearia').click();
   await secao.getByRole('button', { name: 'Salvar página de agendamento' }).click();

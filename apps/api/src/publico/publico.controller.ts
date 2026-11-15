@@ -63,6 +63,7 @@ import {
   temRecurso,
   CORES_SITE,
   lerSite,
+  estiloDoAgendamento,
   lerVisualAgendamento,
   siteBarbeariaSchema,
   normalizarDominio,
@@ -113,6 +114,8 @@ function visualPublico(u: {
     titulo: v.titulo,
     texto: v.texto,
     site: v.linkSite && u.sitePublicado && u.siteSlug ? `/s/${u.siteSlug}` : null,
+    ...estiloDoAgendamento(v, u.sitePublicado),
+    marcaPenteFino: v.marcaPenteFino ?? true,
   };
 }
 const consultaDominio = z.object({ domain: z.string().min(4).max(260) });
