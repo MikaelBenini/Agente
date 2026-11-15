@@ -96,16 +96,17 @@ export async function montarSitePublico(
 }
 
 /**
- * Lote 7h: planos do clube para a página Clube do site, só com a página ligada, o clube online
- * ativo (a barbearia recebe pelo Asaas) e o link de assinatura (precisa do endereço da unidade).
+ * Lote 7h: planos do clube para a página Clube do site, com a página ligada. O botão de assinar
+ * online só com o recebimento aprovado no Asaas e o endereço da unidade; antes disso os planos
+ * aparecem igual, com o "Assinar pelo WhatsApp" (revisão do dono em 15/11).
  */
 async function planosDoClube(
   tx: Transacao,
   u: UnidadeDoSite,
   site: SiteBarbearia,
 ): Promise<SitePublico['clube']> {
-  if (!site.paginas.clube || !u.slug) return null;
-  if (!(await tx.recebimentoOnline.findFirst())) return null;
+  if (!site.paginas.clube) return null;
+  const recebimento = await tx.recebimentoOnline.findFirst();
   const planos = await tx.itemClube.findMany({
     where: { unidadeId: u.id, ativo: true },
     include: { servicos: { include: { servico: true } } },
@@ -113,7 +114,7 @@ async function planosDoClube(
   });
   if (!planos.length) return null;
   return {
-    link: caminhoAssinarClube(u.slug),
+    link: recebimento?.situacao === 'aprovada' && u.slug ? caminhoAssinarClube(u.slug) : null,
     planos: planos.map((p) => ({
       id: p.id,
       nome: p.nome,

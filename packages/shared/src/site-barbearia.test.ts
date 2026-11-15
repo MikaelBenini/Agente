@@ -11,6 +11,7 @@ import {
   fotosDoVisual,
   lerVisualAgendamento,
   visualAgendamentoInicial,
+  estiloDoAgendamento,
   visualAgendamentoSchema,
   cabecalhoDoSite,
   limparCssSite,
@@ -405,5 +406,33 @@ describe('temas do site (lotes 7i, 7j e 7k)', () => {
     }
     expect(Object.keys(ROTULO_TEMA)).toEqual(['tradicional', 'clube', 'letreiro', 'estudio']);
     expect(FONTE_DO_TEMA.estudio).toBe('condensada');
+  });
+});
+
+describe('estilo da página de agendamento (pedido do dono em 15/11)', () => {
+  const site = {
+    ...siteInicial('X'),
+    tema: 'clube' as const,
+    fonte: 'condensada' as const,
+    botoes: 'pilula' as const,
+  };
+  const visual = visualAgendamentoInicial(site);
+
+  it('sem escolha, segue o tema, a fonte e os botões do site publicado', () => {
+    expect(estiloDoAgendamento(visual, site)).toEqual({
+      tema: 'clube',
+      paleta: PALETAS_SITE.clube,
+      fonte: 'condensada',
+      botoes: 'pilula',
+    });
+  });
+
+  it('com outro tema, usa a fonte dele e botões arredondados', () => {
+    const e = estiloDoAgendamento({ ...visual, tema: 'letreiro' }, site);
+    expect(e).toMatchObject({ tema: 'letreiro', fonte: 'letreiro', botoes: 'arredondados' });
+  });
+
+  it('sem site publicado, começa no tradicional', () => {
+    expect(estiloDoAgendamento(visual, null).tema).toBe('tradicional');
   });
 });

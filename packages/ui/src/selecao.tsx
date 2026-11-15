@@ -15,7 +15,13 @@ export function Selecao({ id, rotulo, erro, dica, opcoes, className, ...props }:
   return (
     // O erro que aparece (ao sair do campo ou no envio) é lido com calma, sem repetir o texto
     // (guia accessible-error-announcement); o rótulo e o valor não mudam, então só ele é lido.
-    <div className="flex flex-col gap-1.5" aria-live="polite" aria-relevant="additions">
+    // A largura (className) vale para o campo inteiro: com ela só no <select>, a seta ficava
+    // longe, no canto da linha (Minha página, revisão do dono em 15/11).
+    <div
+      className={cn('flex flex-col gap-1.5', className)}
+      aria-live="polite"
+      aria-relevant="additions"
+    >
       <label htmlFor={id} className="text-sm font-medium text-tinta">
         {rotulo}
       </label>
@@ -28,7 +34,6 @@ export function Selecao({ id, rotulo, erro, dica, opcoes, className, ...props }:
             'min-h-11 w-full appearance-none rounded-md border bg-superficie pr-10 pl-3 text-base text-tinta',
             'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-foco',
             erro ? 'border-perigo-texto' : 'border-borda',
-            className,
           )}
           {...props}
         >

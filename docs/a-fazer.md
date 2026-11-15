@@ -586,12 +586,12 @@ levo para a lista e apago a pergunta daqui.
 
 ## Pendências do dono (dados e produção)
 
-- [ ] Marcar as contas "Teste" e "Implantação" como internas no `/admin`
-- [ ] Dados fiscais no Asaas e os eventos `INVOICE_*` no webhook
+- [x] Marcar as contas "Teste" e "Implantação" como internas no `/admin`
+- [x] Dados fiscais no Asaas e os eventos `INVOICE_*` no webhook
 - [ ] Depoimentos reais (pelo menos dois, autorizados)
 - [ ] DNS AAAA / IPv6, se a Saúde do sistema avisar
 - [ ] Tag Assistant e o valor da conversão no Google Ads
-- [ ] Ligar "Aparecer no Google" em cada unidade
+- [x] Ligar "Aparecer no Google" em cada unidade
 - [ ] Limpar a comanda de teste e o caixa de 11/11 em produção
-- [ ] Webhook do Asaas em teste: porta 3001 do Codespaces em `/webhooks/asaas`, pública só
+- [x] Webhook do Asaas em teste: porta 3001 do Codespaces em `/webhooks/asaas`, pública só
   durante o teste
