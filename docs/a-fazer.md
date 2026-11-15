@@ -459,6 +459,9 @@ PR, mergeado quando o CI passar (autorização do dono para os próximos):
   atualização da página de vendas). Referência de estilo: o blog do próprio dono
   (`navalhago.app/blog`); aproveitar as ideias e o jeito de escrever, sempre com a identidade
   do Pente Fino (nome, cores, marca e textos próprios, nada copiado ao pé da letra):
+  - [x] **Indique e ganhe na página de vendas** (pedido do dono em 15/11): seção "Não tem
+    barbearia? Ganhe indicando", com a conta de quanto ganha conforme o número de barbearias que a
+    pessoa conhece, o botão para `/indique` e uma pergunta no FAQ;
   - [x] **"Indique e ganhe"** (feito em 14/11; regras decididas pelo dono, depois de estudar o programa do
     site de referência):
     - **qualquer pessoa** pode indicar, não só barbeiro: quem tem amigo barbeiro, fornecedor,
@@ -490,6 +493,10 @@ PR, mergeado quando o CI passar (autorização do dono para os próximos):
   preço livre, despesas fixas, catálogo por unidade, preço por barbeiro, sinal, comissões no
   Básico, chat de suporte), com capturas de tela novas das telas atuais
 - [ ] **Vídeo novo com todas as funções** (pedido do dono em 12/11, depois da página de vendas):
+  - [x] **montagem (15/11):** projeto em `apps/video`, com a transição de aproximar, o texto ao
+    lado da tela (no lugar da legenda), a trilha sintetizada por código e, no site, o vídeo tocando
+    mudo quando aparece, com o botão "Ativar som". As versões do site foram exportadas com a cena
+    do bot regravada. Falta: os anúncios 9:16 e quadrado;
   - [x] **levantamento feito e aprovado** (15/11, `apps/web/video/levantamento.md`); roteiro em `apps/web/video/roteiro.md`, aprovado pelo dono em 15/11 (gravar e montar);
   - **antes de gerar o vídeo** (pedido do dono em 12/11): percorrer o sistema inteiro, tela por
     tela e papel por papel (dono, gestor, recepção e barbeiro, no computador e no celular), e

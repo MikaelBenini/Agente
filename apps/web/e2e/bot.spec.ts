@@ -28,6 +28,14 @@ test('dono conversa com o bot no simulador', async ({ page }) => {
   await visivel(page.getByRole('button', { name: '2. Ver preços' })).click();
   await expect(conversa).toContainText('Nossos preços:');
   await expect(conversa).toContainText('R$');
+  // Marcar pela conversa: a sessão volta com o passo "canal" e depois "servico" (antes dava erro).
+  await visivel(page.getByRole('button', { name: 'Recomeçar conversa' })).click();
+  await visivel(page.getByLabel('Mensagem do cliente')).fill('oi');
+  await visivel(page.getByRole('button', { name: 'Enviar' })).click();
+  await visivel(page.getByRole('button', { name: '1. Agendar horário' })).click();
+  await visivel(page.getByRole('button', { name: '1. Por aqui, na conversa' })).click();
+  await expect(conversa).toContainText('Qual serviço você quer?');
+  await expect(page.getByText('Confira os campos destacados.')).toHaveCount(0);
 });
 
 test('dono edita, testa o rascunho, publica e volta à versão anterior', async ({ page }, info) => {

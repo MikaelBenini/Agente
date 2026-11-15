@@ -418,3 +418,32 @@ test('página de vendas: as dores com a solução e a página Recursos', async (
   ).toBeVisible();
   await expect(page.getByRole('heading', { name: 'WhatsApp e automações' })).toBeVisible();
 });
+
+test('indique e ganhe na página de vendas: a conta muda com as barbearias e leva ao cadastro', async ({
+  page,
+}) => {
+  await page.goto('/');
+  const faixa = page.getByRole('region', { name: 'Não tem barbearia? Ganhe indicando' });
+  // Pro mensal R$ 149,90: 20% = R$ 29,98 por barbearia.
+  await expect(faixa.getByText('R$ 89,94')).toBeVisible();
+  // A página chega pronta do servidor: repete até a hidratação ligar o controle.
+  await expect(async () => {
+    await faixa.getByLabel('Quantas barbearias você conhece?').fill('5');
+    await expect(faixa.getByText('R$ 1.798,80')).toBeVisible({ timeout: 1000 });
+  }).toPass();
+  await expect(faixa.getByText('R$ 149,90', { exact: true })).toBeVisible();
+  await faixa.getByRole('link', { name: 'Quero o meu link' }).click();
+  await expect(page).toHaveURL(/\/indique$/);
+});
+
+test('vídeo da página toca mudo e o botão ativa o som', async ({ page }) => {
+  await page.goto('/');
+  const video = page.locator('video#apresentacao');
+  // O botão só aparece depois da hidratação (o vídeo é recriado nela).
+  const som = page.getByRole('button', { name: 'Ativar som' });
+  await som.scrollIntoViewIfNeeded();
+  await expect(video).toHaveJSProperty('muted', true);
+  await som.click();
+  await expect(video).toHaveJSProperty('muted', false);
+  await expect(som).toHaveCount(0);
+});

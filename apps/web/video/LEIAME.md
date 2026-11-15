@@ -39,3 +39,25 @@ desempenho no celular do barbeiro.
 - `banco.sh` e `servidores.sh`: banco e servidores só da gravação (leem o `.env`, não imprimem nada).
 
 O vídeo não tem som: as legendas fazem a explicação. Para narração, grave a voz por cima do MP4.
+
+## Vídeo novo (Remotion, 15/11)
+
+O vídeo novo é montado no Remotion (`apps/video`, fora do build e do CI) a partir de fotos reais:
+
+```bash
+./video/banco.sh && ./video/servidores.sh   # em outro terminal
+node video/fotos-video.mjs                  # fotos em apps/video/public/telas
+cd ../video && npm install && npm run dados && npm run render
+```
+
+Roteiro em `video/roteiro.md` e levantamento em `video/levantamento.md`. Tem 63 s e está no site
+desde 15/11 (`apps/web/public/video`: MP4 com crf 26 e AAC, WebM VP9 com crf 38 e Opus, capa JPG
+do quadro 95). Para o bot, o `fotos-video.mjs` abre o dia no calendário e deixa o bot 24 h no ar
+só durante a foto, no banco do vídeo, e depois volta tudo (o simulador usa a hora de agora).
+
+Trilha: sintetizada por `apps/video/scripts/trilha.mjs` (sem biblioteca de música, então sem
+licença de terceiros). Segue as cenas de `src/ritmo.json`: tique no número subindo, impacto no
+risco do faturamento, batida a 120 bpm, whoosh em cada transição e acorde no encerramento. O
+`npm run render` gera o `public/trilha.wav` antes (o arquivo fica fora do git). No site o vídeo
+toca mudo quando aparece na tela (o navegador só deixa o autoplay sem som), com o botão "Ativar
+som".

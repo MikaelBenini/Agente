@@ -1,6 +1,8 @@
 packages:
   - apps/*
   - packages/*
+  # O vídeo (Remotion) fica fora do workspace: npm próprio, fora do CI e do build.
+  - '!apps/video'
 
 # Versões compartilhadas entre os pacotes: use "catalog:" no package.json.
 catalog:
