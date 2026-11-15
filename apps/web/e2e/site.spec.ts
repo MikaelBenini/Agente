@@ -447,3 +447,21 @@ test('vídeo da página toca mudo e o botão ativa o som', async ({ page }) => {
   await expect(video).toHaveJSProperty('muted', false);
   await expect(som).toHaveCount(0);
 });
+
+test('página inicial leva às comparações: menu do topo e um link por sistema', async ({
+  page,
+}, info) => {
+  await page.goto('/');
+  const nav = page.getByRole('navigation', { name: 'Compare com o sistema que você usa' });
+  await expect(nav.getByRole('link', { name: /^Pente Fino x / })).toHaveCount(6);
+  await nav.getByRole('link', { name: 'Pente Fino x Trinks' }).click();
+  await expect(page).toHaveURL(/\/comparativo\/trinks$/);
+  // No celular o topo só tem Planos, Entrar e Testar grátis ("Comparar" fica no rodapé).
+  if (info.project.name === 'celular') return;
+  await page.goto('/');
+  await page
+    .getByRole('navigation', { name: 'Site' })
+    .getByRole('link', { name: 'Comparar' })
+    .click();
+  await expect(page).toHaveURL(/\/melhor-sistema-para-barbearia$/);
+});

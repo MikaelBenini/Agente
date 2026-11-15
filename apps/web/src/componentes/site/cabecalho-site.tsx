@@ -21,6 +21,12 @@ export function CabecalhoSite() {
             Recursos
           </Link>
           <Link
+            href="/melhor-sistema-para-barbearia"
+            className="hidden min-h-11 items-center rounded-md px-2 font-medium text-tinta-suave hover:text-tinta sm:inline-flex sm:px-3"
+          >
+            Comparar
+          </Link>
+          <Link
             href="/planos"
             className="inline-flex min-h-11 items-center rounded-md px-2 font-medium text-tinta-suave hover:text-tinta sm:px-3"
           >

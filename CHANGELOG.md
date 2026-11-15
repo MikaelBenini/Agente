@@ -7,6 +7,10 @@ produção (`https://seupentefino.com.br`). Detalhes técnicos e o porquê de ca
 
 ## [Não publicado]
 
+### Mudado (comparações visíveis na página inicial)
+
+- O menu do topo ganhou **Comparar**, no computador. Embaixo da tabela "Mais que uma agenda bonita", a página inicial mostra **"Compare com o sistema que você usa"**, com um botão para cada comparação (AppBarber, Trinks, Booksy, GENDA, Barbeiro.app e BestBarbers) e o link para ver todos lado a lado. Antes, só o rodapé levava a elas.
+
 ### Adicionado (anúncios em vídeo)
 
 - Seis anúncios de 15 segundos para Reels, Status, TikTok e o feed: "Sobrou R$ 10.477", "O cliente marca sozinho" e "Seu WhatsApp marcando horário", cada um em 9:16 e quadrado, com o gancho, a função e o encerramento do vídeo do site e a mesma trilha.
