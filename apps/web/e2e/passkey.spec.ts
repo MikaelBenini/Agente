@@ -35,8 +35,16 @@ test('passkey: cria no Perfil, entra sem senha e apaga', async ({ page, context 
   // Sai (sem cookies) e entra só com a passkey, sem digitar e-mail nem senha.
   await context.clearCookies();
   await page.goto('/entrar');
-  await page.getByRole('button', { name: /Usar passkey/ }).click();
-  await page.waitForURL(/inicio|agenda|hoje|comandas/);
+  // O autenticador de teste aceita sozinho a sugestão do campo de e-mail; sem ela, o botão.
+  const noApp = /inicio|agenda|hoje|comandas/;
+  await Promise.race([
+    page.waitForURL(noApp),
+    page
+      .getByRole('button', { name: /Usar passkey/ })
+      .click()
+      .catch(() => undefined),
+  ]);
+  await page.waitForURL(noApp);
 
   await page.goto('/perfil');
   await expect(secao.getByText(/usada em/)).toBeVisible();
