@@ -25,6 +25,11 @@ const esquema = z
     API_PORT: z.coerce.number().int().positive().default(3001),
     APP_URL: z.url(),
     API_URL: z.url(),
+    /**
+     * Passkey: origens a mais que o navegador pode apresentar além do APP_URL (separadas por
+     * vírgula). Só para teste e desenvolvimento em outra porta; em produção, vazio.
+     */
+    PASSKEY_ORIGENS: z.string().default(''),
     /** Push do PWA: só a pública vai para o navegador; sem ela, o Perfil diz que está desligado. */
     VAPID_CHAVE_PUBLICA: z.string().default(''),
     DATABASE_URL: z.string().startsWith('postgresql://'),
@@ -138,6 +143,8 @@ export interface Configuracao {
   appUrl: string;
   apiUrl: string;
   databaseUrl: string;
+  /** Passkey: o domínio (RP ID, o host do APP_URL) e as origens aceitas. */
+  passkey: { rpId: string; origens: string[] };
   plataforma: {
     /** Conexão do usuário de banco da administração; null = /admin desligado. */
     databaseUrl: string | null;
@@ -199,6 +206,16 @@ export function carregarConfiguracao(env: NodeJS.ProcessEnv = process.env): Conf
     appUrl: e.APP_URL.replace(/\/$/, ''),
     apiUrl: e.API_URL.replace(/\/$/, ''),
     databaseUrl: e.DATABASE_URL,
+    passkey: {
+      rpId: new URL(e.APP_URL).hostname,
+      origens: [
+        new URL(e.APP_URL).origin,
+        ...e.PASSKEY_ORIGENS.split(',')
+          .map((o) => o.trim())
+          .filter(Boolean)
+          .map((o) => new URL(o).origin),
+      ],
+    },
     plataforma: {
       databaseUrl: e.DATABASE_PLATAFORMA_URL ?? null,
       chave: Buffer.from(e.PLATAFORMA_CHAVE, 'base64'),

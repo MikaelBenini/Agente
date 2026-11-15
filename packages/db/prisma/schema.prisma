@@ -351,6 +351,7 @@ model Conta {
   funilEtapa           FunilEtapaConta?
   fotosSite            FotoSite[]
   enderecosAntigos     EnderecoAntigo[]
+  passkeys             Passkey[]
 
   @@map("conta")
 }
@@ -481,6 +482,7 @@ model Usuario {
   comissoesPagas        PagamentoComissao[]
   auditorias            Auditoria[]
   tokenAcessos          TokenAcesso[]
+  passkeys              Passkey[]
   assistente            AssistenteEquipe?
   inscricoesPush        InscricaoPush[]
   avaliacoesTratadas    Avaliacao[]         @relation("AvaliacaoTratadaPor")
@@ -536,6 +538,34 @@ model TokenAcesso {
   @@index([usuarioId, tipo])
   @@index([familia])
   @@map("token_acesso")
+}
+
+/// Passkey do usuário (entrar com a digital ou o rosto do celular, pedido do dono em 15/11).
+/// Só a chave pública fica aqui; o segredo nunca sai do aparelho.
+model Passkey {
+  id           String    @id @default(dbgenerated("uuidv7()")) @db.Uuid
+  contaId      String    @default(dbgenerated("conta_atual()")) @map("conta_id") @db.Uuid
+  usuarioId    String    @map("usuario_id") @db.Uuid
+  /// Id da credencial em base64url (o navegador manda no login).
+  credencialId String    @unique @map("credencial_id")
+  chavePublica Bytes     @map("chave_publica")
+  contador     Int       @default(0)
+  transportes  String[]  @default([])
+  /// singleDevice ou multiDevice (sincronizada na nuvem).
+  dispositivo  String
+  comBackup    Boolean   @default(false) @map("com_backup")
+  /// Modelo do gerenciador (só para mostrar o nome; nunca para decidir acesso).
+  aaguid       String
+  nome         String
+  criadoEm     DateTime  @default(now()) @map("criado_em") @db.Timestamptz(3)
+  usadoEm      DateTime? @map("usado_em") @db.Timestamptz(3)
+
+  conta   Conta   @relation(fields: [contaId], references: [id], onDelete: Cascade)
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([contaId])
+  @@index([usuarioId])
+  @@map("passkey")
 }
 
 // ─── Equipe ───────────────────────────────────────────────────────────────

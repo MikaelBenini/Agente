@@ -1,5 +1,6 @@
 export * from './agenda.js';
 export * from './auth.js';
+export * from './passkey.js';
 export * from './comanda.js';
 export * from './datas.js';
 export * from './dinheiro.js';

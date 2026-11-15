@@ -31,7 +31,10 @@ export function FaixaIndique() {
     >
       <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 sm:px-6 md:grid-cols-[1.1fr_1fr] md:py-24">
         <div className="flex flex-col gap-5">
-          <h2 id="indique" className="font-denso text-4xl font-bold uppercase sm:text-5xl">
+          <h2
+            id="indique"
+            className="scroll-mt-24 font-denso text-4xl font-bold uppercase sm:text-5xl"
+          >
             Não tem barbearia? Ganhe indicando
           </h2>
           <p className="text-lg text-tinta-suave">

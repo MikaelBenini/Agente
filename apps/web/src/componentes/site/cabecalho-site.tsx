@@ -27,6 +27,12 @@ export function CabecalhoSite() {
             Comparar
           </Link>
           <Link
+            href="/indique"
+            className="hidden min-h-11 items-center rounded-md px-2 font-medium text-tinta-suave hover:text-tinta lg:inline-flex lg:px-3"
+          >
+            Indique e ganhe
+          </Link>
+          <Link
             href="/planos"
             className="inline-flex min-h-11 items-center rounded-md px-2 font-medium text-tinta-suave hover:text-tinta sm:px-3"
           >

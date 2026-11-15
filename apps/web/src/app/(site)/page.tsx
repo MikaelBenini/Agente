@@ -391,6 +391,14 @@ export default function Pagina() {
               <BotaoVideo>Ver em 1 minuto</BotaoVideo>
             </div>
             <p className="text-sm text-tinta-suave">{IMPLANTACAO}</p>
+            {/* Pedido do dono em 15/11: o indique e ganhe ficava escondido no fim da página. */}
+            <a
+              href="#indique"
+              className="inline-flex w-fit items-center gap-2 text-sm font-semibold text-modulo-texto underline underline-offset-4"
+            >
+              <HandCoins aria-hidden className="size-4" />
+              Não tem barbearia? Ganhe indicando
+            </a>
             <ul className="grid gap-x-6 gap-y-2 text-sm text-tinta-suave sm:grid-cols-2">
               {SELOS.map((s) => (
                 <li key={s} className="flex items-center gap-2">

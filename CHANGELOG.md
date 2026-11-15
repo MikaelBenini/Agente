@@ -21,6 +21,14 @@ produção (`https://seupentefino.com.br`). Detalhes técnicos e o porquê de ca
 - **Suporte por chat em todo o painel:** um botão flutuante no canto abre a conversa com a equipe em qualquer tela (antes, só na Ajuda). A Ajuda não mostra mais o WhatsApp do suporte: o chat o substitui, e o e-mail continua.
 - Na comparação da página de vendas, "Bot de WhatsApp que agenda, incluso no plano" virou "sem custo por mensagem": o bot vem no Pro e no Premium, e no Agenda e no Básico com as Automações.
 
+### Mudado (indique e ganhe mais visível)
+
+- A página inicial tem a chamada "Não tem barbearia? Ganhe indicando" logo abaixo do botão de teste, que leva até a seção, e o menu do topo ganhou "Indique e ganhe" (no computador). Antes a seção só aparecia perto do fim da página.
+
+### Adicionado (entrar com passkey)
+
+- **Entrar sem senha, com a digital, o rosto ou o PIN do aparelho (passkey).** No Perfil, em "Entrar sem senha", cada pessoa cria a passkey no celular ou no computador, vê as que tem e apaga. No login, a passkey aparece na sugestão do campo de e-mail e no botão "Usar passkey". A senha continua valendo. A passkey não funciona num site falso, então protege contra golpe de link.
+
 ### Mudado (Minha página organizada e página de agendamento com tema)
 
 - **Minha página** em três abas: **Site** (o editor com a prévia, que antes ficava lá embaixo), **Página de agendamento** e **Endereço e domínio**. A barra de publicar continua no topo.

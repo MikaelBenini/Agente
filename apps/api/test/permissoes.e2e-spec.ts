@@ -42,6 +42,8 @@ const PUBLICAS = new Set([
   'POST /auth/convite',
   'POST /auth/esqueci-senha',
   'POST /auth/login',
+  'POST /auth/passkey/entrar', // confere a assinatura da passkey (limite de login)
+  'POST /auth/passkey/opcoes', // só o desafio, sem dado de ninguém
   'POST /auth/redefinir-senha',
   'POST /auth/renovar',
   'POST /auth/sair',
@@ -65,6 +67,11 @@ const PUBLICAS = new Set([
 /** Logado, qualquer papel: só o que é da própria pessoa ou da conta, sem dado de cliente. */
 const QUALQUER_PAPEL = new Set([
   'GET /auth/eu',
+  'GET /me/passkeys', // cada um, as suas passkeys
+  'POST /me/passkeys/opcoes',
+  'POST /me/passkeys/:desafioId',
+  'PATCH /me/passkeys/:id',
+  'DELETE /me/passkeys/:id',
   'GET /conta',
   'GET /conta/situacao',
   'GET /unidades',

@@ -433,7 +433,11 @@ test('indique e ganhe na página de vendas: a conta muda com as barbearias e lev
   page,
 }) => {
   await page.goto('/');
+  // Chamada no alto da página leva até a faixa (antes ela ficava escondida no fim).
+  await page.getByRole('link', { name: 'Não tem barbearia? Ganhe indicando' }).click();
+  await expect(page).toHaveURL(/#indique$/);
   const faixa = page.getByRole('region', { name: 'Não tem barbearia? Ganhe indicando' });
+  await expect(faixa).toBeInViewport();
   // Pro mensal R$ 149,90: 20% = R$ 29,98 por barbearia.
   await expect(faixa.getByText('R$ 89,94')).toBeVisible();
   // A página chega pronta do servidor: repete até a hidratação ligar o controle.

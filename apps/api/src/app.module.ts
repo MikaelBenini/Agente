@@ -5,6 +5,11 @@ import { LoggerModule } from 'nestjs-pino';
 import { AuditoriaInterceptor } from './auditoria/auditoria.js';
 import { AuthController } from './auth/auth.controller.js';
 import { AuthService } from './auth/auth.service.js';
+import {
+  MinhasPasskeysController,
+  PasskeyEntrarController,
+  PasskeysService,
+} from './auth/passkeys.js';
 import { AssinaturaGuard } from './assinatura/assinatura.guard.js';
 import { PlanoGuard } from './assinatura/plano.guard.js';
 import { CobrancaService } from './cobranca/cobranca.service.js';
@@ -164,6 +169,8 @@ export class ComumModule {}
   controllers: [
     RaizController,
     AuthController,
+    PasskeyEntrarController,
+    MinhasPasskeysController,
     ContaController,
     UsuariosController,
     UnidadesController,
@@ -220,6 +227,7 @@ export class ComumModule {}
   ],
   providers: [
     AuthService,
+    PasskeysService,
     BloqueioLogin,
     ClubeOnlineService,
     LimiteCadastro,
