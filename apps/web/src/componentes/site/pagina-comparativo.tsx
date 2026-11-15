@@ -81,7 +81,7 @@ function Tabela({
 }: {
   legenda: string;
   colunas: readonly string[];
-  linhas: readonly (readonly [string, ...React.ReactNode[]])[];
+  linhas: readonly (readonly React.ReactNode[])[];
 }) {
   return (
     // Site D4: no celular a tabela rola para o lado; a área recebe foco para rolar pelo teclado.
@@ -103,8 +103,8 @@ function Tabela({
           </tr>
         </thead>
         <tbody className="divide-y divide-borda">
-          {linhas.map(([rotulo, ...valores]) => (
-            <tr key={rotulo}>
+          {linhas.map(([rotulo, ...valores], k) => (
+            <tr key={k}>
               <th scope="row" className="px-4 py-3 align-top font-medium">
                 {rotulo}
               </th>
