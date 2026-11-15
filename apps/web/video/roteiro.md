@@ -1,7 +1,7 @@
 # Roteiro do vídeo novo (site, 1920 × 1080, ~70 s)
 
-Feito a partir do [levantamento](levantamento.md), aprovado pelo dono em 15/11. **Aguarda a
-aprovação do dono antes de gravar.**
+Feito a partir do [levantamento](levantamento.md), aprovado pelo dono em 15/11. **Aprovado pelo
+dono em 15/11 para gravar e montar.**
 
 Regras (skill `video-pente-fino`):
 
