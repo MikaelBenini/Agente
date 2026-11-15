@@ -490,7 +490,7 @@ PR, mergeado quando o CI passar (autorização do dono para os próximos):
   preço livre, despesas fixas, catálogo por unidade, preço por barbeiro, sinal, comissões no
   Básico, chat de suporte), com capturas de tela novas das telas atuais
 - [ ] **Vídeo novo com todas as funções** (pedido do dono em 12/11, depois da página de vendas):
-  - [x] **levantamento feito** (15/11, `apps/web/video/levantamento.md`), aguardando a aprovação do dono;
+  - [x] **levantamento feito e aprovado** (15/11, `apps/web/video/levantamento.md`); roteiro em `apps/web/video/roteiro.md`, aguardando a aprovação do dono;
   - **antes de gerar o vídeo** (pedido do dono em 12/11): percorrer o sistema inteiro, tela por
     tela e papel por papel (dono, gestor, recepção e barbeiro, no computador e no celular), e
     listar tudo o que ele faz pelo olhar do barbeiro: o que ele bate o olho e pensa "isso faria
