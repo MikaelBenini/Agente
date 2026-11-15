@@ -1,5 +1,5 @@
 import type { INestApplication } from '@nestjs/common';
-import { criarPrisma, type PrismaClient } from '@pente-fino/db';
+import { criarPrisma, naConta, type PrismaClient } from '@pente-fino/db';
 import type { OpcoesPasskey, PasskeyNaTela } from '@pente-fino/shared';
 import { randomUUID } from 'node:crypto';
 import request from 'supertest';
@@ -57,18 +57,19 @@ describe('passkey', () => {
   });
 
   it('entrar acha a passkey sem saber a conta e recusa assinatura que não confere', async () => {
-    const usuario = await prisma.usuario.findUniqueOrThrow({ where: { email: a.emails.barbeiro } });
     const credencialId = `cred-${randomUUID()}`;
-    await prisma.passkey.create({
-      data: {
-        contaId: a.contaId,
-        usuarioId: usuario.id,
-        credencialId,
-        chavePublica: Buffer.from([1, 2, 3]),
-        dispositivo: 'multiDevice',
-        aaguid: '00000000-0000-0000-0000-000000000000',
-        nome: 'Passkey',
-      },
+    await naConta(prisma, a.contaId, async (tx) => {
+      const usuario = await tx.usuario.findUniqueOrThrow({ where: { email: a.emails.barbeiro } });
+      await tx.passkey.create({
+        data: {
+          usuarioId: usuario.id,
+          credencialId,
+          chavePublica: Buffer.from([1, 2, 3]),
+          dispositivo: 'multiDevice',
+          aaguid: '00000000-0000-0000-0000-000000000000',
+          nome: 'Passkey',
+        },
+      });
     });
     const o = (await http().post('/auth/passkey/opcoes').send({}).expect(200))
       .body as OpcoesPasskey;
