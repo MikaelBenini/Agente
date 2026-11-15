@@ -361,6 +361,26 @@ describe('site da barbearia', () => {
       cor: '#9DB8A0',
       titulo: 'Marque seu corte',
       texto: 'Escolha o barbeiro e o horário.',
+      marcaPenteFino: true,
+    });
+    expect(pub.visual?.paleta.papel).toMatch(/^#[0-9A-F]{6}$/i);
+
+    // Pedido do dono em 15/11: tema de verdade na página inteira e sem a marca do Pente Fino.
+    await dono
+      .put(`/unidades/${a.unidadeA}/agendamento-visual`, {
+        ...v,
+        ativo: true,
+        tema: 'clube',
+        marcaPenteFino: false,
+      })
+      .expect(200);
+    pub = (await http().get(`/publico/agendamento/${slug}`).expect(200)).body as UnidadePublica;
+    expect(pub.visual).toMatchObject({
+      tema: 'clube',
+      fonte: 'serifa',
+      botoes: 'arredondados',
+      marcaPenteFino: false,
+      paleta: { papel: '#231A16' },
     });
 
     await dono
@@ -379,7 +399,7 @@ describe('site da barbearia', () => {
     expect(pub.visual).toBeNull();
   });
 
-  it('páginas extras: Clube ligado sem clube online fica sem planos; desligada não existe', async () => {
+  it('páginas extras: Clube ligado mostra os planos mesmo sem o Asaas, sem link online; desligada não existe', async () => {
     const { rascunho } = (await dono.get(`/unidades/${a.unidadeA}/site`)).body as SitePainel;
     const comClube = {
       ...rascunho,
@@ -393,6 +413,34 @@ describe('site da barbearia', () => {
       .body as SitePublico;
     expect(previa.site.paginas.clube).toHaveLength(1);
     expect(previa.clube).toBeNull();
+    // Revisão do dono em 15/11: com plano cadastrado, a página mostra mesmo sem o recebimento
+    // online; o botão vira "Assinar pelo WhatsApp" (link nulo).
+    const servicos = (await dono.get('/servicos').expect(200)).body as {
+      id: string;
+      nome: string;
+    }[];
+    await dono
+      .post('/clube/itens', {
+        unidadeId: a.unidadeA,
+        tipo: 'assinatura',
+        nome: 'Clube Corte',
+        valor: 9_900,
+        limiteUsoMes: null,
+        servicos: [
+          {
+            servicoId: servicos.find((x) => x.nome === 'Corte')!.id,
+            quantidade: 4,
+            comissaoValorFixo: null,
+          },
+        ],
+      })
+      .expect(201);
+    const comPlano = (await dono.get(`/unidades/${a.unidadeA}/site/previa`).expect(200))
+      .body as SitePublico;
+    expect(comPlano.clube).toMatchObject({
+      link: null,
+      planos: [{ nome: 'Clube Corte', valor: 9_900, inclui: ['4× Corte por mês'] }],
+    });
     await dono
       .put(`/unidades/${a.unidadeA}/site`, {
         ...rascunho,

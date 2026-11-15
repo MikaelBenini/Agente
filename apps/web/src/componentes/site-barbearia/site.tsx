@@ -208,7 +208,8 @@ function Foto({
 function Cabecalho({ dados, pagina, base }: Props) {
   const config = cabecalhoDoSite(dados.site);
   const links = config.menu
-    .filter((m) => m.visivel)
+    // Sem planos cadastrados, o Clube não entra no menu (a página continua no endereço).
+    .filter((m) => m.visivel && (m.pagina !== 'clube' || dados.clube))
     .map((m) => ({
       p: m.pagina,
       href: `${base}${CAMINHO_PAGINA[m.pagina]}` || '/',
@@ -665,15 +666,33 @@ function Galeria({ bloco, dados }: { bloco: BlocoSite; dados: SitePublico }) {
   );
 }
 
-/** Lote 7h: os planos do clube cadastrados no sistema, com o link de assinatura. */
+/**
+ * Lote 7h: os planos do clube cadastrados no sistema. Com o recebimento online aprovado, o botão
+ * assina pelo link; antes disso, "Assinar pelo WhatsApp" (ou na barbearia, sem WhatsApp).
+ */
 function PlanosDoClube({ dados }: { dados: SitePublico }) {
   if (!dados.clube)
     return (
-      <section className={`${LARGURA} py-16 text-[var(--site-tinta-suave)]`}>
-        Os planos do clube aparecem aqui quando estiverem cadastrados e o clube online estiver
-        ligado.
+      <section
+        className={`${LARGURA} flex flex-col items-start gap-5 py-16 text-[var(--site-tinta-media)]`}
+      >
+        <p>Os planos do clube desta barbearia ainda não estão no site.</p>
+        {dados.whatsapp && (
+          <a
+            href={dados.whatsapp}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`${BOTAO} bg-[var(--site-escuro)] text-[var(--site-claro)] focus-visible:outline-[var(--site-escuro)]`}
+          >
+            Perguntar pelo WhatsApp
+          </a>
+        )}
       </section>
     );
+  const zap = (nome: string) =>
+    dados.whatsapp
+      ? `${dados.whatsapp}${dados.whatsapp.includes('?') ? '&' : '?'}text=${encodeURIComponent(`Olá! Quero assinar o ${nome} do clube.`)}`
+      : null;
   return (
     <section className={`${LARGURA} py-20`}>
       <ul className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,280px),1fr))] gap-6">
@@ -698,12 +717,21 @@ function PlanosDoClube({ dados }: { dados: SitePublico }) {
                 ))}
               </ul>
             )}
-            <a
-              href={`${dados.clube!.link}&p=${encodeURIComponent(p.id)}`}
-              className={`${BOTAO} mt-auto self-start bg-[var(--site-escuro)] text-[var(--site-claro)] focus-visible:outline-[var(--site-escuro)]`}
-            >
-              Assinar {p.nome}
-            </a>
+            {dados.clube!.link || zap(p.nome) ? (
+              <a
+                href={
+                  dados.clube!.link
+                    ? `${dados.clube!.link}&p=${encodeURIComponent(p.id)}`
+                    : zap(p.nome)!
+                }
+                {...(dados.clube!.link ? {} : { target: '_blank', rel: 'noopener noreferrer' })}
+                className={`${BOTAO} mt-auto self-start bg-[var(--site-escuro)] text-[var(--site-claro)] focus-visible:outline-[var(--site-escuro)]`}
+              >
+                {dados.clube!.link ? `Assinar ${p.nome}` : 'Assinar pelo WhatsApp'}
+              </a>
+            ) : (
+              <p className="mt-auto font-semibold">Assine na barbearia.</p>
+            )}
           </li>
         ))}
       </ul>

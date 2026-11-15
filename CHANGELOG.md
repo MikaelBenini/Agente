@@ -15,6 +15,17 @@ produção (`https://seupentefino.com.br`). Detalhes técnicos e o porquê de ca
 
 - **Entrar sem senha, com a digital, o rosto ou o PIN do aparelho (passkey).** No Perfil, em "Entrar sem senha", cada pessoa cria a passkey no celular ou no computador, vê as que tem e apaga. No login, a passkey aparece na sugestão do campo de e-mail e no botão "Usar passkey". A senha continua valendo. A passkey não funciona num site falso, então protege contra golpe de link.
 
+### Mudado (Minha página organizada e página de agendamento com tema)
+
+- **Minha página** em três abas: **Site** (o editor com a prévia, que antes ficava lá embaixo), **Página de agendamento** e **Endereço e domínio**. A barra de publicar continua no topo.
+- A página de agendamento veste o **tema inteiro**: fundo, cartões, texto, fonte dos títulos e o canto dos botões, não só a cor. Dá para escolher "Igual ao site" (o padrão) ou um dos quatro temas.
+- Nova opção: **"Mostrar 'Agendamento pelo Pente Fino' no fim da página"**. A barbearia pode desligar.
+- **Aba Clube do site:** os planos aparecem assim que estão cadastrados, sem esperar o recebimento online. Até o Asaas aprovar o cadastro, o botão vira "Assinar pelo WhatsApp" (ou "Assine na barbearia", sem WhatsApp); aprovado, assina pelo link. Sem planos, o Clube sai do menu e a página mostra "Perguntar pelo WhatsApp" no lugar do aviso interno de antes.
+
+### Corrigido
+
+- O botão "Assinar" do site aparecia com o cadastro no Asaas ainda em análise ou recusado, e a assinatura falhava. Agora só aparece com o cadastro aprovado.
+
 ### Adicionado (instalar o app no celular)
 
 - **"Instalar o app"**: no Perfil e num convite no topo do app (só no celular, até instalar ou fechar). No Android, o botão instala direto; no iPhone, aparece o passo a passo do Safari (Compartilhar → Adicionar à Tela de Início). Onde o navegador não deixa instalar, o botão não aparece.

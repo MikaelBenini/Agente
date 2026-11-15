@@ -605,7 +605,11 @@ export interface SitePublico {
   nota: { media: number; total: number } | null;
   /** Medidas das fotos usadas (evita a página pular enquanto carrega). */
   fotos: Record<string, { largura: number; altura: number }>;
-  /** Lote 7h: planos do clube (página Clube ligada e clube online ativo); null = sem planos. */
+  /**
+   * Lote 7h: planos do clube (página Clube ligada); null = sem planos. `link` só com o
+   * recebimento online aprovado no Asaas; sem ele, o cliente assina pelo WhatsApp ou na barbearia
+   * (revisão do dono em 15/11: antes a página sumia até o cadastro no Asaas).
+   */
   clube: {
     planos: {
       id: string;
@@ -614,7 +618,7 @@ export interface SitePublico {
       valor: number;
       inclui: string[];
     }[];
-    link: string;
+    link: string | null;
   } | null;
 }
 
@@ -930,6 +934,13 @@ export const visualAgendamentoSchema = z.object({
   texto: textoCurto(300),
   /** Mostra "Ver o site da barbearia" (só quando o site está publicado). */
   linkSite: z.boolean(),
+  /**
+   * Pedido do dono em 15/11: a página de agendamento segue um tema de verdade (fundo, cartões,
+   * texto, fonte e botões), não só a cor. Sem valor: o mesmo tema do site publicado.
+   */
+  tema: z.enum(TEMAS_SITE).optional(),
+  /** Pedido do dono em 15/11: a barbearia pode tirar o "Agendamento pelo Pente Fino". */
+  marcaPenteFino: z.boolean().optional(),
 });
 export type VisualAgendamento = z.infer<typeof visualAgendamentoSchema>;
 
@@ -965,6 +976,13 @@ export interface VisualAgendamentoPublico {
   texto: string;
   /** Endereço do site publicado (/s/...), quando o dono quer o link para ele. */
   site: string | null;
+  /** Tema aplicado à página inteira (o escolhido ou o do site), com a paleta dele. */
+  tema: TemaSite;
+  paleta: PaletaSite;
+  fonte: FonteSite;
+  botoes: BotoesSite;
+  /** Mostra "Agendamento pelo Pente Fino" no rodapé. */
+  marcaPenteFino: boolean;
 }
 
 // ─── Temas (lotes 7i, 7j e 7k) ──────────────────────────────────────────────
@@ -1084,3 +1102,24 @@ export const PALETAS_SITE: Record<TemaSite, PaletaSite> = {
     realce: '#4F5D2F',
   },
 };
+
+/**
+ * Estilo da página de agendamento (pedido do dono em 15/11): o tema escolhido no visual ou, sem
+ * escolha, o do site publicado. Fonte e botões seguem o site quando o tema é o mesmo dele; com
+ * outro tema, a fonte que combina com ele e botões arredondados.
+ */
+export function estiloDoAgendamento(
+  v: VisualAgendamento,
+  sitePublicado: unknown,
+): Pick<VisualAgendamentoPublico, 'tema' | 'paleta' | 'fonte' | 'botoes'> {
+  const r = siteBarbeariaSchema.safeParse(sitePublicado);
+  const site = r.success ? r.data : null;
+  const tema = v.tema ?? site?.tema ?? 'tradicional';
+  const doSite = site?.tema === tema;
+  return {
+    tema,
+    paleta: PALETAS_SITE[tema],
+    fonte: doSite ? site.fonte : FONTE_DO_TEMA[tema],
+    botoes: doSite ? site.botoes : 'arredondados',
+  };
+}
