@@ -1,6 +1,7 @@
 # Backup e restauração
 
-O `infra/backup.sh` roda na VPS todo dia às 3h (cron do usuário `deploy`) e guarda num arquivo
+O `infra/backup.sh` roda na VPS todo dia às 3h de Brasília (cron do usuário `deploy`, garantido pelo
+`implantar.sh` a cada deploy, desde a verificação final de 15/11) e guarda num arquivo
 criptografado (AES-256, senha `BACKUP_SENHA` do `.env`):
 
 - usuários e permissões do PostgreSQL;

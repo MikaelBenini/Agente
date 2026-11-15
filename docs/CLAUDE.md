@@ -59,9 +59,11 @@ dono, gestor, recepcao, barbeiro. Ver a matriz de permissões em `docs/`.
 
 ## Planos (limites aplicados pela API)
 
+- Agenda R$ 10,00/mês (anual R$ 8,25/mês): 1 unidade, até 2 profissionais; agenda, link, site e avisos no WhatsApp (revenda de entrada)
 - Básico R$ 79,90/mês (anual R$ 66,90/mês): 1 unidade, até 3 profissionais
 - Pro R$ 149,90/mês (anual R$ 124,90/mês): 1 unidade, até 10 profissionais
 - Premium R$ 249,90/mês + R$ 99,90 por unidade extra (anual R$ 207,90 + R$ 82,90): profissionais ilimitados
+- **Automações** (bot que marca pela conversa, retorno, aniversário, pesquisa, lista de espera): R$ 10,00/mês à parte no Agenda e no Básico (anual R$ 8,25); já vêm no Pro e no Premium (`PRECO_AUTOMACOES`, `temRecurso` em `packages/shared/src/planos.ts`)
 
 ## Convenções
 
