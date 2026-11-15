@@ -311,7 +311,7 @@ test('N2: comparação curta, com fonte e data, sem propaganda do concorrente', 
     page.getByRole('heading', { level: 1, name: 'Pente Fino ou Barbeiro.app?' }),
   ).toBeVisible();
   await expect(
-    page.getByText('Barbeiro.app: barbeiro.app/#planos (conferido em 14/11/2026)'),
+    page.getByText('Barbeiro.app: barbeiro.app/#planos (conferido em 14/11/2026)').first(),
   ).toBeVisible();
 });
 
