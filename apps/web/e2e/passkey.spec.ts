@@ -26,7 +26,9 @@ test('passkey: cria no Perfil, entra sem senha e apaga', async ({ page, context 
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();
   await page.waitForURL(/inicio|agenda|hoje|comandas/);
 
+  const listou = page.waitForResponse((r) => r.url().endsWith('/api/me/passkeys'));
   await page.goto('/perfil');
+  await listou;
   const secao = page.getByRole('region', { name: 'Entrar sem senha' });
   await expect(secao.getByRole('button', { name: 'Criar passkey neste aparelho' })).toBeVisible();
   // Conta a partir do que já existe (uma rodada interrompida pode ter deixado uma).
