@@ -61,8 +61,12 @@ export function FormularioEntrar() {
   }, [router, setError, voltar]);
   useEffect(() => {
     if (!passkey) return;
-    void armarSugestao();
-    return () => sugestao.current?.abort();
+    // Começa depois de abrir (em callback), sem mudar estado durante o efeito.
+    const t = setTimeout(() => void armarSugestao(), 0);
+    return () => {
+      clearTimeout(t);
+      sugestao.current?.abort();
+    };
   }, [passkey, armarSugestao]);
 
   async function botaoPasskey() {
