@@ -10,12 +10,14 @@ import {
 import { Botao, Campo } from '@pente-fino/ui';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { KeyRound } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { api } from '@/lib/api';
 import { aplicarErroDaApi } from '@/lib/formularios';
 import { useHidratado } from '@/lib/hidratado';
+import { entrarComPasskey, temPasskey, temSugestaoNoCampo } from '@/lib/passkey';
 import { destinoSeguro } from '@/lib/seguranca';
 import { Aviso } from './aviso';
 
@@ -41,6 +43,51 @@ export function FormularioEntrar() {
     }
   });
 
+  // Passkey (pedido do dono em 15/11): a sugestão aparece no campo de e-mail e há o botão.
+  const passkey = hidratado && temPasskey();
+  const [entrandoPasskey, setEntrandoPasskey] = useState(false);
+  const sugestao = useRef<AbortController | null>(null);
+  const voltar = params.get('voltar');
+  const armarSugestao = useCallback(async () => {
+    if (!(await temSugestaoNoCampo())) return;
+    sugestao.current?.abort();
+    const c = new AbortController();
+    sugestao.current = c;
+    try {
+      if (await entrarComPasskey(c.signal, true)) router.replace(destinoSeguro(voltar));
+    } catch (e) {
+      if (!c.signal.aborted) setErroGeral(aplicarErroDaApi(e, setError));
+    }
+  }, [router, setError, voltar]);
+  useEffect(() => {
+    if (!passkey) return;
+    // Começa depois de abrir (em callback), sem mudar estado durante o efeito.
+    const t = setTimeout(() => void armarSugestao(), 0);
+    return () => {
+      clearTimeout(t);
+      sugestao.current?.abort();
+    };
+  }, [passkey, armarSugestao]);
+
+  async function botaoPasskey() {
+    // A janela do botão e a sugestão do campo não podem disputar (guia passkey-authentication).
+    sugestao.current?.abort();
+    setErroGeral(null);
+    setEntrandoPasskey(true);
+    try {
+      if (await entrarComPasskey(new AbortController().signal)) {
+        router.replace(destinoSeguro(voltar));
+        return;
+      }
+      void armarSugestao();
+    } catch (e) {
+      setErroGeral(aplicarErroDaApi(e, setError));
+      void armarSugestao();
+    } finally {
+      setEntrandoPasskey(false);
+    }
+  }
+
   return (
     <form onSubmit={enviar} method="post" noValidate className="flex flex-col gap-5">
       <div className="flex flex-col gap-1">
@@ -55,7 +102,8 @@ export function FormularioEntrar() {
         id="email"
         rotulo="E-mail"
         type="email"
-        autoComplete="email"
+        // "webauthn": o navegador oferece a passkey já na sugestão do campo.
+        autoComplete="username webauthn"
         inputMode="email"
         erro={formState.errors.email?.message}
         {...register('email')}
@@ -71,6 +119,17 @@ export function FormularioEntrar() {
       <Botao type="submit" disabled={!hidratado} carregando={formState.isSubmitting} larguraTotal>
         Entrar
       </Botao>
+      {passkey && (
+        <Botao
+          type="button"
+          variante="secundario"
+          carregando={entrandoPasskey}
+          onClick={() => void botaoPasskey()}
+          larguraTotal
+        >
+          <KeyRound aria-hidden className="size-5" /> Usar passkey (digital ou rosto)
+        </Botao>
+      )}
       <div className="flex flex-wrap justify-between gap-3 text-sm">
         <Link href="/esqueci-senha" className={link}>
           Esqueci minha senha

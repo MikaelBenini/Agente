@@ -41,6 +41,7 @@ export async function api<T>(
     if (
       resposta.status === 401 &&
       erro?.codigo !== 'credenciais_invalidas' &&
+      erro?.codigo !== 'passkey_invalida' &&
       typeof window !== 'undefined'
     ) {
       const voltar = encodeURIComponent(window.location.pathname + window.location.search);
