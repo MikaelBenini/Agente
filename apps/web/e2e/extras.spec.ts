@@ -198,7 +198,7 @@ test('impressão das comandas e exportação para o contador baixam pelo /api', 
   await page.goto('/comandas');
   // Domingo e feriado não têm comanda (o botão fica desabilitado): volta até um dia com comandas.
   const link = page.getByRole('link', { name: 'Imprimir 4 por folha' });
-  const dia = page.getByLabel('Dia');
+  const dia = page.locator('#comandas-dia');
   for (let volta = 1; volta <= 7; volta++) {
     if (
       await link.waitFor({ timeout: 3000 }).then(
