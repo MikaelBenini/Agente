@@ -51,7 +51,9 @@ principal() {
   cp -r "$TMP"/. .
   ./atualizar.sh "$SHA"
   garantir_cron
-  docker compose --env-file .env -f docker-compose.prod.yml up -d --remove-orphans caddy status >/dev/null
+  # O aviso do Compose sobre valor com "$" traria o valor para o log público: sai escondido.
+  docker compose --env-file .env -f docker-compose.prod.yml up -d --remove-orphans caddy status >/dev/null \
+    2> >(sed -E 's/The \\?"[^"\\]*\\?" variable is not set\. Defaulting to a blank string\./Um valor do .env tem "$" sem aspas simples (valor escondido)./' >&2)
   if (( caddy_mudou )); then
     docker exec pente-fino-caddy-1 caddy reload --config /etc/caddy/Caddyfile
   fi
