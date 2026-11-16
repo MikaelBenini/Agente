@@ -110,7 +110,10 @@ para o código antigo. Antes de uma migração que apaga ou renomeia coluna, fa�
 Cada merge na `main` gera as imagens e o job **Implantar na VPS** entra por SSH e roda
 `infra/implantar.sh <sha>`: baixa os arquivos de `infra/` daquele commit, sobe a versão com
 `./atualizar.sh <sha>` e recarrega o Caddy se ele mudou. A chave do GitHub só consegue rodar esse
-script (sem terminal). Para ligar, uma vez, no terminal do navegador da Hostinger:
+script (sem terminal). O deploy só sai verde com a API, o painel e o worker saudáveis em até
+3 minutos; se não, o job fica vermelho com os logs (inclusive do worker). Antes de enviar a imagem,
+o CI abre cada módulo da API e do worker dentro dela (`scripts/conferir-modulos.mjs`): uma
+dependência que mude o jeito de exportar barra o deploy em vez de derrubar o bot. Para ligar, uma vez, no terminal do navegador da Hostinger:
 
 ```bash
 su - deploy

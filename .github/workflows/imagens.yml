@@ -51,13 +51,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Construir e enviar
+      # Constrói e carrega aqui; só envia depois de conferir que a imagem sobe os módulos.
+      - name: Construir
         uses: docker/build-push-action@v7
         with:
           context: .
           file: ${{ matrix.dockerfile }}
           target: ${{ matrix.alvo }}
-          push: true
+          load: true
           # Endereço público do site (sitemap, robots e prévia de link são montados no build).
           # Variável do repositório APP_URL; sem ela, o domínio de produção.
           build-args: |
@@ -70,6 +71,19 @@ jobs:
             org.opencontainers.image.revision=${{ github.sha }}
           cache-from: type=gha,scope=${{ matrix.nome }}
           cache-to: type=gha,mode=max,scope=${{ matrix.nome }}
+
+      # Abre cada módulo dentro da própria imagem (as dependências de produção dela). Se falhar,
+      # nada é enviado e o deploy não roda: o worker de 16/11/2026 caiu por web-push 4.
+      - name: A imagem carrega todos os módulos
+        if: matrix.nome == 'api' || matrix.nome == 'worker'
+        run: |
+          docker run --rm -v "$PWD/scripts:/conferir:ro" --entrypoint node \
+            "${{ steps.nome.outputs.imagem }}:${{ github.sha }}" /conferir/conferir-modulos.mjs dist
+
+      - name: Enviar
+        run: |
+          docker push "${{ steps.nome.outputs.imagem }}:${{ github.sha }}"
+          docker push "${{ steps.nome.outputs.imagem }}:latest"
 
   # Deploy automático na VPS: a chave só roda infra/implantar.sh (ver infra/chave-deploy.sh).
   # Sem o secret DEPLOY_SSH_KEY, o passo só avisa e não falha.

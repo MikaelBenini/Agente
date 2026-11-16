@@ -40,9 +40,11 @@ fi
 echo "Versão: $nova"
 compose pull --quiet
 compose up -d --remove-orphans
-# Espera a API e o painel ficarem saudáveis (até 3 minutos).
+# Espera a API, o painel e o worker (bot, lembretes e rotinas) ficarem saudáveis (até 3 minutos).
+# Antes só o painel era esperado: em 16/11/2026 o worker caiu ao iniciar e o deploy saiu verde.
+saudavel() { [[ "$(docker inspect -f '{{.State.Health.Status}}' "pente-fino-$1-1" 2>/dev/null)" == healthy ]]; }
 for _ in $(seq 1 36); do
-  if [[ "$(docker inspect -f '{{.State.Health.Status}}' pente-fino-web-1 2>/dev/null)" == healthy ]]; then
+  if saudavel api && saudavel web && saudavel worker; then
     compose ps --format 'table {{.Service}}\t{{.Status}}'
     docker image prune -f >/dev/null
     echo "No ar: versão $nova"
@@ -51,6 +53,6 @@ for _ in $(seq 1 36); do
   sleep 5
 done
 compose ps --format 'table {{.Service}}\t{{.Status}}'
-compose logs --tail 40 migracoes api web
-echo "O painel não ficou saudável em 3 minutos. Para voltar: ./atualizar.sh anterior" >&2
+compose logs --tail 40 migracoes api web worker
+echo "API, painel ou worker não ficou saudável em 3 minutos. Para voltar: ./atualizar.sh anterior" >&2
 exit 1
