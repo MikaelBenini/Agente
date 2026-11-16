@@ -7,6 +7,17 @@ produção (`https://seupentefino.com.br`). Detalhes técnicos e o porquê de ca
 
 ## [Não publicado]
 
+### Adicionado (SEO: IndexNow)
+
+- **Buscadores avisados na hora (IndexNow):** a cada deploy, o site avisa Bing, Yandex e os outros buscadores do IndexNow de todas as páginas do sitemap; quando uma barbearia liga "Aparecer no Google" ou publica o site com ele ligado, o endereço dela é avisado no mesmo instante. O arquivo da chave fica publicado no site.
+
+### Adicionado (anúncios: origem do cliente, relatório e agendar o pedido)
+
+- **Clientes de anúncio:** quem chega pelo anúncio fica com a origem "Anúncio (WhatsApp)" na ficha. Em Resultados do mês → Canais, o bloco "Clientes de anúncio" mostra as conversas de anúncio, os clientes novos, quantos compraram, quanto gastaram e o ticket, com as conversas por anúncio.
+- **Agendar o que o cliente pediu:** em Conversas, "Agendar o que pediu" abre o novo agendamento já com os serviços, o profissional e o horário que o cliente escolheu no bot; o agendamento conta no canal WhatsApp.
+- **Respondeu pelo celular, o bot sai:** quando alguém da equipe responde o cliente direto pelo WhatsApp do celular da barbearia, a conversa passa para "Com a equipe" e o bot fica quieto (volta sozinho depois de 2 horas sem o cliente escrever, ou quando a equipe devolver em Conversas). A mensagem do celular também aparece no histórico da conversa.
+- **Mensagens de anúncio por unidade:** com uma unidade escolhida em "Editando", a aba Mensagens automáticas grava as mensagens só dela; "Voltar ao padrão" faz a unidade usar de novo as da barbearia.
+
 ### Adicionado (bot do WhatsApp por unidade, mais esperto e anúncios)
 
 - **Bot por unidade:** em Bot, "Editando" escolhe o padrão da barbearia ou uma unidade. A unidade usa o padrão até personalizar o menu e as mensagens dela; "Voltar ao padrão" desfaz.

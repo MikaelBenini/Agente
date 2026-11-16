@@ -140,7 +140,14 @@ export function TelaBot() {
                     {
                       id: 'anuncio',
                       rotulo: 'Mensagens automáticas',
-                      conteudo: <MensagensDeAnuncio podeEditar={e.podeEditar} />,
+                      conteudo: (
+                        <MensagensDeAnuncio
+                          key={escopo ?? 'padrao'}
+                          podeEditar={e.podeEditar}
+                          unidadeId={escopo}
+                          nome={e.escopo.nome}
+                        />
+                      ),
                     },
                     { id: 'horario', rotulo: 'Horário', conteudo: <Horarios e={e} /> },
                     {

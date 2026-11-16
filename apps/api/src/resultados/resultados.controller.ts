@@ -20,6 +20,9 @@ import {
   type LinhaCanal,
   type MetaEntrada,
   type ResumoAvaliacoes,
+  ORIGEM_ANUNCIO,
+  resumirAnuncios,
+  type ResumoAnuncios,
 } from '@pente-fino/shared';
 import { z } from 'zod';
 import { Auditada, auditar } from '../auditoria/auditoria.js';
@@ -130,6 +133,49 @@ export class ResultadosController {
         })),
         semHorario.map((c) => ({ totalLiquido: c.totalLiquido ?? 0 })),
       );
+    });
+  }
+
+  /**
+   * Clientes de anúncio (sugestão aprovada em 16/11/2026): conversas que chegaram por anúncio,
+   * clientes novos com origem "anuncio" e o que os clientes de anúncio gastaram no período.
+   */
+  @Get('anuncios')
+  @Papeis('dono', 'gestor')
+  @ApiOperation({ summary: 'Clientes que vieram de anúncio: conversas, novos e quanto gastaram' })
+  anuncios(@Consulta(periodoSchema) p: z.infer<typeof periodoSchema>): Promise<ResumoAnuncios> {
+    const { filtro } = escopoUnidades(p.unidadeId, ['dono', 'gestor']);
+    const periodo = {
+      gte: new Date(`${p.de}T00:00:00-03:00`),
+      lt: new Date(new Date(`${p.ate}T00:00:00-03:00`).getTime() + 86_400_000),
+    };
+    // O mesmo filtro de unidade, aplicado à unidade onde o cliente chegou.
+    const daUnidade =
+      'unidadeId' in filtro
+        ? { unidadeOrigemId: filtro.unidadeId as string | { in: string[] } }
+        : {};
+    return this.banco.daConta(async (tx) => {
+      const conversas = await tx.botSessao.findMany({
+        where: { ...filtro, anuncioEm: periodo },
+        select: { anuncioTitulo: true },
+      });
+      const novosClientes = await tx.cliente.count({
+        where: { ...daUnidade, origemLead: ORIGEM_ANUNCIO, criadoEm: periodo },
+      });
+      const comandas = await tx.comanda.findMany({
+        where: {
+          ...filtro,
+          status: 'fechada',
+          fechadaEm: periodo,
+          cliente: { origemLead: ORIGEM_ANUNCIO },
+        },
+        select: { clienteId: true, totalLiquido: true },
+      });
+      return resumirAnuncios({
+        conversas: conversas.map((c) => ({ titulo: c.anuncioTitulo })),
+        novosClientes,
+        comandas: comandas.map((c) => ({ clienteId: c.clienteId!, total: c.totalLiquido ?? 0 })),
+      });
     });
   }
 

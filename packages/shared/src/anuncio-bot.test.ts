@@ -58,3 +58,31 @@ describe('mensagens automáticas de anúncio (pedido do dono em 16/11/2026)', ()
     expect(FLUXO_ANUNCIO_PADRAO.ativo).toBe(false);
   });
 });
+
+describe('relatório de clientes de anúncio', () => {
+  it('soma o que os clientes de anúncio gastaram e conta as conversas por anúncio', async () => {
+    const { resumirAnuncios } = await import('./anuncio-bot.js');
+    expect(
+      resumirAnuncios({
+        conversas: [{ titulo: 'Corte R$ 50' }, { titulo: 'Corte R$ 50' }, { titulo: null }],
+        novosClientes: 2,
+        comandas: [
+          { clienteId: 'a', total: 5000 },
+          { clienteId: 'a', total: 3500 },
+          { clienteId: 'b', total: 4500 },
+        ],
+      }),
+    ).toEqual({
+      conversas: 3,
+      novosClientes: 2,
+      clientesQueCompraram: 2,
+      faturamento: 13_000,
+      ticket: 6500,
+      porAnuncio: [
+        { titulo: 'Corte R$ 50', conversas: 2 },
+        { titulo: 'Sem título', conversas: 1 },
+      ],
+    });
+    expect(resumirAnuncios({ conversas: [], novosClientes: 0, comandas: [] }).ticket).toBe(0);
+  });
+});

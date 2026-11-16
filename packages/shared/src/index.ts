@@ -42,6 +42,7 @@ export * from './assinatura.js';
 export * from './agendar-bot.js';
 export * from './pedido-bot.js';
 export * from './anuncio-bot.js';
+export * from './indexnow.js';
 export * from './lembretes.js';
 export * from './regras-agendamento.js';
 export * from './canais.js';

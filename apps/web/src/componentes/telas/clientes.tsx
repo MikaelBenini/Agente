@@ -301,7 +301,13 @@ function FichaCliente({ id, onFechar }: { id: string | null; onFechar: () => voi
                 <dt className="text-xs font-semibold uppercase tracking-wider text-tinta-suave">
                   Origem
                 </dt>
-                <dd>{c!.origemLead === 'bot' ? 'WhatsApp (bot)' : (c!.origemLead ?? '—')}</dd>
+                <dd>
+                  {c!.origemLead === 'bot'
+                    ? 'WhatsApp (bot)'
+                    : c!.origemLead === 'anuncio'
+                      ? 'Anúncio (WhatsApp)'
+                      : (c!.origemLead ?? '—')}
+                </dd>
               </div>
               <div>
                 <dt className="text-xs font-semibold uppercase tracking-wider text-tinta-suave">

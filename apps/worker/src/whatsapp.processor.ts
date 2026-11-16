@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import {
   atenderMensagem,
+  registrarMensagemPropria,
   enviarLembrete,
   iniciarPesquisa,
   lembretesDoAgendamento,
@@ -471,6 +472,9 @@ export class WhatsappProcessor implements OnModuleInit, OnApplicationShutdown {
         );
         return `vaga: oferecida a ${o.mensagemIds.length}`;
       }
+      // Saiu do próprio número: eco do bot ou a equipe respondendo pelo celular (o bot sai).
+      if (job.data.tipo === 'propria')
+        return `propria: ${await registrarMensagemPropria(this.banco.prisma, job.data)}`;
       if (job.data.tipo !== 'mensagem') return;
       const r = await atenderMensagem(this.banco.prisma, job.data, {
         appUrl: this.config.APP_URL,

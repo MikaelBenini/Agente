@@ -11,6 +11,7 @@ import type {
   TabelaPrecos,
   UnidadeDetalhe,
   UsuarioEquipe,
+  ResumoAnuncios,
 } from '@pente-fino/shared';
 import { useMutation, useQuery, useQueryClient, type QueryKey } from '@tanstack/react-query';
 import { api } from './api';
@@ -451,6 +452,14 @@ export function useCanais(unidade: string | null, de: string, ate: string) {
     queryKey: [...chavesResultados.indicadores, 'canais', unidade, de, ate],
     queryFn: () => api<LinhaCanal[]>(`canais?de=${de}&ate=${ate}${comUnidade(unidade)}`),
     enabled: useLiberado('canais'),
+  });
+}
+
+/** Clientes de anúncio no período (sugestão aprovada em 16/11/2026). */
+export function useAnuncios(unidade: string | null, de: string, ate: string) {
+  return useQuery({
+    queryKey: [...chavesResultados.indicadores, 'anuncios', unidade, de, ate],
+    queryFn: () => api<ResumoAnuncios>(`anuncios?de=${de}&ate=${ate}${comUnidade(unidade)}`),
   });
 }
 

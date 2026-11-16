@@ -125,20 +125,34 @@ function textoDa(m: z.infer<typeof mensagem> | null | undefined): string {
 }
 
 /**
- * Webhook da Evolution → evento do sistema. O que o bot não trata (mensagem enviada pelo
- * próprio número, grupo, status, QR atualizado, outros eventos) volta null.
+ * Webhook da Evolution → evento do sistema. O que o bot não trata (grupo, status, QR atualizado,
+ * outros eventos) volta null. O que saiu do próprio número vem como "propria".
  */
 export function lerWebhookEvolution(corpo: unknown, agora = new Date()): EventoWhatsapp | null {
   const msg = corpoMensagem.safeParse(corpo);
   if (msg.success) {
     const { key, pushName, message, messageTimestamp } = msg.data.data;
-    if (key.fromMe || !key.id) return null;
+    if (!key.id) return null;
     const telefone =
       telefoneDoJid(key.remoteJid) ??
       telefoneDoJid(key.remoteJidAlt) ??
       telefoneDoJid(key.senderPn);
     if (!telefone) return null;
     const segundos = Number(messageTimestamp);
+    // Saiu do próprio número: pode ser o bot (o eco) ou a equipe pelo celular; quem decide é o
+    // banco, que sabe o que o bot mandou.
+    if (key.fromMe)
+      return {
+        tipo: 'propria',
+        instancia: msg.data.instance,
+        idExterno: key.id,
+        telefone,
+        texto: textoDa(message),
+        recebidaEm: (Number.isFinite(segundos) && segundos > 0
+          ? new Date(segundos * 1000)
+          : agora
+        ).toISOString(),
+      };
     return {
       tipo: 'mensagem',
       instancia: msg.data.instance,

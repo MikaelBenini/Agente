@@ -40,7 +40,13 @@ import { useApp } from '../contexto-app';
 import { SoNoPlano } from '../convite-plano';
 import { CabecalhoPagina, Estado } from '../pagina';
 import { UnidadesDaRede } from '../unidades-da-rede';
-import { AgendaEAvaliacoes, Canais, MetasDoMes, ServicosEProdutos } from './resultados-detalhes';
+import {
+  AgendaEAvaliacoes,
+  Canais,
+  ClientesDeAnuncio,
+  MetasDoMes,
+  ServicosEProdutos,
+} from './resultados-detalhes';
 import { DiaADia } from './resumo-dia';
 
 const maiuscula = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
@@ -202,7 +208,12 @@ export function TelaResultados() {
             rotulo: 'Canais',
             conteudo: (
               <Estado consulta={relatorio}>
-                {() => <Canais r={relatorio.data!} de={de} ate={ate} />}
+                {() => (
+                  <div className="flex flex-col gap-8">
+                    <Canais r={relatorio.data!} de={de} ate={ate} />
+                    <ClientesDeAnuncio de={de} ate={ate} />
+                  </div>
+                )}
               </Estado>
             ),
           },

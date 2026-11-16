@@ -401,6 +401,8 @@ model Unidade {
   /// Visual da página de agendamento (lote 7l): cor, logotipo, capa e boas-vindas. Nulo = o de
   /// sempre do Pente Fino. Separado do site; vale assim que o dono salva.
   agendamentoVisual    Json?     @map("agendamento_visual")
+  /// Mensagens de anúncio próprias da unidade (sugestão aprovada em 16/11/2026); nulo = as da conta.
+  fluxoAnuncio         Json?     @map("fluxo_anuncio")
   criadoEm             DateTime  @default(now()) @map("criado_em") @db.Timestamptz(3)
   atualizadoEm         DateTime  @updatedAt @map("atualizado_em") @db.Timestamptz(3)
 

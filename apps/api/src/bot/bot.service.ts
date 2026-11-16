@@ -1,6 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import {
   contextoDaConversa,
+  fluxoAnuncioDaUnidade,
   podeAgendarPelaConversa,
   responderComAgenda,
   instanciaDaUnidade,
@@ -21,6 +22,7 @@ import {
   lerAutomacoes,
   lerFluxoAnuncio,
   type FluxoAnuncio,
+  type FluxoAnuncioDoEscopo,
   type FluxoAnuncioEntrada,
   lerRegrasAgendamento,
   TIPOS_MENSAGEM_BOT,
@@ -291,15 +293,46 @@ export class BotService {
   }
 
   /** Mensagens automáticas de quem vem de anúncio (pedido do dono em 16/11/2026). */
-  async fluxoAnuncio(): Promise<FluxoAnuncio> {
-    return this.banco.daConta(async (tx) =>
-      lerFluxoAnuncio((await tx.conta.findFirst({ select: { fluxoAnuncio: true } }))?.fluxoAnuncio),
-    );
+  /** Com a unidade: as dela (próprias) ou as da conta (padrão). Sugestão aprovada em 16/11. */
+  async fluxoAnuncio(unidadeId: string | null = null): Promise<FluxoAnuncioDoEscopo> {
+    return this.banco.daConta(async (tx) => {
+      if (unidadeId) {
+        await this.escopo(tx, unidadeId);
+        const u = await tx.unidade.findUniqueOrThrow({
+          where: { id: unidadeId },
+          select: { fluxoAnuncio: true },
+        });
+        return { ...(await fluxoAnuncioDaUnidade(tx, u)), proprio: u.fluxoAnuncio !== null };
+      }
+      return {
+        ...lerFluxoAnuncio(
+          (await tx.conta.findFirst({ select: { fluxoAnuncio: true } }))?.fluxoAnuncio,
+        ),
+        proprio: true,
+      };
+    });
   }
 
-  async salvarFluxoAnuncio(d: FluxoAnuncioEntrada): Promise<FluxoAnuncio> {
+  async salvarFluxoAnuncio(
+    d: FluxoAnuncioEntrada,
+    unidadeId: string | null = null,
+  ): Promise<FluxoAnuncio> {
     this.exigirDono();
     return this.banco.daConta(async (tx) => {
+      if (unidadeId) {
+        await this.escopo(tx, unidadeId);
+        await tx.unidade.update({
+          where: { id: unidadeId },
+          data: { fluxoAnuncio: d as unknown as Prisma.InputJsonValue },
+        });
+        await auditar(tx, {
+          entidade: 'unidade',
+          entidadeId: unidadeId,
+          acao: 'fluxo_anuncio',
+          depois: d,
+        });
+        return lerFluxoAnuncio(d);
+      }
       const conta = await tx.conta.findFirstOrThrow({ select: { id: true, fluxoAnuncio: true } });
       await tx.conta.update({
         where: { id: conta.id },
@@ -313,6 +346,20 @@ export class BotService {
         depois: d,
       });
       return lerFluxoAnuncio(d);
+    });
+  }
+
+  /** A unidade volta a usar as mensagens de anúncio da conta. */
+  async anuncioDoPadrao(unidadeId: string) {
+    this.exigirDono();
+    return this.banco.daConta(async (tx) => {
+      await this.escopo(tx, unidadeId);
+      await tx.unidade.update({ where: { id: unidadeId }, data: { fluxoAnuncio: Prisma.DbNull } });
+      await auditar(tx, {
+        entidade: 'unidade',
+        entidadeId: unidadeId,
+        acao: 'fluxo_anuncio_padrao',
+      });
     });
   }
 
@@ -459,9 +506,7 @@ export class BotService {
       // O mesmo passo a passo do WhatsApp, sem gravar o agendamento no fim.
       const r = await responderComAgenda(tx, {
         anuncio: {
-          fluxo: lerFluxoAnuncio(
-            (await tx.conta.findFirst({ select: { fluxoAnuncio: true } }))?.fluxoAnuncio,
-          ),
+          fluxo: await fluxoAnuncioDaUnidade(tx, u),
           doAnuncio: d.doAnuncio,
         },
         menu,

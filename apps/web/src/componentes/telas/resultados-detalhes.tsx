@@ -25,6 +25,7 @@ import {
   chavesResultados,
   useAcao,
   useAvaliacoes,
+  useAnuncios,
   useCanais,
   useLucratividade,
   useMetas,
@@ -743,6 +744,67 @@ function Avaliacoes({ r }: { r: ResumoAvaliacoes }) {
             ))}
           </ul>
         </div>
+      )}
+    </section>
+  );
+}
+
+/**
+ * Clientes de anúncio (sugestão aprovada em 16/11/2026): quantas conversas chegaram por anúncio,
+ * quantos clientes novos vieram e quanto os clientes de anúncio gastaram no mês.
+ */
+export function ClientesDeAnuncio({ de, ate }: { de: string; ate: string }) {
+  const { unidadeAtiva } = useApp();
+  const anuncios = useAnuncios(unidadeAtiva, de, ate);
+  const a = anuncios.data;
+  if (!a || (a.conversas === 0 && a.novosClientes === 0 && a.clientesQueCompraram === 0))
+    return null;
+  const dados = [
+    { rotulo: 'Conversas de anúncio', valor: formatarNumero(a.conversas) },
+    { rotulo: 'Clientes novos', valor: formatarNumero(a.novosClientes) },
+    { rotulo: 'Compraram no mês', valor: formatarNumero(a.clientesQueCompraram) },
+    { rotulo: 'Gastaram no mês', valor: formatarMoeda(a.faturamento) },
+    { rotulo: 'Ticket', valor: a.ticket ? formatarMoeda(a.ticket) : '—' },
+  ];
+  return (
+    <section className="flex flex-col gap-3" aria-labelledby="titulo-anuncios">
+      <div>
+        <h2 id="titulo-anuncios" className="text-lg font-semibold">
+          Clientes de anúncio
+        </h2>
+        <p className="text-sm text-tinta-suave">
+          Quem chegou pelo WhatsApp por um anúncio do Facebook ou do Instagram.
+          &ldquo;Gastaram&rdquo; soma as comandas fechadas no mês de todos os clientes que vieram de
+          anúncio.
+        </p>
+      </div>
+      <dl className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+        {dados.map((d) => (
+          <div key={d.rotulo} className="rounded-lg border border-borda bg-superficie p-3">
+            <dt className="text-sm text-tinta-suave">{d.rotulo}</dt>
+            <dd className="font-denso text-xl font-semibold tabular-nums">{d.valor}</dd>
+          </div>
+        ))}
+      </dl>
+      {a.porAnuncio.length > 0 && (
+        <Tabela rotulo="Conversas por anúncio">
+          <thead className="bg-superficie-2">
+            <tr>
+              <th className={th}>Anúncio</th>
+              <th className={`${th} text-right`}>Conversas</th>
+            </tr>
+          </thead>
+          <tbody className="tabular-nums">
+            {a.porAnuncio.map((l) => (
+              <tr key={l.titulo} className="border-t border-borda">
+                <th scope="row" className={`${td} text-left font-semibold`}>
+                  {l.titulo}
+                </th>
+                <td className={`${td} text-right`}>{formatarNumero(l.conversas)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </Tabela>
       )}
     </section>
   );

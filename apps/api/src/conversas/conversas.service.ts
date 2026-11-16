@@ -130,6 +130,18 @@ export class ConversasService {
               : sessao.pedido
                 ? descreverPedido(sessao.pedido, nomes, hoje)
                 : null,
+          pedidoDados:
+            sessao.comAtendente && sessao.pedido
+              ? {
+                  servicoIds: sessao.pedido.servicoIds,
+                  profissionalId:
+                    sessao.pedido.escolha?.profissionalId ?? sessao.pedido.profissionalId,
+                  dia: sessao.pedido.escolha
+                    ? dataLocal(new Date(sessao.pedido.escolha.inicio))
+                    : sessao.pedido.dia,
+                  inicio: sessao.pedido.escolha?.inicio ?? null,
+                }
+              : null,
           anuncio: s.anuncioEm
             ? { desde: s.anuncioEm.toISOString(), titulo: s.anuncioTitulo }
             : null,

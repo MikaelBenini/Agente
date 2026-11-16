@@ -38,6 +38,7 @@ import {
   type VagaLiberada,
   caminhoAssinarClube,
   lerFluxoAnuncio,
+  ORIGEM_ANUNCIO,
   lerFuncionamento,
   lerPedidoNatural,
   responderAnuncio,
@@ -172,6 +173,14 @@ export async function situacaoDaUnidade(
     aberto: !fechadoHoje && (vale.length === 0 || dentroDoHorario(vale, agora)),
     link: u.agendamentoPublico && u.slug ? linkDeAgendamento(appUrl, u.slug) : null,
   };
+}
+
+/** Mensagens de anúncio: as da unidade, se ela personalizou; senão, as da conta. */
+export async function fluxoAnuncioDaUnidade(tx: Tx, u: { fluxoAnuncio: Prisma.JsonValue | null }) {
+  if (u.fluxoAnuncio !== null) return lerFluxoAnuncio(u.fluxoAnuncio);
+  return lerFluxoAnuncio(
+    (await tx.conta.findFirst({ select: { fluxoAnuncio: true } }))?.fluxoAnuncio,
+  );
 }
 
 /** O que o motor precisa saber da unidade para responder. */
@@ -635,7 +644,8 @@ export async function atenderMensagem(
             nome: evento.nome ?? NOME_PADRAO_CLIENTE,
             telefone,
             unidadeOrigemId: unidadeId,
-            origemLead: 'bot',
+            // Veio pelo anúncio: a origem fica "anuncio" (relatório de clientes de anúncio).
+            origemLead: evento.anuncio ? ORIGEM_ANUNCIO : 'bot',
           },
         });
 
@@ -695,9 +705,7 @@ export async function atenderMensagem(
             regras: lerRegrasAgendamento(u.regrasAgendamento),
           },
           anuncio: {
-            fluxo: lerFluxoAnuncio(
-              (await tx.conta.findFirst({ select: { fluxoAnuncio: true } }))?.fluxoAnuncio,
-            ),
+            fluxo: await fluxoAnuncioDaUnidade(tx, u),
             doAnuncio: !!evento.anuncio,
           },
         });
@@ -738,6 +746,12 @@ export async function atenderMensagem(
         const atendenteDesde = r.sessao.comAtendente ? (salva?.atendenteDesde ?? agora) : null;
         // Veio de anúncio (o WhatsApp avisou, ou entrou no fluxo pela frase): a conversa fica marcada.
         const deAnuncio = !!evento.anuncio || !!r.anuncioComecou;
+        // Cliente novo que entrou pela frase do anúncio: a origem também é o anúncio.
+        if (clienteNovo && r.anuncioComecou && !evento.anuncio)
+          await tx.cliente.update({
+            where: { id: cliente.id },
+            data: { origemLead: ORIGEM_ANUNCIO },
+          });
         const anuncio = {
           anuncioEm: deAnuncio ? (salva?.anuncioEm ?? agora) : (salva?.anuncioEm ?? null),
           anuncioTitulo: evento.anuncio?.titulo ?? salva?.anuncioTitulo ?? null,
@@ -920,5 +934,89 @@ export async function encerrarEsperaDoAtendente(
       select: { id: true },
     });
     return { contaId: job.contaId, instancia: conexao.instancia, mensagemIds: [m.id] };
+  });
+}
+
+/** Janela em que uma mensagem igual que o bot mandou ainda pode ser o eco dela. */
+const JANELA_ECO_MS = 5 * 60_000;
+
+/**
+ * Mensagem que saiu do próprio número (pedido do dono em 16/11/2026: "se respondo pelo meu zap,
+ * o bot continua na conversa e vira bagunça"). Se foi o bot ou o painel (mesmo id, ou o mesmo
+ * texto para o mesmo número há pouco), é só o eco. Senão, é a equipe pelo celular: a mensagem
+ * entra no histórico e a conversa fica "com a equipe" (o bot fica quieto até o cliente ficar
+ * 2 horas sem escrever ou a equipe devolver em Conversas).
+ */
+export async function registrarMensagemPropria(
+  prisma: PrismaClient,
+  evento: Extract<EventoWhatsapp, { tipo: 'propria' }>,
+): Promise<'eco' | 'equipe' | 'sem_conexao'> {
+  const conexao = await conexaoDaInstancia(prisma, evento.instancia);
+  if (!conexao) return 'sem_conexao';
+  const { contaId, unidadeId } = conexao;
+  return naConta(prisma, contaId, async (tx) => {
+    if (
+      await tx.mensagem.findFirst({ where: { idExterno: evento.idExterno }, select: { id: true } })
+    )
+      return 'eco';
+    const variantes = variantesTelefone(evento.telefone);
+    const agora = new Date();
+    const doBot = await tx.mensagem.findFirst({
+      where: {
+        unidadeId,
+        telefone: { in: variantes },
+        direcao: 'saida',
+        texto: evento.texto,
+        criadoEm: { gte: new Date(agora.getTime() - JANELA_ECO_MS) },
+      },
+      select: { id: true },
+    });
+    if (doBot) return 'eco';
+    const cliente = await tx.cliente.findFirst({
+      where: { telefone: { in: variantes } },
+      orderBy: { criadoEm: 'asc' },
+      select: { id: true },
+    });
+    await tx.mensagem.create({
+      data: {
+        unidadeId,
+        clienteId: cliente?.id ?? null,
+        telefone: evento.telefone,
+        direcao: 'saida',
+        texto: evento.texto,
+        status: 'enviada',
+        idExterno: evento.idExterno,
+        enviadaEm: new Date(evento.recebidaEm),
+        criadoEm: new Date(evento.recebidaEm),
+      },
+    });
+    const salva = await tx.botSessao.findUnique({
+      where: { unidadeId_telefone: { unidadeId, telefone: evento.telefone } },
+    });
+    const antes = (salva?.sessao as unknown as SessaoBot | undefined) ?? null;
+    // A equipe assumiu: o bot para (e larga o agendamento ou o fluxo que estava no meio).
+    const sessao: SessaoBot = {
+      caminho: [],
+      comAtendente: true,
+      erros: 0,
+      // As 2 horas do atendimento contam a partir da resposta da equipe.
+      ultimaEm: agora.toISOString(),
+      ...(antes?.pedido ? { pedido: antes.pedido } : {}),
+      ...(antes?.agenda ? { pedido: antes.agenda } : {}),
+      ...(antes?.respostasAnuncio ? { respostasAnuncio: antes.respostasAnuncio } : {}),
+    };
+    await tx.botSessao.upsert({
+      where: { unidadeId_telefone: { unidadeId, telefone: evento.telefone } },
+      create: {
+        unidadeId,
+        telefone: evento.telefone,
+        clienteId: cliente?.id ?? null,
+        sessao: json(sessao),
+        atendenteDesde: null,
+      },
+      // Respondeu: ninguém está mais esperando.
+      update: { sessao: json(sessao), atendenteDesde: null },
+    });
+    return 'equipe';
   });
 }

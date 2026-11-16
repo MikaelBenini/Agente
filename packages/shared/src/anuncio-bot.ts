@@ -5,6 +5,9 @@
 import { z } from 'zod';
 import { EXPIRACAO_ATENDENTE_MIN, normalizar, preencher, type SessaoBot } from './bot.js';
 
+/** Origem do cliente que chegou por anúncio (`cliente.origem_lead`). */
+export const ORIGEM_ANUNCIO = 'anuncio';
+
 export interface FluxoAnuncio {
   ativo: boolean;
   /** Frases prontas do anúncio ("Olá! Quero saber mais"): quem escreve uma delas entra no fluxo. */
@@ -43,6 +46,8 @@ export const fluxoAnuncioSchema = z.object({
   final: textoEtapa,
 });
 export type FluxoAnuncioEntrada = z.infer<typeof fluxoAnuncioSchema>;
+/** O fluxo de um escopo: `proprio` = a unidade tem o dela (no padrão da conta, sempre true). */
+export type FluxoAnuncioDoEscopo = FluxoAnuncio & { proprio: boolean };
 
 /** O que está gravado passa de novo pelo esquema; estragado ou vazio = o padrão (desligado). */
 export function lerFluxoAnuncio(valor: unknown): FluxoAnuncio {
@@ -143,5 +148,47 @@ export function responderAnuncio(
     },
     paraEquipe: false,
     comecou: true,
+  };
+}
+
+// ─── Relatório: clientes de anúncio (sugestão aprovada em 16/11/2026) ─────
+
+export interface ResumoAnuncios {
+  /** Conversas que chegaram por anúncio no período. */
+  conversas: number;
+  /** Clientes novos cuja origem é o anúncio, cadastrados no período. */
+  novosClientes: number;
+  /** Clientes de anúncio (de qualquer época) com comanda fechada no período. */
+  clientesQueCompraram: number;
+  /** O que esses clientes gastaram no período (comandas fechadas), em centavos. */
+  faturamento: number;
+  /** Faturamento ÷ clientes que compraram (0 sem clientes). */
+  ticket: number;
+  /** Conversas por anúncio (título que o WhatsApp manda; sem título = "Sem título"). */
+  porAnuncio: { titulo: string; conversas: number }[];
+}
+
+/** Junta conversas, cadastros e comandas dos clientes de anúncio no período. */
+export function resumirAnuncios(d: {
+  conversas: readonly { titulo: string | null }[];
+  novosClientes: number;
+  comandas: readonly { clienteId: string; total: number }[];
+}): ResumoAnuncios {
+  const clientes = new Set(d.comandas.map((c) => c.clienteId));
+  const faturamento = d.comandas.reduce((t, c) => t + c.total, 0);
+  const porTitulo = new Map<string, number>();
+  for (const c of d.conversas) {
+    const t = c.titulo?.trim() || 'Sem título';
+    porTitulo.set(t, (porTitulo.get(t) ?? 0) + 1);
+  }
+  return {
+    conversas: d.conversas.length,
+    novosClientes: d.novosClientes,
+    clientesQueCompraram: clientes.size,
+    faturamento,
+    ticket: clientes.size ? Math.round(faturamento / clientes.size) : 0,
+    porAnuncio: [...porTitulo]
+      .map(([titulo, conversas]) => ({ titulo, conversas }))
+      .sort((a, b) => b.conversas - a.conversas || a.titulo.localeCompare(b.titulo)),
   };
 }

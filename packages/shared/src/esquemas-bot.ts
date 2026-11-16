@@ -219,6 +219,13 @@ export interface ConversaResumo {
    * Diego · sábado às 15h"); null quando não estava marcando (lista do dono em 16/11/2026).
    */
   pedido: string | null;
+  /** O mesmo pedido em dados, para "Agendar" já abrir preenchido (sugestão de 16/11/2026). */
+  pedidoDados: {
+    servicoIds: string[];
+    profissionalId: string | null;
+    dia: string | null;
+    inicio: string | null;
+  } | null;
   /** Chegou por anúncio: desde quando e o título do anúncio, quando o WhatsApp manda. */
   anuncio: { desde: string; titulo: string | null } | null;
 }

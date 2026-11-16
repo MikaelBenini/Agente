@@ -654,6 +654,28 @@ Sem IA (regra do produto): tudo por palavras-chave, números e regras de data e 
 - Feito em 16/11 na branch `feat/bot-por-unidade` (CHANGELOG, linha de desenvolvimento Etapa
   23.6, documentação do produto "Bot WhatsApp sem IA" e CLAUDE.md)
 
+## 8h. Anúncios completos (sugestões aprovadas pelo dono em 16/11)
+
+- [x] Origem "anuncio" no cliente e o bloco "Clientes de anúncio" em Resultados → Canais (conversas,
+  novos, quem comprou, quanto gastaram e ticket; conversas por anúncio)
+- [x] "Agendar o que pediu" em Conversas: o novo agendamento abre com serviços, profissional e
+  horário do pedido do bot (origem WhatsApp)
+- [x] Mensagens de anúncio por unidade, com o padrão da barbearia e "Voltar ao padrão"
+- [x] **Bot sai quando a equipe responde pelo celular** (pedido do dono em 16/11): mensagem do
+  próprio número que não é eco do bot põe a conversa "Com a equipe"
+- Feito em 16/11 na branch `feat/anuncio-completo` (CHANGELOG, linha de desenvolvimento Etapa 23.6
+  e documentação do produto)
+
+## 8i. Checklist de SEO do vídeo (pedido do dono em 16/11)
+
+Já estavam no ar e conferidos em produção: `sitemap.xml`, `robots.txt` com o sitemap, canonical,
+descrição, OpenGraph (título, descrição e imagem 1200×630) e o cartão do Twitter/X.
+
+- [x] IndexNow: chave publicada, aviso de todo o sitemap a cada deploy e aviso na hora quando a
+  barbearia liga "Aparecer no Google" ou publica o site (16/11, branch `feat/seo-checklist`)
+- [ ] **Com o dono:** Google Search Console e Bing Webmaster Tools (passo a passo em
+  `docs/producao.md`, "Buscadores")
+
 ## 9. Por último: verificação final do ecossistema
 
 - [x] Rodar a [verificação final](verificacao-final.md) (feita em 15/11: números, segurança e produção conferidos; correções C1 a C6; ficam com o dono o backup no Kuma, uma restauração de teste e o Tag Assistant) (pedido do dono em 11/11/2026): rotinas

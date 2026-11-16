@@ -54,11 +54,11 @@ export class WebhooksController {
     }
     const evento = lerWebhookEvolution(corpo);
     if (!evento) return { ok: true };
-    if (evento.tipo === 'mensagem') {
+    if (evento.tipo === 'mensagem' || evento.tipo === 'propria') {
       // Mesmo id = mesmo trabalho: a fila ignora a repetida enquanto a original existir.
       const jobId = `${instancia}_${evento.idExterno}`.replace(/[^\w-]/g, '_');
       // V2: um tropeço do banco no worker não perde a mensagem (o bot descarta a repetida).
-      await this.filas.whatsappEntrada.add('mensagem', evento, {
+      await this.filas.whatsappEntrada.add(evento.tipo, evento, {
         jobId,
         ...TENTATIVAS_REPETIVEIS,
       });

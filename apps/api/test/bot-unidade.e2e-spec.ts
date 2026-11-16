@@ -151,7 +151,21 @@ describe('mensagens automáticas de quem vem de anúncio', () => {
       final: 'Já passei para a equipe.',
     };
     await dono.put('/bot/anuncio', fluxo).expect(200);
-    expect((await dono.get('/bot/anuncio').expect(200)).body).toEqual(fluxo);
+    expect((await dono.get('/bot/anuncio').expect(200)).body).toEqual({ ...fluxo, proprio: true });
+    // A unidade B usa as da barbearia até ter as dela (sugestão aprovada em 16/11).
+    expect((await dono.get(`/bot/anuncio?unidadeId=${a.unidadeB}`).expect(200)).body).toEqual({
+      ...fluxo,
+      proprio: false,
+    });
+    const daB = { ...fluxo, etapas: ['Mensagem só da B'] };
+    await dono.put(`/bot/anuncio?unidadeId=${a.unidadeB}`, daB).expect(200);
+    expect(
+      (await conversa(a.unidadeB, { cliente: null })('oi', { doAnuncio: true })).respostas,
+    ).toEqual(['Mensagem só da B']);
+    await dono.delete(`/bot/anuncio?unidadeId=${a.unidadeB}`).expect(204);
+    expect((await dono.get(`/bot/anuncio?unidadeId=${a.unidadeB}`).expect(200)).body.proprio).toBe(
+      false,
+    );
 
     const fala = conversa(a.unidadeA, { cliente: null });
     expect((await fala('oi', { doAnuncio: true })).respostas).toEqual([
@@ -172,5 +186,19 @@ describe('mensagens automáticas de quem vem de anúncio', () => {
     await dono
       .put('/bot/anuncio', { ...fluxo, etapas: ['1', '2', '3', '4', '5', '6'] })
       .expect(400);
+  });
+});
+
+describe('relatório de clientes de anúncio', () => {
+  it('responde o resumo do período (sem anúncio, tudo zero)', async () => {
+    const r = await dono.get(`/anuncios?de=${hoje.slice(0, 8)}01&ate=${hoje}`).expect(200);
+    expect(r.body).toEqual({
+      conversas: 0,
+      novosClientes: 0,
+      clientesQueCompraram: 0,
+      faturamento: 0,
+      ticket: 0,
+      porAnuncio: [],
+    });
   });
 });
