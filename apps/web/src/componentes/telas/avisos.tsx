@@ -89,8 +89,11 @@ function ListaDeAvisos({
   const visiveis = avisos.filter(
     (a) => (!soNaoLidos || !a.lidoEm) && (!assunto || ASSUNTO_AVISO[a.tipo] === assunto),
   );
-  const hoje = dataLocal(new Date());
-  const ontem = dataLocal(new Date(Date.now() - 86_400_000));
+  // O dia é lido uma vez, ao abrir a tela (não a cada desenho).
+  const [hoje] = useState(() => dataLocal(new Date()));
+  const ontem = new Date(new Date(`${hoje}T12:00:00Z`).getTime() - 86_400_000)
+    .toISOString()
+    .slice(0, 10);
   const grupos = new Map<string, AvisoDetalhe[]>();
   for (const a of visiveis) {
     const g = diaDoAviso(a.criadoEm, hoje, ontem);
