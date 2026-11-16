@@ -81,6 +81,18 @@ export type StatusConexaoWhatsapp = 'desconectado' | 'aguardando_qr' | 'conectad
 /** O que chega do provedor, num formato que não depende dele. */
 export type EventoWhatsapp =
   | {
+      /**
+       * Mensagem que saiu do próprio número da barbearia (pedido do dono em 16/11/2026): se não foi
+       * o bot nem o painel, é alguém da equipe respondendo pelo celular, e o bot sai da conversa.
+       */
+      tipo: 'propria';
+      instancia: string;
+      idExterno: string;
+      telefone: string;
+      texto: string;
+      recebidaEm: string;
+    }
+  | {
       tipo: 'mensagem';
       instancia: string;
       /** Id da mensagem no WhatsApp: a mesma mensagem entregue duas vezes é descartada. */

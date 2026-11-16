@@ -132,12 +132,14 @@ describe('webhook', () => {
     expect(iguais).toHaveLength(1);
   });
 
-  it('o que o bot não trata (mensagem do próprio número, grupo, outros eventos) é aceito e ignorado', async () => {
+  it('mensagem do próprio número vai para a fila como "propria"; outros eventos são ignorados', async () => {
     const proprio = mensagem('W-proprio');
     proprio.data.key.fromMe = true;
     await webhook(proprio).expect(200);
     await webhook({ event: 'qrcode.updated', instance: instancia, data: {} }).expect(200);
-    expect(await fila.getJob(`${instancia}_W-proprio`)).toBeUndefined();
+    // O banco decide se foi o bot (eco) ou a equipe pelo celular (pedido do dono em 16/11/2026).
+    expect((await fila.getJob(`${instancia}_W-proprio`))?.data).toMatchObject({ tipo: 'propria' });
+    await (await fila.getJob(`${instancia}_W-proprio`))?.remove();
   });
 
   it('conexão que cai sozinha marca o aviso; reconectar limpa', async () => {

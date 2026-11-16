@@ -661,6 +661,8 @@ Sem IA (regra do produto): tudo por palavras-chave, números e regras de data e 
 - [x] "Agendar o que pediu" em Conversas: o novo agendamento abre com serviços, profissional e
   horário do pedido do bot (origem WhatsApp)
 - [x] Mensagens de anúncio por unidade, com o padrão da barbearia e "Voltar ao padrão"
+- [x] **Bot sai quando a equipe responde pelo celular** (pedido do dono em 16/11): mensagem do
+  próprio número que não é eco do bot põe a conversa "Com a equipe"
 - Feito em 16/11 na branch `feat/anuncio-completo` (CHANGELOG, linha de desenvolvimento Etapa 23.6
   e documentação do produto)
 

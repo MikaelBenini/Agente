@@ -102,10 +102,15 @@ describe('lerWebhookEvolution', () => {
     expect(e).toMatchObject({ telefone: '5511977776666' });
   });
 
-  it('ignora o que o próprio número mandou, grupo e mensagem sem id', () => {
+  it('o que o próprio número mandou vem como "propria"; grupo e sem id são ignorados', () => {
     const k = (key: object) =>
       lerWebhookEvolution(mensagem({ key: { remoteJid: '5511988887777@s.whatsapp.net', ...key } }));
-    expect(k({ fromMe: true, id: 'A' })).toBeNull();
+    expect(k({ fromMe: true, id: 'A' })).toMatchObject({
+      tipo: 'propria',
+      idExterno: 'A',
+      telefone: '5511988887777',
+      texto: 'oi',
+    });
     expect(k({ fromMe: false })).toBeNull();
     expect(
       lerWebhookEvolution(mensagem({ key: { remoteJid: '1203@g.us', fromMe: false, id: 'A' } })),
