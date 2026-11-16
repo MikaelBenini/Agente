@@ -38,6 +38,7 @@ import {
   type VagaLiberada,
   caminhoAssinarClube,
   lerFluxoAnuncio,
+  ORIGEM_ANUNCIO,
   lerFuncionamento,
   lerPedidoNatural,
   responderAnuncio,
@@ -635,7 +636,8 @@ export async function atenderMensagem(
             nome: evento.nome ?? NOME_PADRAO_CLIENTE,
             telefone,
             unidadeOrigemId: unidadeId,
-            origemLead: 'bot',
+            // Veio pelo anúncio: a origem fica "anuncio" (relatório de clientes de anúncio).
+            origemLead: evento.anuncio ? ORIGEM_ANUNCIO : 'bot',
           },
         });
 
@@ -738,6 +740,9 @@ export async function atenderMensagem(
         const atendenteDesde = r.sessao.comAtendente ? (salva?.atendenteDesde ?? agora) : null;
         // Veio de anúncio (o WhatsApp avisou, ou entrou no fluxo pela frase): a conversa fica marcada.
         const deAnuncio = !!evento.anuncio || !!r.anuncioComecou;
+        // Cliente novo que entrou pela frase do anúncio: a origem também é o anúncio.
+        if (clienteNovo && r.anuncioComecou && !evento.anuncio)
+          await tx.cliente.update({ where: { id: cliente.id }, data: { origemLead: ORIGEM_ANUNCIO } });
         const anuncio = {
           anuncioEm: deAnuncio ? (salva?.anuncioEm ?? agora) : (salva?.anuncioEm ?? null),
           anuncioTitulo: evento.anuncio?.titulo ?? salva?.anuncioTitulo ?? null,
