@@ -352,8 +352,13 @@ export const useResumoMes = (unidade: string | null, mes: string, profissional: 
 
 export const chaveBot = ['bot'] as const;
 /** Menu publicado e rascunho, mensagens prontas e horário das unidades. */
-export const useBot = (ativo = true) =>
-  useQuery({ queryKey: chaveBot, queryFn: () => api<EstadoBot>('bot'), enabled: ativo });
+export const useBot = (ativo = true, unidadeId: string | null = null) =>
+  useQuery({
+    // Padrão da barbearia ou uma unidade (decisão do dono em 16/11/2026).
+    queryKey: unidadeId ? [...chaveBot, 'escopo', unidadeId] : chaveBot,
+    queryFn: () => api<EstadoBot>(unidadeId ? `bot?unidadeId=${unidadeId}` : 'bot'),
+    enabled: ativo,
+  });
 
 /** Conexão do WhatsApp da unidade. Enquanto espera a leitura do QR, consulta a cada 3 s. */
 export const useConexaoBot = (unidadeId: string, ativo: boolean) =>

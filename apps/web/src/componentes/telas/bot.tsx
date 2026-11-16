@@ -19,6 +19,7 @@ import {
   type MenuBot,
   type MenuNo,
   type OpcaoMenu,
+  type DiagnosticoSimulacao,
   type RespostaSimulacao,
   type SessaoBot,
   type TurnoBot,
@@ -48,11 +49,12 @@ import {
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState, type FormEvent } from 'react';
+import { createContext, useContext, useEffect, useState, type FormEvent } from 'react';
 import { api, ErroApi } from '@/lib/api';
 import { chaveBot, useAcao, useBot, useConexaoBot, useUnidadesDetalhe } from '@/lib/consultas';
 import { Aviso } from '../aviso';
 import { Automacoes } from './automacoes';
+import { MensagensDeAnuncio } from './mensagens-anuncio';
 import { CabecalhoPagina, Estado, Ficha } from '../pagina';
 import { ConviteSeFaltar, SoNoPlano } from '../convite-plano';
 
@@ -61,8 +63,14 @@ const mensagemDe = (e: unknown) =>
 const novoId = () => Math.random().toString(36).slice(2, 10);
 const iguais = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 
+/** O que está sendo editado: "" (padrão da barbearia) ou "?unidadeId=…" nas chamadas. */
+const EscopoCtx = createContext('');
+const useEscopo = () => useContext(EscopoCtx);
+
 export function TelaBot() {
-  const bot = useBot();
+  // Padrão da barbearia (null) ou uma unidade (decisão do dono em 16/11/2026).
+  const [escopo, setEscopo] = useState<string | null>(null);
+  const bot = useBot(true, escopo);
   // O aviso de queda no topo do painel abre direto na aba Conexão.
   const abaInicial = useSearchParams().get('aba') === 'conexao' ? 'conexao' : 'menu';
   const [aba, setAba] = useState(abaInicial);
@@ -79,6 +87,9 @@ export function TelaBot() {
         {() => {
           const e = bot.data!;
           return (
+            <EscopoCtx.Provider value={escopo ? `?unidadeId=${escopo}` : ''}>
+            <div className="flex flex-col gap-6">
+            <EscolhaDoEscopo e={e} escopo={escopo} onEscopo={setEscopo} />
             <Abas
               rotulo="Bot"
               atual={aba}
@@ -89,7 +100,7 @@ export function TelaBot() {
                   rotulo: 'Menu',
                   conteudo: (
                     <EditorDoBot
-                      key={e.publicado.publicadoEm ?? 'padrao'}
+                      key={`${escopo ?? 'padrao'}:${e.publicado.publicadoEm ?? 'padrao'}`}
                       e={e}
                       retorno={retorno}
                       onRetorno={setRetorno}
@@ -97,7 +108,16 @@ export function TelaBot() {
                     />
                   ),
                 },
-                { id: 'mensagens', rotulo: 'Mensagens prontas', conteudo: <Mensagens e={e} /> },
+                {
+                  id: 'mensagens',
+                  rotulo: 'Mensagens prontas',
+                  conteudo: <Mensagens key={escopo ?? 'padrao'} e={e} />,
+                },
+                {
+                  id: 'anuncio',
+                  rotulo: 'Mensagens automáticas',
+                  conteudo: <MensagensDeAnuncio podeEditar={e.podeEditar} />,
+                },
                 { id: 'horario', rotulo: 'Horário', conteudo: <Horarios e={e} /> },
                 {
                   id: 'automacoes',
@@ -112,9 +132,101 @@ export function TelaBot() {
                 { id: 'conexao', rotulo: 'Conexão', conteudo: <Conexao e={e} /> },
               ]}
             />
+            </div>
+            </EscopoCtx.Provider>
           );
         }}
       </Estado>
+    </div>
+  );
+}
+
+/** Consultas do estado do bot (padrão e unidades), sem a conexão de cada unidade. */
+const estadoDoBot = (q: { queryKey: readonly unknown[] }) =>
+  q.queryKey[0] === chaveBot[0] && q.queryKey[1] !== 'conexao';
+
+/**
+ * Padrão da barbearia ou uma unidade (decisão do dono em 16/11/2026): a unidade usa o padrão até
+ * personalizar; "Voltar ao padrão" apaga o que é só dela. Os avisos dizem o que faz o bot falhar.
+ */
+function EscolhaDoEscopo({
+  e,
+  escopo,
+  onEscopo,
+}: {
+  e: EstadoBot;
+  escopo: string | null;
+  onEscopo: (id: string | null) => void;
+}) {
+  const [confirmar, setConfirmar] = useState(false);
+  const usarPadrao = useAcao(
+    () => api(`bot/unidade/${escopo}/personalizacao`, { metodo: 'DELETE' }),
+    [chaveBot],
+  );
+  const personalizada = !!escopo && (e.escopo.menuProprio || e.escopo.mensagensProprias.length > 0);
+  return (
+    <div className="flex flex-col gap-3">
+      {e.unidades.length > 1 && (
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="w-full max-w-xs">
+            <Selecao
+              id="bot-escopo"
+              rotulo="Editando"
+              value={escopo ?? ''}
+              onChange={(ev) => onEscopo(ev.target.value || null)}
+              opcoes={[
+                { valor: '', rotulo: 'Padrão da barbearia (todas as unidades)' },
+                ...e.unidades.map((u) => ({ valor: u.id, rotulo: `Só a ${u.nome}` })),
+              ]}
+            />
+          </div>
+          {personalizada && e.podeEditar && (
+            <Botao variante="secundario" onClick={() => setConfirmar(true)}>
+              Voltar ao padrão
+            </Botao>
+          )}
+        </div>
+      )}
+      {escopo && !personalizada && (
+        <Aviso tom="info">
+          A {e.escopo.nome} usa o menu e as mensagens do padrão da barbearia. O que você salvar aqui
+          vale só para ela; as outras unidades continuam com o padrão.
+        </Aviso>
+      )}
+      {escopo && personalizada && (
+        <Aviso tom="info">
+          A {e.escopo.nome} tem {e.escopo.menuProprio ? 'menu próprio' : 'o menu do padrão'}
+          {e.escopo.mensagensProprias.length
+            ? ` e ${e.escopo.mensagensProprias.length} ${e.escopo.mensagensProprias.length === 1 ? 'mensagem própria' : 'mensagens próprias'}`
+            : ''}
+          ; o resto vem do padrão da barbearia.
+        </Aviso>
+      )}
+      {e.avisos.length > 0 && (
+        <Aviso tom="aviso">
+          <p className="font-semibold">O que pode fazer o bot falhar:</p>
+          <ul className="mt-1 list-disc pl-5">
+            {e.avisos.map((a) => (
+              <li key={`${a.unidadeId}:${a.mensagem}`}>
+                {e.unidades.length > 1 ? `${a.unidade}: ` : ''}
+                {a.mensagem}
+              </li>
+            ))}
+          </ul>
+        </Aviso>
+      )}
+      <ModalConfirmacao
+        aberto={confirmar}
+        titulo="Voltar ao padrão?"
+        descricao={`O menu e as mensagens próprios da ${e.escopo.nome} serão apagados, e ela volta a usar o padrão da barbearia.`}
+        textoConfirmar="Voltar ao padrão"
+        carregando={usarPadrao.isPending}
+        onCancelar={() => setConfirmar(false)}
+        onConfirmar={async () => {
+          await usarPadrao.mutateAsync(undefined).catch(() => undefined);
+          setConfirmar(false);
+        }}
+      />
     </div>
   );
 }
@@ -176,16 +288,23 @@ function EditorDoBot({
   const semLink = usaAgendar(menu)
     ? (unidades.data ?? []).filter((u) => u.ativa && !u.agendamentoPublico)
     : [];
-  const salvar = useAcao((m: MenuBot) => api('bot/menu', { metodo: 'PUT', corpo: m }), [chaveBot]);
+  const q = useEscopo();
+  const salvar = useAcao(
+    (m: MenuBot) => api(`bot/menu${q}`, { metodo: 'PUT', corpo: m }),
+    [chaveBot],
+  );
   const publicar = useAcao(
     async (m: MenuBot) => {
-      await api('bot/menu', { metodo: 'PUT', corpo: m });
-      await api('bot/menu/publicar', { corpo: {} });
+      await api(`bot/menu${q}`, { metodo: 'PUT', corpo: m });
+      await api(`bot/menu/publicar${q}`, { corpo: {} });
     },
     [chaveBot],
   );
-  const voltar = useAcao(() => api('bot/menu/restaurar', { corpo: {} }), [chaveBot]);
-  const jogarFora = useAcao(() => api('bot/menu/rascunho', { metodo: 'DELETE' }), [chaveBot]);
+  const voltar = useAcao(() => api(`bot/menu/restaurar${q}`, { corpo: {} }), [chaveBot]);
+  const jogarFora = useAcao(
+    () => api(`bot/menu/rascunho${q}`, { metodo: 'DELETE' }),
+    [chaveBot],
+  );
   const executar = async (fn: () => Promise<unknown>, sucesso: string) => {
     onRetorno(null);
     try {
@@ -680,8 +799,9 @@ function Mensagens({ e }: { e: EstadoBot }) {
   const [textos, setTextos] = useState<MensagensBot>(e.mensagens);
   const [erro, setErro] = useState<string | null>(null);
   const [ok, setOk] = useState(false);
+  const q = useEscopo();
   const salvar = useAcao(
-    (m: MensagensBot) => api('bot/mensagens', { metodo: 'PUT', corpo: { mensagens: m } }),
+    (m: MensagensBot) => api(`bot/mensagens${q}`, { metodo: 'PUT', corpo: { mensagens: m } }),
     [chaveBot],
   );
   const enviar = async (ev: FormEvent) => {
@@ -699,7 +819,10 @@ function Mensagens({ e }: { e: EstadoBot }) {
     <form onSubmit={enviar} className="flex max-w-3xl flex-col gap-5">
       <PesquisaLigada e={e} />
       <p className="text-tinta-suave">
-        Valem para todas as unidades. Use {'{cliente}'}, {'{barbearia}'}, {'{unidade}'},{' '}
+        {e.escopo.unidadeId
+          ? `Só na ${e.escopo.nome}: a mensagem igual à do padrão continua seguindo o padrão. `
+          : 'Padrão da barbearia: vale nas unidades que não personalizaram. '}
+        Use {'{cliente}'}, {'{barbearia}'}, {'{unidade}'},{' '}
         {'{horario}'}, {'{endereco}'} e {'{link}'}; na pesquisa, também {'{profissional}'}.
       </p>
       <fieldset disabled={!e.podeEditar} className="flex min-w-0 flex-col gap-5">
@@ -997,6 +1120,9 @@ function Simulador({ e }: { e: EstadoBot }) {
   );
   const [cliente, setCliente] = useState('João Silva');
   const [fechado, setFechado] = useState(false);
+  const [doAnuncio, setDoAnuncio] = useState(false);
+  // De onde veio o menu do teste (lista do dono em 16/11: "rascunho sem opções").
+  const [diagnostico, setDiagnostico] = useState<DiagnosticoSimulacao | null>(null);
   const [falas, setFalas] = useState<Fala[]>([]);
   const [sessao, setSessao] = useState<SessaoBot | null>(null);
   const [texto, setTexto] = useState('');
@@ -1006,6 +1132,7 @@ function Simulador({ e }: { e: EstadoBot }) {
   const reiniciar = () => {
     setFalas([]);
     setSessao(null);
+    setDiagnostico(null);
   };
   const enviar = async (entrada: string) => {
     if (!entrada.trim() || enviando) return;
@@ -1022,9 +1149,12 @@ function Simulador({ e }: { e: EstadoBot }) {
           versao,
           cliente: cliente.trim() || null,
           foraDoHorario: fechado,
+          // Só a primeira mensagem chega "pelo anúncio"; as respostas seguem a conversa.
+          doAnuncio: doAnuncio && sessao === null,
         },
       });
       setSessao(r.sessao);
+      setDiagnostico(r.diagnostico);
       const respostas: Fala[] = r.respostas.map((t) => ({ de: 'bot', texto: t }));
       const nota =
         r.consentimento === false
@@ -1103,9 +1233,33 @@ function Simulador({ e }: { e: EstadoBot }) {
           />
           Simular fora do horário
         </label>
+        <label className="flex min-h-11 items-center gap-2">
+          <input
+            type="checkbox"
+            checked={doAnuncio}
+            onChange={(ev) => {
+              setDoAnuncio(ev.target.checked);
+              reiniciar();
+            }}
+            className="size-5 accent-[var(--modulo)]"
+          />
+          Chegou por anúncio
+        </label>
         <Botao variante="secundario" onClick={reiniciar}>
           <RotateCcw aria-hidden className="size-4" /> Recomeçar conversa
         </Botao>
+        {diagnostico && (
+          <div className="flex flex-col gap-2 text-sm" aria-live="polite">
+            <p className="text-tinta-suave">
+              Menu usado: {diagnostico.versao === 'rascunho' ? 'rascunho' : 'publicado'}{' '}
+              {diagnostico.deQuem === 'unidade' ? 'da unidade' : 'do padrão da barbearia'}
+              {diagnostico.opcoes.length
+                ? `, com ${diagnostico.opcoes.length} ${diagnostico.opcoes.length === 1 ? 'opção' : 'opções'}: ${diagnostico.opcoes.join(', ')}.`
+                : ', sem opções.'}
+            </p>
+            {diagnostico.aviso && <Aviso tom="aviso">{diagnostico.aviso}</Aviso>}
+          </div>
+        )}
       </div>
 
       <div className="flex min-h-[28rem] flex-col overflow-hidden rounded-lg border border-borda bg-fundo">
@@ -1251,7 +1405,7 @@ function ConexaoUnidade({ u }: { u: UnidadeDoBot }) {
   const chave = [...chaveBot, 'conexao', u.id];
   const guardar = (c: ConexaoBot) => {
     cliente.setQueryData(chave, c);
-    void cliente.invalidateQueries({ queryKey: chaveBot, exact: true });
+    void cliente.invalidateQueries({ predicate: estadoDoBot });
   };
   const conectar = useMutation({
     mutationFn: () => api<ConexaoBot>(`bot/conexao/${u.id}`, { metodo: 'POST' }),
@@ -1277,7 +1431,7 @@ function ConexaoUnidade({ u }: { u: UnidadeDoBot }) {
   // Conectou com o QR na tela: o resto do painel (estado das unidades) se atualiza.
   const status = consulta.data?.status;
   useEffect(() => {
-    if (status === 'conectado') void cliente.invalidateQueries({ queryKey: chaveBot, exact: true });
+    if (status === 'conectado') void cliente.invalidateQueries({ predicate: estadoDoBot });
   }, [status, cliente]);
 
   return (
