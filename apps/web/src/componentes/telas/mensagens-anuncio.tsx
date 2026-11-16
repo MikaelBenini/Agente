@@ -50,7 +50,9 @@ export function MensagensDeAnuncio({
           )}
           {unidadeId && fluxo.data!.proprio && podeEditar && (
             <div className="flex flex-wrap items-center gap-3">
-              <p className="text-sm text-tinta-suave">A {nome} tem mensagens de anúncio próprias.</p>
+              <p className="text-sm text-tinta-suave">
+                A {nome} tem mensagens de anúncio próprias.
+              </p>
               <Botao
                 variante="secundario"
                 carregando={padrao.isPending}

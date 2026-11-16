@@ -178,7 +178,9 @@ export async function situacaoDaUnidade(
 /** Mensagens de anúncio: as da unidade, se ela personalizou; senão, as da conta. */
 export async function fluxoAnuncioDaUnidade(tx: Tx, u: { fluxoAnuncio: Prisma.JsonValue | null }) {
   if (u.fluxoAnuncio !== null) return lerFluxoAnuncio(u.fluxoAnuncio);
-  return lerFluxoAnuncio((await tx.conta.findFirst({ select: { fluxoAnuncio: true } }))?.fluxoAnuncio);
+  return lerFluxoAnuncio(
+    (await tx.conta.findFirst({ select: { fluxoAnuncio: true } }))?.fluxoAnuncio,
+  );
 }
 
 /** O que o motor precisa saber da unidade para responder. */
@@ -746,7 +748,10 @@ export async function atenderMensagem(
         const deAnuncio = !!evento.anuncio || !!r.anuncioComecou;
         // Cliente novo que entrou pela frase do anúncio: a origem também é o anúncio.
         if (clienteNovo && r.anuncioComecou && !evento.anuncio)
-          await tx.cliente.update({ where: { id: cliente.id }, data: { origemLead: ORIGEM_ANUNCIO } });
+          await tx.cliente.update({
+            where: { id: cliente.id },
+            data: { origemLead: ORIGEM_ANUNCIO },
+          });
         const anuncio = {
           anuncioEm: deAnuncio ? (salva?.anuncioEm ?? agora) : (salva?.anuncioEm ?? null),
           anuncioTitulo: evento.anuncio?.titulo ?? salva?.anuncioTitulo ?? null,
@@ -950,7 +955,9 @@ export async function registrarMensagemPropria(
   if (!conexao) return 'sem_conexao';
   const { contaId, unidadeId } = conexao;
   return naConta(prisma, contaId, async (tx) => {
-    if (await tx.mensagem.findFirst({ where: { idExterno: evento.idExterno }, select: { id: true } }))
+    if (
+      await tx.mensagem.findFirst({ where: { idExterno: evento.idExterno }, select: { id: true } })
+    )
       return 'eco';
     const variantes = variantesTelefone(evento.telefone);
     const agora = new Date();

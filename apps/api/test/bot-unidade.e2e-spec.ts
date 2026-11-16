@@ -163,9 +163,9 @@ describe('mensagens automáticas de quem vem de anúncio', () => {
       (await conversa(a.unidadeB, { cliente: null })('oi', { doAnuncio: true })).respostas,
     ).toEqual(['Mensagem só da B']);
     await dono.delete(`/bot/anuncio?unidadeId=${a.unidadeB}`).expect(204);
-    expect(
-      (await dono.get(`/bot/anuncio?unidadeId=${a.unidadeB}`).expect(200)).body.proprio,
-    ).toBe(false);
+    expect((await dono.get(`/bot/anuncio?unidadeId=${a.unidadeB}`).expect(200)).body.proprio).toBe(
+      false,
+    );
 
     const fala = conversa(a.unidadeA, { cliente: null });
     expect((await fala('oi', { doAnuncio: true })).respostas).toEqual([

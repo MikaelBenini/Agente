@@ -80,7 +80,10 @@ describe('mensagem que saiu do próprio número', () => {
 
   it('a equipe respondendo pelo celular entra no histórico e tira o bot da conversa', async () => {
     expect(
-      await registrarMensagemPropria(prisma, evento('ID-DO-CELULAR', 'Oi! Aqui é o Diego, já te encaixo.')),
+      await registrarMensagemPropria(
+        prisma,
+        evento('ID-DO-CELULAR', 'Oi! Aqui é o Diego, já te encaixo.'),
+      ),
     ).toBe('equipe');
     const { s, m } = await naConta(prisma, conta, async (tx) => ({
       s: await tx.botSessao.findFirstOrThrow({ where: { unidadeId, telefone } }),
@@ -91,7 +94,10 @@ describe('mensagem que saiu do próprio número', () => {
     expect(m).toMatchObject({ direcao: 'saida', status: 'enviada' });
     // A mesma mensagem entregue de novo é eco (já está gravada).
     expect(
-      await registrarMensagemPropria(prisma, evento('ID-DO-CELULAR', 'Oi! Aqui é o Diego, já te encaixo.')),
+      await registrarMensagemPropria(
+        prisma,
+        evento('ID-DO-CELULAR', 'Oi! Aqui é o Diego, já te encaixo.'),
+      ),
     ).toBe('eco');
   });
 

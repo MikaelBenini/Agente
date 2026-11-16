@@ -773,8 +773,9 @@ export function ClientesDeAnuncio({ de, ate }: { de: string; ate: string }) {
           Clientes de anúncio
         </h2>
         <p className="text-sm text-tinta-suave">
-          Quem chegou pelo WhatsApp por um anúncio do Facebook ou do Instagram. &ldquo;Gastaram&rdquo;
-          soma as comandas fechadas no mês de todos os clientes que vieram de anúncio.
+          Quem chegou pelo WhatsApp por um anúncio do Facebook ou do Instagram.
+          &ldquo;Gastaram&rdquo; soma as comandas fechadas no mês de todos os clientes que vieram de
+          anúncio.
         </p>
       </div>
       <dl className="grid grid-cols-2 gap-3 sm:grid-cols-5">

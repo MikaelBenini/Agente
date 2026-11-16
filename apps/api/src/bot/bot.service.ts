@@ -355,7 +355,11 @@ export class BotService {
     return this.banco.daConta(async (tx) => {
       await this.escopo(tx, unidadeId);
       await tx.unidade.update({ where: { id: unidadeId }, data: { fluxoAnuncio: Prisma.DbNull } });
-      await auditar(tx, { entidade: 'unidade', entidadeId: unidadeId, acao: 'fluxo_anuncio_padrao' });
+      await auditar(tx, {
+        entidade: 'unidade',
+        entidadeId: unidadeId,
+        acao: 'fluxo_anuncio_padrao',
+      });
     });
   }
 

@@ -11,7 +11,7 @@ import type {
   TabelaPrecos,
   UnidadeDetalhe,
   UsuarioEquipe,
-  type ResumoAnuncios,
+  ResumoAnuncios,
 } from '@pente-fino/shared';
 import { useMutation, useQuery, useQueryClient, type QueryKey } from '@tanstack/react-query';
 import { api } from './api';
