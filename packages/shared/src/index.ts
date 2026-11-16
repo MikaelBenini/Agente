@@ -40,6 +40,7 @@ export * from './bloqueios.js';
 export * from './ocupacao.js';
 export * from './assinatura.js';
 export * from './agendar-bot.js';
+export * from './pedido-bot.js';
 export * from './lembretes.js';
 export * from './regras-agendamento.js';
 export * from './canais.js';

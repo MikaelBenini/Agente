@@ -5,6 +5,7 @@ import {
   dataLocal,
   dataParaBanco,
   dentroDoHorario,
+  proximaAbertura,
   descreverHorario,
   EXPIRACAO_SESSAO_MIN,
   grupoDaPalavraChave,
@@ -179,10 +180,10 @@ export async function contextoDaConversa(
   });
   const conta = await tx.conta.findFirst({ select: { nome: true } });
   const hoje = dataLocal(agora);
-  const precos: { nome: string; valor: number }[] = [];
+  const precos: { nome: string; valor: number; duracaoMin: number }[] = [];
   for (const sv of servicos) {
     const valor = await precoServicoVigente(tx, sv.id, u.id, hoje);
-    if (valor !== undefined) precos.push({ nome: sv.nome, valor });
+    if (valor !== undefined) precos.push({ nome: sv.nome, valor, duracaoMin: sv.duracaoMin });
   }
   return {
     agora,
@@ -193,6 +194,8 @@ export async function contextoDaConversa(
     dentroDoHorario: s.aberto,
     link: s.link,
     precos,
+    // Quando a recepção volta, para o "falar com atendente" fora do horário.
+    proximaAbertura: s.aberto ? null : proximaAbertura(s.horario ?? s.expediente, agora),
     clube: await clubeNoBot(tx, u, clienteId, hoje as DataISO, appUrl),
     ...resto,
   };
