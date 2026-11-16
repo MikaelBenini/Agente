@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import type { Transacao } from '@pente-fino/db';
+import { garantirSalariosDoMes, type Transacao } from '@pente-fino/db';
 import {
   dataLocal,
   temAlgumPapel,
@@ -227,6 +227,9 @@ export class ProfissionaisService {
         },
         depois: d,
       });
+      // O salário do mês acompanha o valor fixo (pedido do dono em 16/11/2026).
+      if (d.custoFixoMensal !== undefined || ativo !== undefined || dataSaida !== undefined)
+        await garantirSalariosDoMes(tx, dataLocal(new Date()).slice(0, 7), id);
       return detalhe(await this.carregar(tx, id), true);
     });
   }

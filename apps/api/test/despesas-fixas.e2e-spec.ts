@@ -234,3 +234,37 @@ describe('salário dos barbeiros na cópia das fixas', () => {
       .expect(400);
   });
 });
+
+// Pedido do dono em 16/11/2026: "o salário não aparece como fixo". Agora entra sozinho no mês.
+describe('salário automático nas despesas fixas do mês', () => {
+  it('aparece ao definir o valor fixo, acompanha a mudança e sai quando o valor zera', async () => {
+    const mes = new Date(Date.now() - 3 * 3_600_000).toISOString().slice(0, 7);
+    const prof = (
+      await dono
+        .post('/profissionais', {
+          unidadeId: a.unidadeA,
+          nome: 'Tadeu Automático',
+          email: `tadeu-${Date.now()}@e2e.pentefino.dev`,
+          dataEntrada: '2025-01-01',
+          comissaoServico: { percentualBp: 4000, valorFixo: null },
+          comissaoProduto: { percentualBp: 1000, valorFixo: null },
+        })
+        .expect(201)
+    ).body.id as string;
+    const salarios = async () =>
+      ((await dono.get(`/despesas?mes=${mes}`).expect(200)).body as DespesaDetalhe[]).filter(
+        (d) => d.descricao === 'Salário: Tadeu Automático',
+      );
+    expect(await salarios()).toEqual([]);
+    await dono.patch(`/profissionais/${prof}`, { custoFixoMensal: 200_000 }).expect(200);
+    expect(await salarios()).toEqual([
+      expect.objectContaining({ valor: 200_000, pago: false, competencia: mes }),
+    ]);
+    // Abrir de novo não duplica; mudar o valor atualiza o do mês.
+    expect(await salarios()).toHaveLength(1);
+    await dono.patch(`/profissionais/${prof}`, { custoFixoMensal: 210_000 }).expect(200);
+    expect((await salarios()).map((d) => d.valor)).toEqual([210_000]);
+    await dono.patch(`/profissionais/${prof}`, { custoFixoMensal: 0 }).expect(200);
+    expect(await salarios()).toEqual([]);
+  });
+});

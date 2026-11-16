@@ -11,11 +11,12 @@ import {
   Post,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Prisma, type Transacao } from '@pente-fino/db';
+import { garantirSalariosDoMes, Prisma, type Transacao } from '@pente-fino/db';
 import {
   CATEGORIA_SALARIOS,
   categoriaDespesaSchema,
   copiarFixasSchema,
+  dataLocal,
   descricaoSalario,
   despesaSchema,
   mesAnteriorDe,
@@ -203,6 +204,9 @@ export class DespesasController {
   async listar(@Consulta(consulta) c: z.infer<typeof consulta>): Promise<DespesaDetalhe[]> {
     const { filtro, incluiConta } = escopoUnidades(c.unidadeId, GESTAO);
     return this.banco.daConta(async (tx) => {
+      // No mês atual, o salário dos barbeiros com valor fixo já aparece como despesa fixa
+      // (pedido do dono em 16/11/2026); nunca duplica.
+      if (c.mes === dataLocal(new Date()).slice(0, 7)) await garantirSalariosDoMes(tx, c.mes);
       const lista = await tx.despesa.findMany({
         where: { competencia: data(`${c.mes}-01`), ...(incluiConta && !c.unidadeId ? {} : filtro) },
         orderBy: [{ pago: 'asc' }, { vencimento: 'asc' }, { descricao: 'asc' }],
