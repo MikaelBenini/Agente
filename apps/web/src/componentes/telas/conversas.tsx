@@ -1,7 +1,15 @@
 'use client';
 
 import { formatarHora, formatarTelefone, type ConversaResumo } from '@pente-fino/shared';
-import { Botao, CampoTexto, cn, EstadoVazio, Marcador, ModalConfirmacao } from '@pente-fino/ui';
+import {
+  Botao,
+  CampoTexto,
+  cn,
+  EstadoVazio,
+  Marcador,
+  ModalConfirmacao,
+  Selecao,
+} from '@pente-fino/ui';
 import { ArrowLeft, Bot, Hand, MessagesSquare, Send } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -55,7 +63,13 @@ function FichaSituacao({ c }: { c: ConversaResumo }) {
  */
 export function TelaConversas() {
   const { unidadeAtiva, unidades, papeis } = useApp();
-  const lista = useConversas(unidadeAtiva);
+  // Filtro da própria tela (pedido do dono em 16/11/2026): com "Todas as unidades" no alto,
+  // escolher uma unidade aqui; e ver só quem veio de anúncio.
+  const [filtroUnidade, setFiltroUnidade] = useState('todas');
+  const [soAnuncio, setSoAnuncio] = useState(false);
+  const escolhida = unidadeAtiva === 'todas' ? filtroUnidade : unidadeAtiva;
+  const lista = useConversas(escolhida);
+  const ativas = unidades.filter((u) => u.ativa);
   const [aberta, setAberta] = useState<string | null>(null);
   const gestao = papeis.includes('dono') || papeis.includes('gestor');
   const nomeUnidade = (id: string) => unidades.find((u) => u.id === id)?.nome ?? '';
@@ -69,15 +83,46 @@ export function TelaConversas() {
       />
       <Estado consulta={lista}>
         {() => {
-          const { conversas, conectado } = lista.data!;
+          const { conectado } = lista.data!;
+          const conversas = soAnuncio
+            ? lista.data!.conversas.filter((c) => c.anuncio)
+            : lista.data!.conversas;
           const atual = conversas.find((c) => c.id === aberta) ?? null;
           const esperando = conversas.filter((c) => c.situacao === 'aguardando');
           const outras = conversas.filter((c) => c.situacao !== 'aguardando');
           return (
             <div className="flex flex-col gap-4">
+              <div className="flex flex-wrap items-end gap-4">
+                {unidadeAtiva === 'todas' && ativas.length > 1 && (
+                  <div className="w-full max-w-xs">
+                    <Selecao
+                      id="conversas-unidade"
+                      rotulo="Unidade"
+                      value={filtroUnidade}
+                      onChange={(e) => {
+                        setFiltroUnidade(e.target.value);
+                        setAberta(null);
+                      }}
+                      opcoes={[
+                        { valor: 'todas', rotulo: 'Todas as unidades' },
+                        ...ativas.map((u) => ({ valor: u.id, rotulo: u.nome })),
+                      ]}
+                    />
+                  </div>
+                )}
+                <label className="flex min-h-11 items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={soAnuncio}
+                    onChange={(e) => setSoAnuncio(e.target.checked)}
+                    className="size-5 accent-[var(--modulo)]"
+                  />
+                  Só quem veio de anúncio
+                </label>
+              </div>
               {!conectado && (
                 <Aviso tom="aviso">
-                  O WhatsApp {unidadeAtiva === 'todas' ? 'das unidades' : 'desta unidade'} não está
+                  O WhatsApp {escolhida === 'todas' ? 'das unidades' : 'desta unidade'} não está
                   conectado: dá para ler as conversas, mas as respostas não saem.{' '}
                   {gestao && (
                     <Link href="/bot?aba=conexao" className="font-semibold underline">
@@ -89,8 +134,12 @@ export function TelaConversas() {
               {conversas.length === 0 ? (
                 <EstadoVazio
                   icone={MessagesSquare}
-                  titulo="Nenhuma conversa ainda"
-                  texto="Quando um cliente mandar mensagem no WhatsApp da barbearia, a conversa aparece aqui. Quem pedir atendente fica no topo."
+                  titulo={soAnuncio ? 'Nenhuma conversa de anúncio' : 'Nenhuma conversa ainda'}
+                  texto={
+                    soAnuncio
+                      ? 'Quem chegar por um anúncio do Facebook ou do Instagram aparece aqui, marcado "Veio de anúncio".'
+                      : 'Quando um cliente mandar mensagem no WhatsApp da barbearia, a conversa aparece aqui. Quem pedir atendente fica no topo.'
+                  }
                 />
               ) : (
                 <div className="grid gap-4 lg:grid-cols-[20rem_minmax(0,1fr)]">
@@ -104,7 +153,7 @@ export function TelaConversas() {
                       conversas={esperando}
                       aberta={aberta}
                       onAbrir={setAberta}
-                      nomeUnidade={unidadeAtiva === 'todas' ? nomeUnidade : undefined}
+                      nomeUnidade={escolhida === 'todas' ? nomeUnidade : undefined}
                     />
                     <GrupoConversas
                       titulo="Recentes"
@@ -112,7 +161,7 @@ export function TelaConversas() {
                       conversas={outras}
                       aberta={aberta}
                       onAbrir={setAberta}
-                      nomeUnidade={unidadeAtiva === 'todas' ? nomeUnidade : undefined}
+                      nomeUnidade={escolhida === 'todas' ? nomeUnidade : undefined}
                     />
                   </nav>
                   {atual ? (
