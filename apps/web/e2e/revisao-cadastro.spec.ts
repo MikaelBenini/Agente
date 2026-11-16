@@ -37,9 +37,10 @@ test('falha passageira na conferência não apaga o cupom do link nem dos botõe
   await expect(page.getByLabel('Cupom de desconto (opcional)')).toHaveValue('LANCAMENTO');
 
   await page.goto('/planos');
-  await expect(
-    page.getByRole('link', { name: /Testar 14 dias grátis no plano Pro/ }).first(),
-  ).toHaveAttribute('href', /cupom=LANCAMENTO/);
+  await expect(page.locator('a[href*="plano=pro"]').first()).toHaveAttribute(
+    'href',
+    /cupom=LANCAMENTO/,
+  );
 });
 
 test('planos: avisos, bot e Automações lado a lado', async ({ page }) => {
@@ -50,7 +51,7 @@ test('planos: avisos, bot e Automações lado a lado', async ({ page }) => {
   await expect(quadro.getByRole('heading', { name: 'Avisos no WhatsApp' })).toBeVisible();
   await expect(quadro.getByText('Todos os planos')).toBeVisible();
   await expect(quadro.getByRole('heading', { name: 'Bot que marca pela conversa' })).toBeVisible();
-  await expect(quadro.getByRole('heading', { name: 'Automações' })).toBeVisible();
+  await expect(quadro.getByRole('heading', { name: 'Automações', exact: true })).toBeVisible();
 });
 
 test('login: mostrar senha e o envio vazio pede o e-mail e a senha', async ({ page }) => {
