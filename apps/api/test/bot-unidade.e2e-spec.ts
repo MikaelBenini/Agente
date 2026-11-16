@@ -189,3 +189,17 @@ describe('mensagens automáticas de quem vem de anúncio', () => {
       .expect(400);
   });
 });
+
+describe('relatório de clientes de anúncio', () => {
+  it('responde o resumo do período (sem anúncio, tudo zero)', async () => {
+    const r = await dono.get(`/anuncios?de=${hoje.slice(0, 8)}01&ate=${hoje}`).expect(200);
+    expect(r.body).toEqual({
+      conversas: 0,
+      novosClientes: 0,
+      clientesQueCompraram: 0,
+      faturamento: 0,
+      ticket: 0,
+      porAnuncio: [],
+    });
+  });
+});
