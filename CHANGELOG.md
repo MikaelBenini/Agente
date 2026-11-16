@@ -7,6 +7,18 @@ produção (`https://seupentefino.com.br`). Detalhes técnicos e o porquê de ca
 
 ## [Não publicado]
 
+### Adicionado (bot do WhatsApp por unidade, mais esperto e anúncios)
+
+- **Bot por unidade:** em Bot, "Editando" escolhe o padrão da barbearia ou uma unidade. A unidade usa o padrão até personalizar o menu e as mensagens dela; "Voltar ao padrão" desfaz.
+- **Avisos antes de publicar:** unidade sem número conectado, sem serviço com preço ou sem link de agendamento aparece no alto da tela do bot.
+- **Simulador explica o que carregou:** de onde veio o menu (rascunho ou publicado, da unidade ou do padrão), as opções e, se não houver rascunho ou o menu estiver sem opções, o motivo.
+- **Pedido numa frase:** "quero cortar amanhã às 15h" já anota o serviço, o dia e a hora; livre, vai para a confirmação; ocupado, mostra os horários livres mais perto.
+- **Preço direto:** "quanto é a barba?" responde "Barba custa R$ 35,00 e leva 30 min. Quer marcar?"; a tabela inteira fica para quem pedir.
+- **VOLTAR e MENU previsíveis** no agendamento pela conversa, e "Trocar o profissional" na confirmação, mantendo o serviço.
+- **Passagem para a recepção:** fora do horário, o bot diz quando a recepção volta; em Conversas, a equipe vê o que o cliente já tinha escolhido (serviço, profissional, dia e hora).
+- **Mensagens automáticas de anúncio** (aba nova no Bot): quem vem de anúncio do Facebook/Instagram recebe uma conversa própria, em sequência, e passa para a equipe; a conversa fica marcada "Veio de anúncio", com as respostas.
+- **Conversas:** filtro por unidade (com "Todas as unidades" no alto) e "Só quem veio de anúncio".
+
 ### Corrigido e melhorado (cadastro, unidade em uso e login — revisão de 16/11)
 
 - **Cupom que sumia:** quem navegava por algumas páginas do site estourava o limite de consultas do login (10 por minuto), e aí os botões levavam ao cadastro sem o cupom e o cadastro apagava o LANCAMENTO em silêncio. A consulta do cupom saiu desse limite, e só a recusa do cupom (não existe, venceu, sem vagas) encerra a oferta na tela; falha passageira mantém o cupom, que a API confere de novo ao criar a conta.
