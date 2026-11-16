@@ -3,6 +3,7 @@ import { json, mensagensDoBot, type Prisma } from '@pente-fino/db';
 import {
   dataLocal,
   descreverPedido,
+  resumoDoAnuncio,
   preencher,
   variantesTelefone,
   type ConversaResumo,
@@ -122,10 +123,16 @@ export class ConversasService {
             ? { texto: m.texto, direcao: m.direcao, criadoEm: m.criadoEm.toISOString() }
             : null,
           atualizadoEm: s.atualizadoEm.toISOString(),
-          pedido:
-            sessao.comAtendente && sessao.pedido
-              ? descreverPedido(sessao.pedido, nomes, hoje)
-              : null,
+          pedido: !sessao.comAtendente
+            ? null
+            : sessao.respostasAnuncio
+              ? resumoDoAnuncio(sessao.respostasAnuncio)
+              : sessao.pedido
+                ? descreverPedido(sessao.pedido, nomes, hoje)
+                : null,
+          anuncio: s.anuncioEm
+            ? { desde: s.anuncioEm.toISOString(), titulo: s.anuncioTitulo }
+            : null,
         };
       });
       return {

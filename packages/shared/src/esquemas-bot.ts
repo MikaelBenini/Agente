@@ -125,6 +125,8 @@ export const simularBotSchema = z.object({
   cliente: z.string().trim().max(60).nullable().default(null),
   /** Testar a mensagem de fora do horário sem esperar a barbearia fechar. */
   foraDoHorario: z.boolean().default(false),
+  /** Simular a mensagem chegando por um anúncio (fluxo automático do anúncio). */
+  doAnuncio: z.boolean().default(false),
 });
 export type SimularBotEntrada = z.input<typeof simularBotSchema>;
 export type SimularBotDados = z.output<typeof simularBotSchema>;
@@ -201,6 +203,8 @@ export interface ConversaResumo {
    * Diego · sábado às 15h"); null quando não estava marcando (lista do dono em 16/11/2026).
    */
   pedido: string | null;
+  /** Chegou por anúncio: desde quando e o título do anúncio, quando o WhatsApp manda. */
+  anuncio: { desde: string; titulo: string | null } | null;
 }
 
 export interface ListaConversas {

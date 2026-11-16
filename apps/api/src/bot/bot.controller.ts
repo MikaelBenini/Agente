@@ -16,7 +16,10 @@ import {
   automacoesSchema,
   dataLocal,
   escopoBotSchema,
+  fluxoAnuncioSchema,
   type EscopoBotEntrada,
+  type FluxoAnuncio,
+  type FluxoAnuncioEntrada,
   horarioBotSchema,
   mensagensBotSchema,
   pesquisaBotSchema,
@@ -106,6 +109,23 @@ export class BotController {
   @ApiOperation({ summary: 'A unidade volta a usar o menu e as mensagens do padrão da barbearia' })
   usarPadrao(@Param('unidadeId', ParseUUIDPipe) unidadeId: string) {
     return this.servico.usarPadrao(unidadeId);
+  }
+
+  @Get('anuncio')
+  @Papeis(...GESTAO)
+  @ApiOperation({ summary: 'Mensagens automáticas de quem vem de anúncio' })
+  anuncio(): Promise<FluxoAnuncio> {
+    return this.servico.fluxoAnuncio();
+  }
+
+  @Put('anuncio')
+  @Papeis('dono')
+  @Auditada()
+  @ApiOperation({
+    summary: 'Gravar o fluxo de quem vem de anúncio: frases, mensagens em sequência e a final',
+  })
+  salvarAnuncio(@Corpo(fluxoAnuncioSchema) d: FluxoAnuncioEntrada): Promise<FluxoAnuncio> {
+    return this.servico.salvarFluxoAnuncio(d);
   }
 
   @Put('pesquisa')

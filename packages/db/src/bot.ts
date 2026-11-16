@@ -37,7 +37,10 @@ import {
   type DataISO,
   type VagaLiberada,
   caminhoAssinarClube,
+  lerFluxoAnuncio,
   lerPedidoNatural,
+  responderAnuncio,
+  type FluxoAnuncio,
   linkDeAgendamento,
 } from '@pente-fino/shared';
 import { Prisma, type PrismaClient } from './generated/prisma/client.js';
@@ -310,9 +313,13 @@ export async function responderComAgenda(
     entrada: string;
     ctx: ContextoConversa;
     dados: DadosDaConversa;
+    /** Fluxo de quem vem de anúncio e se esta mensagem veio de um (pedido do dono em 16/11). */
+    anuncio?: { fluxo: FluxoAnuncio; doAnuncio: boolean };
   },
 ): Promise<
   ResultadoConversa & {
+    /** Começou agora a conversa automática do anúncio (marca a conversa). */
+    anuncioComecou?: boolean;
     agendamento?: { id: string; inicio: string };
     mudanca?: PassoDaAgenda['mudanca'];
     /** Lista de espera: "já foi preenchido" para os outros que receberam a vaga. */
@@ -321,6 +328,27 @@ export async function responderComAgenda(
     vaga?: VagaLiberada;
   }
 > {
+  // Quem vem de anúncio tem conversa própria, antes do menu (pedido do dono em 16/11).
+  if (d.anuncio && !d.sessao?.pesquisa) {
+    const a = responderAnuncio(
+      d.anuncio.fluxo,
+      d.sessao,
+      d.entrada,
+      d.dados.agora,
+      d.anuncio.doAnuncio,
+      d.ctx.cliente,
+    );
+    if (a)
+      return {
+        respostas: a.respostas,
+        sessao: a.sessao,
+        acao: a.paraEquipe ? 'falar_com_atendente' : null,
+        consentimento: null,
+        avaliacao: null,
+        anuncioComecou: a.comecou,
+      };
+  }
+
   const { agenda, lembrete, oferta, ...resto } = d.sessao ?? ({} as SessaoBot);
   const base: SessaoBot | null = d.sessao ? resto : null;
   const texto = normalizar(d.entrada);
@@ -654,6 +682,12 @@ export async function atenderMensagem(
             agora,
             regras: lerRegrasAgendamento(u.regrasAgendamento),
           },
+          anuncio: {
+            fluxo: lerFluxoAnuncio(
+              (await tx.conta.findFirst({ select: { fluxoAnuncio: true } }))?.fluxoAnuncio,
+            ),
+            doAnuncio: !!evento.anuncio,
+          },
         });
         if (r.avaliacao) await gravarRespostaPesquisa(tx, r.avaliacao, agora);
         // Fim da pesquisa com nota 5 e link do Google na unidade: convite para avaliar lá.
@@ -690,6 +724,12 @@ export async function atenderMensagem(
 
         // Pediu atendente agora: entra na fila da tela Conversas; o bot voltou: sai dela.
         const atendenteDesde = r.sessao.comAtendente ? (salva?.atendenteDesde ?? agora) : null;
+        // Veio de anúncio (o WhatsApp avisou, ou entrou no fluxo pela frase): a conversa fica marcada.
+        const deAnuncio = !!evento.anuncio || !!r.anuncioComecou;
+        const anuncio = {
+          anuncioEm: deAnuncio ? (salva?.anuncioEm ?? agora) : (salva?.anuncioEm ?? null),
+          anuncioTitulo: evento.anuncio?.titulo ?? salva?.anuncioTitulo ?? null,
+        };
         await tx.botSessao.upsert({
           where: { unidadeId_telefone: { unidadeId, telefone: evento.telefone } },
           create: {
@@ -698,8 +738,9 @@ export async function atenderMensagem(
             clienteId: cliente.id,
             sessao: json(r.sessao),
             atendenteDesde,
+            ...anuncio,
           },
-          update: { clienteId: cliente.id, sessao: json(r.sessao), atendenteDesde },
+          update: { clienteId: cliente.id, sessao: json(r.sessao), atendenteDesde, ...anuncio },
         });
         if (r.consentimento !== null) {
           await tx.cliente.update({

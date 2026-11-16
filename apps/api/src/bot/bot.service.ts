@@ -19,6 +19,9 @@ import {
 import {
   dataLocal,
   lerAutomacoes,
+  lerFluxoAnuncio,
+  type FluxoAnuncio,
+  type FluxoAnuncioEntrada,
   lerRegrasAgendamento,
   TIPOS_MENSAGEM_BOT,
   validarMenu,
@@ -285,6 +288,32 @@ export class BotService {
     });
   }
 
+  /** Mensagens automáticas de quem vem de anúncio (pedido do dono em 16/11/2026). */
+  async fluxoAnuncio(): Promise<FluxoAnuncio> {
+    return this.banco.daConta(async (tx) =>
+      lerFluxoAnuncio((await tx.conta.findFirst({ select: { fluxoAnuncio: true } }))?.fluxoAnuncio),
+    );
+  }
+
+  async salvarFluxoAnuncio(d: FluxoAnuncioEntrada): Promise<FluxoAnuncio> {
+    this.exigirDono();
+    return this.banco.daConta(async (tx) => {
+      const conta = await tx.conta.findFirstOrThrow({ select: { id: true, fluxoAnuncio: true } });
+      await tx.conta.update({
+        where: { id: conta.id },
+        data: { fluxoAnuncio: d as unknown as Prisma.InputJsonValue },
+      });
+      await auditar(tx, {
+        entidade: 'conta',
+        entidadeId: conta.id,
+        acao: 'fluxo_anuncio',
+        antes: conta.fluxoAnuncio,
+        depois: d,
+      });
+      return lerFluxoAnuncio(d);
+    });
+  }
+
   /** A unidade volta a usar o menu e as mensagens do padrão da barbearia. */
   async usarPadrao(unidadeId: string) {
     this.exigirDono();
@@ -427,6 +456,12 @@ export class BotService {
       if (d.foraDoHorario) ctx.dentroDoHorario = false;
       // O mesmo passo a passo do WhatsApp, sem gravar o agendamento no fim.
       const r = await responderComAgenda(tx, {
+        anuncio: {
+          fluxo: lerFluxoAnuncio(
+            (await tx.conta.findFirst({ select: { fluxoAnuncio: true } }))?.fluxoAnuncio,
+          ),
+          doAnuncio: d.doAnuncio,
+        },
         menu,
         mensagens: await mensagensDoBot(tx, u.id),
         sessao: d.sessao,
