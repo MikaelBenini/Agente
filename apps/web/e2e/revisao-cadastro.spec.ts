@@ -92,3 +92,30 @@ test('com "Todas as unidades" no alto, a agenda diz qual unidade mostra e a esco
       .then((v) => v ?? ''),
   );
 });
+
+test('Configurações → Unidades: copiar de outra unidade, escolhendo o que vem', async ({ page }) => {
+  await page.goto('/entrar');
+  await page.getByLabel('E-mail').fill('dono@demo.pentefino.dev');
+  await page.getByLabel('Senha', { exact: true }).fill('pentefino123');
+  await page.getByRole('button', { name: 'Entrar', exact: true }).click();
+  await page.waitForURL(/inicio|agenda|hoje/);
+
+  await page.goto('/configuracoes');
+  await page.getByRole('tab', { name: 'Unidades' }).click();
+  await page.getByRole('button', { name: 'Copiar de outra unidade' }).first().click();
+  const dialogo = page.getByRole('dialog', { name: /^Copiar para / });
+  await expect(dialogo.getByLabel('Copiar da unidade')).toBeVisible();
+  // Só as regras de agendamento: desmarca o resto.
+  for (const nome of [
+    'Horário de funcionamento',
+    'Folgas e feriados',
+    'Horário do bot',
+    'Site da barbearia (rascunho)',
+    'Visual da página de agendamento',
+  ])
+    await dialogo.getByLabel(nome).uncheck();
+  await expect(dialogo.getByText(/Nunca vêm: endereço/)).toBeVisible();
+  await dialogo.getByRole('button', { name: 'Copiar 1 item' }).click();
+  await expect(dialogo.getByText('Regras de agendamento: copiado.')).toBeVisible();
+  await dialogo.getByRole('button', { name: 'Fechar' }).last().click();
+});

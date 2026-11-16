@@ -14,6 +14,7 @@ produção (`https://seupentefino.com.br`). Detalhes técnicos e o porquê de ca
 - **Unidade em uso:** com "Todas as unidades" no alto, Agenda, Comandas e Caixa mostram "Unidade desta tela" e dizem que o que for lançado fica nela; a escolha vale ao passar de uma tela para outra.
 - **Avisos, bot e Automações lado a lado** na página de planos: o que vem em todo plano (confirmação e lembrete), o que marca pela conversa e o que o adicional libera.
 - **Login:** "Mostrar senha", como no cadastro; enviar vazio pede o e-mail e a senha, em vez de dizer "E-mail inválido".
+- **Copiar de outra unidade** (Configurações → Unidades, para o dono): escolha a unidade de origem e marque o que vem — horário de funcionamento, folgas e feriados (de hoje em diante, sem mexer no que a unidade já marcou), regras de agendamento, horário do bot, site (vai para o rascunho), visual da página de agendamento e metas do mês. Endereço, endereço do site, domínio, link do Google e o WhatsApp nunca são copiados; mensagens do WhatsApp, menu do bot, equipe e clube já valem para todas as unidades.
 
 ### Adicionado (salário dos barbeiros nas despesas fixas)
 

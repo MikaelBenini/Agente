@@ -615,15 +615,14 @@ de ganho para o barbeiro:
 
 Já valem para a conta inteira (nada a copiar): mensagens do WhatsApp, menu do bot, pesquisa,
 equipe e clube. A conexão do WhatsApp não se copia: cada unidade lê o próprio QR. O catálogo já
-tem "Copiar catálogo de outra unidade". Proposta: "Copiar de outra unidade", escolhendo o que vem:
+tem "Copiar catálogo de outra unidade".
 
-- [ ] Horário de funcionamento e dias de trabalho
-- [ ] Feriados e dias fechados do calendário
-- [ ] Regras de agendamento (antecedência, intervalo, cancelamento)
-- [ ] Horário do bot e link de avaliação do Google
-- [ ] Site e página de agendamento (cores, textos e blocos; sem endereço, endereço do site e domínio)
-- [ ] Metas do mês
-- [ ] Opcional: mensagens do WhatsApp próprias por unidade (o banco já aceita; a tela não)
+- [x] "Copiar de outra unidade" em Configurações → Unidades, com os itens marcáveis: horário de
+  funcionamento, folgas e feriados, regras de agendamento, horário do bot, site (no rascunho),
+  visual da página de agendamento e metas do mês (16/11, junto do lote 8e, branch
+  `feat/revisao-cadastro`; CHANGELOG e linha de desenvolvimento). O link do Google ficou de fora:
+  cada endereço tem a própria ficha no Google
+- [ ] Opcional, a decidir: mensagens do WhatsApp próprias por unidade (o banco já aceita; a tela não)
 
 ## 9. Por último: verificação final do ecossistema
 

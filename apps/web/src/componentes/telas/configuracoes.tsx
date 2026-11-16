@@ -43,6 +43,7 @@ import { IndiqueConta } from './indique-conta';
 import { RegrasDeAgendamento } from './regras-agendamento';
 import { ImportarPlanilha, LinkAgendamento } from './link-e-importacao';
 import { HorarioFuncionamentoDialogo } from '../horario-funcionamento';
+import { CopiarConfiguracoes } from '../copiar-configuracoes';
 
 export function TelaConfiguracoes() {
   const { papeis } = useApp();
@@ -205,6 +206,7 @@ function Unidades() {
   const ehGestao = ehDono || papeis.includes('gestor');
   const [editando, setEditando] = useState<UnidadeDetalhe | 'nova' | null>(null);
   const [horarioDe, setHorarioDe] = useState<UnidadeDetalhe | null>(null);
+  const [copiarPara, setCopiarPara] = useState<UnidadeDetalhe | null>(null);
   return (
     <Estado consulta={unidades}>
       {() => (
@@ -268,11 +270,23 @@ function Unidades() {
                       Horário de funcionamento
                     </Botao>
                   )}
+                  {ehDono && unidades.data!.length > 1 && (
+                    <Botao variante="secundario" onClick={() => setCopiarPara(u)}>
+                      Copiar de outra unidade
+                    </Botao>
+                  )}
                 </div>
               </li>
             ))}
           </ul>
           <FormularioUnidade unidade={editando} onFechar={() => setEditando(null)} />
+          {copiarPara && (
+            <CopiarConfiguracoes
+              destino={copiarPara}
+              unidades={unidades.data!}
+              onFechar={() => setCopiarPara(null)}
+            />
+          )}
           {horarioDe && (
             <HorarioFuncionamentoDialogo
               unidadeId={horarioDe.id}
