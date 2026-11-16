@@ -223,7 +223,16 @@ export interface SaudeDoSistema {
   } | null;
   /** Admin U9: último aviso do Asaas que chegou e foi aceito. */
   webhookAsaas: { quando: string; evento: string; resultado: string } | null;
+  /**
+   * Google Search Console ligado? Lido do DNS (registro TXT google-site-verification do domínio);
+   * null fora de produção (sugestão aprovada em 16/11/2026).
+   */
+  buscadores: { dominio: string; googleVerificado: boolean } | null;
 }
+
+/** O domínio tem o TXT de verificação do Google Search Console? (registros como o DNS devolve) */
+export const temVerificacaoGoogle = (registros: readonly (readonly string[])[]) =>
+  registros.some((r) => r.join('').trim().startsWith('google-site-verification='));
 
 // ─── E-mails que não saíram (admin R7) ────────────────────────────────────
 

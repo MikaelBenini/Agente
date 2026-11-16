@@ -30,6 +30,17 @@ const mensagemDe = (e: unknown) =>
   e instanceof ErroApi ? e.message : 'Não foi possível concluir. Tente de novo.';
 
 /** "há 5 min", "há 2 h": quanto tempo o cliente está esperando. */
+/**
+ * A última resposta da equipe: "Diego respondeu há 5 min" ou "Respondida pelo celular há 5 min"
+ * (sugestão aprovada em 16/11/2026: para ninguém responder em dobro).
+ */
+function textoEquipe(c: ConversaResumo): string | null {
+  if (!c.equipe) return null;
+  const quando = haQuanto(c.equipe.em);
+  if (c.equipe.peloCelular) return `Respondida pelo celular ${quando}`;
+  return `${c.equipe.quem ?? 'A equipe'} respondeu ${quando}`;
+}
+
 function haQuanto(iso: string, agora = Date.now()): string {
   const min = Math.max(0, Math.round((agora - Date.parse(iso)) / 60_000));
   if (min < 1) return 'agora';
@@ -259,6 +270,9 @@ function GrupoConversas({
                 {c.pedido && (
                   <span className="truncate text-sm font-medium text-tinta">Pediu: {c.pedido}</span>
                 )}
+                {c.situacao !== 'bot' && textoEquipe(c) && (
+                  <span className="truncate text-xs text-tinta-suave">{textoEquipe(c)}</span>
+                )}
                 <span className="flex flex-wrap items-center gap-2 text-xs">
                   <FichaSituacao c={c} />
                   {c.anuncio && <FichaAnuncio c={c} />}
@@ -347,6 +361,7 @@ function Conversa({
             <span className="font-semibold">O que o cliente já pediu:</span> {c.pedido}
           </p>
         )}
+        {textoEquipe(c) && <p className="w-full text-sm text-tinta-suave">{textoEquipe(c)}</p>}
         <div className="flex flex-wrap items-center gap-2">
           <FichaSituacao c={c} />
           {c.anuncio && <FichaAnuncio c={c} />}
