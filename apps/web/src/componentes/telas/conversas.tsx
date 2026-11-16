@@ -39,6 +39,22 @@ function haQuanto(iso: string, agora = Date.now()): string {
 
 const nomeDa = (c: ConversaResumo) => c.cliente ?? formatarTelefone(c.telefone);
 
+/**
+ * Agenda com o cliente e, se ele pediu algo no bot, os serviços, o profissional, o dia e o
+ * horário já escolhidos (sugestão aprovada em 16/11/2026).
+ */
+function linkAgendar(c: ConversaResumo): string {
+  const q = new URLSearchParams({ agendar: c.clienteId ?? '' });
+  const p = c.pedidoDados;
+  if (p) {
+    if (p.servicoIds.length) q.set('servicos', p.servicoIds.join(','));
+    if (p.profissionalId) q.set('profissional', p.profissionalId);
+    if (p.dia) q.set('dia', p.dia);
+    if (p.inicio) q.set('inicio', p.inicio);
+  }
+  return `/agenda?${q.toString()}`;
+}
+
 /** Chegou por anúncio (pedido do dono em 16/11/2026), com o título quando o WhatsApp manda. */
 function FichaAnuncio({ c }: { c: ConversaResumo }) {
   return (
@@ -318,8 +334,8 @@ function Conversa({
                     Ver cliente
                   </Link>
                   {' · '}
-                  <Link href={`/agenda?agendar=${c.clienteId}`} className="underline">
-                    Agendar
+                  <Link href={linkAgendar(c)} className="underline">
+                    {c.pedidoDados ? 'Agendar o que pediu' : 'Agendar'}
                   </Link>
                 </>
               )}

@@ -96,6 +96,30 @@ export function TelaAgenda() {
   );
 }
 
+/**
+ * O que o cliente pediu no bot (vindo de Conversas): serviços, profissional e horário para o novo
+ * agendamento já abrir preenchido (sugestão aprovada em 16/11/2026).
+ */
+export interface PedidoParaAgendar {
+  servicoIds: string[];
+  profissionalId: string | null;
+  inicio: string | null;
+}
+
+function usePedidoParaAgendar(): PedidoParaAgendar | null {
+  const params = useSearchParams();
+  const uuid = /^[0-9a-f-]{36}$/;
+  const servicoIds = (params.get('servicos') ?? '').split(',').filter((s) => uuid.test(s));
+  const profissional = params.get('profissional');
+  const inicio = params.get('inicio');
+  if (!servicoIds.length) return null;
+  return {
+    servicoIds,
+    profissionalId: profissional && uuid.test(profissional) ? profissional : null,
+    inicio: inicio && !Number.isNaN(Date.parse(inicio)) ? inicio : null,
+  };
+}
+
 /** ?agendar=<clienteId> (atalho de Conversas): abre o novo agendamento com o cliente. */
 function useClienteParaAgendar() {
   const id = useSearchParams().get('agendar');
@@ -110,6 +134,7 @@ function useClienteParaAgendar() {
 function ConteudoAgenda() {
   const { papeis } = useApp();
   const clienteInicial = useClienteParaAgendar();
+  const pedidoInicial = usePedidoParaAgendar();
   const { unidadeId, seletor } = useUnidadeTrabalho();
   // ?dia=AAAA-MM-DD abre a agenda naquele dia.
   const diaPedido = useSearchParams().get('dia');
@@ -307,6 +332,7 @@ function ConteudoAgenda() {
           diaInicial={dia}
           agenda={agenda.data}
           clienteInicial={clienteInicial}
+          pedidoInicial={clienteInicial ? pedidoInicial : null}
           aberto={novo}
           onFechar={() => setNovo(false)}
           onAgendado={setAgendado}
@@ -696,6 +722,7 @@ function NovoAgendamento({
   diaInicial,
   agenda,
   clienteInicial,
+  pedidoInicial,
   aberto,
   onFechar,
   onAgendado,
@@ -704,6 +731,7 @@ function NovoAgendamento({
   diaInicial: string;
   agenda?: Agenda;
   clienteInicial?: ClienteEscolhido | null;
+  pedidoInicial?: PedidoParaAgendar | null;
   aberto: boolean;
   onFechar: () => void;
   onAgendado: (a: { id: string; inicio: string }) => void;
@@ -712,15 +740,26 @@ function NovoAgendamento({
   const servicos = useServicos();
   const precos = usePrecos();
   const [cliente, setCliente] = useState<ClienteEscolhido | null>(clienteInicial ?? null);
+  const [escolhidos, setEscolhidos] = useState<string[]>(pedidoInicial?.servicoIds ?? []);
+  const [dia, setDia] = useState(diaInicial);
+  const [profissionalId, setProfissionalId] = useState(pedidoInicial?.profissionalId ?? '');
+  const [horario, setHorario] = useState<{ profissionalId: string; inicio: string } | null>(
+    pedidoInicial?.inicio && pedidoInicial.profissionalId
+      ? { profissionalId: pedidoInicial.profissionalId, inicio: pedidoInicial.inicio }
+      : null,
+  );
   const [clienteAnterior, setClienteAnterior] = useState(clienteInicial);
   if (clienteInicial !== clienteAnterior) {
     setClienteAnterior(clienteInicial);
     if (clienteInicial) setCliente(clienteInicial);
+    // Veio de Conversas com o pedido do bot: já preenche o que o cliente escolheu.
+    if (clienteInicial && pedidoInicial) {
+      setEscolhidos(pedidoInicial.servicoIds);
+      setProfissionalId(pedidoInicial.profissionalId ?? '');
+      if (pedidoInicial.inicio && pedidoInicial.profissionalId)
+        setHorario({ profissionalId: pedidoInicial.profissionalId, inicio: pedidoInicial.inicio });
+    }
   }
-  const [escolhidos, setEscolhidos] = useState<string[]>([]);
-  const [dia, setDia] = useState(diaInicial);
-  const [profissionalId, setProfissionalId] = useState('');
-  const [horario, setHorario] = useState<{ profissionalId: string; inicio: string } | null>(null);
   const [encaixe, setEncaixe] = useState(false);
   const [horaEncaixe, setHoraEncaixe] = useState('12:00');
   const [avisoEncaixe, setAvisoEncaixe] = useState<string | null>(null);
@@ -781,7 +820,8 @@ function NovoAgendamento({
                 ? new Date(`${dia}T${horaEncaixe}:00-03:00`).toISOString()
                 : horario!.inicio,
               servicoIds: escolhidos,
-              origem: 'balcao',
+              // Pedido feito no WhatsApp (veio de Conversas): conta no canal WhatsApp.
+              origem: pedidoInicial ? 'bot' : 'balcao',
               ...(encaixe ? { encaixe: true, confirmarEncaixe: !!avisoEncaixe } : {}),
             });
             fechar();
