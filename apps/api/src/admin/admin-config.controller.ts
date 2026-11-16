@@ -1,3 +1,4 @@
+import { resolveTxt } from 'node:dns/promises';
 import {
   Body,
   Controller,
@@ -80,6 +81,7 @@ import {
   type RespostaPronta,
   relatorioCupons,
   type ResultadoDoCupom,
+  temVerificacaoGoogle,
 } from '@pente-fino/shared';
 import { Queue } from 'bullmq';
 import { z } from 'zod';
@@ -149,6 +151,28 @@ export class SaudeService implements OnModuleDestroy {
    * Admin U9: versão e hora em que a API subiu (o último deploy); o último backup e o estado do
    * servidor gravados pelo backup.sh e pelo vigia.sh em configuracao_plataforma.
    */
+  /** Search Console: o TXT de verificação do Google no DNS do domínio (só em produção, https). */
+  private async buscadores(): Promise<SaudeDoSistema['buscadores']> {
+    let url: URL;
+    try {
+      url = new URL(this.config.appUrl);
+    } catch {
+      return null;
+    }
+    if (url.protocol !== 'https:' || url.hostname === 'localhost') return null;
+    const dominio = url.hostname.replace(/^www\./, '');
+    try {
+      const registros = await Promise.race([
+        resolveTxt(dominio),
+        new Promise<string[][]>((_, nao) => setTimeout(() => nao(new Error('tempo')), 3_000)),
+      ]);
+      return { dominio, googleVerificado: temVerificacaoGoogle(registros) };
+    } catch {
+      // Sem resposta do DNS (ou sem TXT nenhum): mostra como não verificado.
+      return { dominio, googleVerificado: false };
+    }
+  }
+
   private async servidorEDeploy(): Promise<Pick<SaudeDoSistema, 'versao' | 'backup' | 'servidor'>> {
     const linhas = await this.banco.prisma.configuracaoPlataforma.findMany({
       where: { chave: { in: ['estado_backup', 'estado_servidor'] } },
@@ -263,6 +287,7 @@ export class SaudeService implements OnModuleDestroy {
       segredosCurtos: this.segredosCurtos(),
       ...(await this.servidorEDeploy()),
       webhookAsaas: await this.recusas.ultimoRecebido(),
+      buscadores: await this.buscadores(),
       conexoesCaidas: caidas.map((x) => ({
         contaId: x.conta_id,
         conta: x.conta,

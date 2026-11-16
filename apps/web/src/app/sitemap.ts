@@ -4,7 +4,7 @@ import { CALCULADORAS } from '@/componentes/site/pagina-calculadora';
 import { POSTS_PUBLICADOS } from '@/conteudo/blog';
 import { CONCORRENTES } from '@/conteudo/comparativos';
 import { PAGINAS_BUSCA } from '@/conteudo/paginas-busca';
-import { paginasNoGoogle } from '@/lib/servidor/pagina-publica';
+import { paginasNoGoogle, sitesNoGoogle } from '@/lib/servidor/pagina-publica';
 import { URL_SITE } from '@/lib/site';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -13,6 +13,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const barbearias = (await paginasNoGoogle()).map((p) => ({
     url: linkDeAgendamento(URL_SITE, p.slug),
     lastModified: new Date(p.atualizadoEm),
+    changeFrequency: 'weekly' as const,
+    priority: 0.6,
+  }));
+  // Os sites das barbearias (/s/<slug>) com "Aparecer no Google" (sugestão de 16/11/2026).
+  const sites = (await sitesNoGoogle()).map((s) => ({
+    url: `${URL_SITE}/s/${s.slug}`,
+    lastModified: new Date(s.atualizadoEm),
     changeFrequency: 'weekly' as const,
     priority: 0.6,
   }));
@@ -58,5 +65,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.2,
     },
     ...barbearias,
+    ...sites,
   ];
 }

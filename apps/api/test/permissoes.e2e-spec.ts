@@ -37,6 +37,7 @@ const PUBLICAS = new Set([
   'GET /publico/fotos/:arquivo', // fotos do site: o nome é o id (uuid) e o tamanho
   'GET /publico/site/:slug', // só o site que o dono publicou
   'GET /publico/paginas', // só endereço e data das páginas que ligaram "Aparecer no Google"
+  'GET /publico/sites', // só endereço e data dos sites publicados com "Aparecer no Google"
   'GET /publico/precos',
   'POST /admin/auth/entrar',
   'POST /auth/convite',

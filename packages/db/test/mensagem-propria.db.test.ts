@@ -91,7 +91,7 @@ describe('mensagem que saiu do próprio número', () => {
     }));
     expect((s.sessao as unknown as SessaoBot).comAtendente).toBe(true);
     expect(s.atendenteDesde).toBeNull();
-    expect(m).toMatchObject({ direcao: 'saida', status: 'enviada' });
+    expect(m).toMatchObject({ direcao: 'saida', status: 'enviada', peloCelular: true });
     // A mesma mensagem entregue de novo é eco (já está gravada).
     expect(
       await registrarMensagemPropria(

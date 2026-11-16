@@ -26,6 +26,7 @@ import {
   estadoAssinatura,
   temNaConta,
   paginasDeBarbeariaNoGoogle,
+  sitesDeBarbeariaNoGoogle,
 } from '@pente-fino/db';
 import {
   lerRegrasAgendamento,
@@ -541,6 +542,16 @@ export class PublicoController {
   async paginas(): Promise<{ slug: string; atualizadoEm: string }[]> {
     const linhas = await paginasDeBarbeariaNoGoogle(this.banco.prisma);
     return linhas.map((l) => ({ slug: l.slug, atualizadoEm: l.atualizado_em.toISOString() }));
+  }
+
+  @Get('sites')
+  @Publico()
+  @ApiOperation({
+    summary: 'Sites de barbearia publicados que aparecem no Google (para o sitemap)',
+  })
+  async sites(): Promise<{ slug: string; atualizadoEm: string }[]> {
+    const linhas = await sitesDeBarbeariaNoGoogle(this.banco.prisma);
+    return linhas.map((l) => ({ slug: l.site_slug, atualizadoEm: l.publicado_em.toISOString() }));
   }
 
   @Get('agendamento/:slug/cliente')

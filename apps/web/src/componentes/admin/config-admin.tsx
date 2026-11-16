@@ -436,6 +436,18 @@ export function SaudeAdmin() {
                   detalhe="O Caddy renova sozinho uns 30 dias antes."
                   alerta={d.servidor?.tlsDias != null && d.servidor.tlsDias < 14}
                 />
+                {d.buscadores && (
+                  <ItemServidor
+                    rotulo="Google Search Console"
+                    valor={d.buscadores.googleVerificado ? 'Verificado' : 'Não verificado'}
+                    detalhe={
+                      d.buscadores.googleVerificado
+                        ? `${d.buscadores.dominio}: o Google lê o sitemap; o Bing pode importar dele.`
+                        : `Sem o TXT do Google no DNS de ${d.buscadores.dominio}. Passo a passo em docs/producao.md, "Buscadores".`
+                    }
+                    alerta={!d.buscadores.googleVerificado}
+                  />
+                )}
               </dl>
             </section>
             {d.segredosCurtos.length > 0 && (

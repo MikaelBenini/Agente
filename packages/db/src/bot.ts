@@ -988,6 +988,7 @@ export async function registrarMensagemPropria(
         idExterno: evento.idExterno,
         enviadaEm: new Date(evento.recebidaEm),
         criadoEm: new Date(evento.recebidaEm),
+        peloCelular: true,
       },
     });
     const salva = await tx.botSessao.findUnique({

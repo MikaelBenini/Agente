@@ -219,6 +219,11 @@ export interface ConversaResumo {
    * Diego · sábado às 15h"); null quando não estava marcando (lista do dono em 16/11/2026).
    */
   pedido: string | null;
+  /**
+   * A última resposta da equipe: quem (pelo painel) ou pelo celular, e quando (sugestão aprovada
+   * em 16/11/2026: para ninguém responder em dobro).
+   */
+  equipe: { quem: string | null; peloCelular: boolean; em: string } | null;
   /** O mesmo pedido em dados, para "Agendar" já abrir preenchido (sugestão de 16/11/2026). */
   pedidoDados: {
     servicoIds: string[];

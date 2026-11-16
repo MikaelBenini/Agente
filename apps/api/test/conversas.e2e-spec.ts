@@ -164,6 +164,8 @@ describe('responder e devolver', () => {
       situacao: 'atendimento',
       aguardandoDesde: null,
       ultimaMensagem: { texto: 'Oi Lucas, aqui é a Ju!', direcao: 'saida' },
+      // Quem respondeu pelo painel aparece na lista (sugestão aprovada em 16/11/2026).
+      equipe: { peloCelular: false, quem: expect.any(String) },
     });
     const job = await fila.getJob(`enviar_${r.body.id}`);
     expect(job?.data).toEqual({

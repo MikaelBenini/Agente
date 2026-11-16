@@ -14,6 +14,7 @@ import {
   type SessaoBot,
 } from '@pente-fino/shared';
 import { BancoService } from '../comum/banco.service.js';
+import { Contexto } from '../comum/contexto.js';
 import { Erros } from '../comum/erros.js';
 import { exigirUnidade, filtroUnidade } from '../comum/escopo.js';
 import { Filas } from '../filas/filas.module.js';
@@ -82,6 +83,26 @@ export class ConversasService {
         conexoes.filter((c) => c.status === 'conectado').map((c) => c.unidadeId),
       );
       const ultimaDe = new Map(ultimas.map((m) => [`${m.unidadeId}:${m.telefone}`, m]));
+      // A última resposta da equipe (pelo painel, com o nome, ou pelo celular) de cada conversa.
+      const respostas = sessoes.length
+        ? await tx.mensagem.findMany({
+            where: {
+              direcao: 'saida',
+              OR: [{ autorId: { not: null } }, { peloCelular: true }],
+              AND: [{ OR: sessoes.map((s) => ({ unidadeId: s.unidadeId, telefone: s.telefone })) }],
+            },
+            orderBy: [{ criadoEm: 'desc' }, { id: 'desc' }],
+            distinct: ['unidadeId', 'telefone'],
+            select: {
+              unidadeId: true,
+              telefone: true,
+              criadoEm: true,
+              peloCelular: true,
+              autor: { select: { nome: true } },
+            },
+          })
+        : [];
+      const respostaDe = new Map(respostas.map((m) => [`${m.unidadeId}:${m.telefone}`, m]));
       // O que cada cliente já tinha escolhido no bot antes de pedir atendente.
       const pedidos = sessoes.map((s) => lerSessao(s.sessao).pedido).filter((p) => !!p);
       const ids = [
@@ -130,6 +151,15 @@ export class ConversasService {
               : sessao.pedido
                 ? descreverPedido(sessao.pedido, nomes, hoje)
                 : null,
+          equipe: (() => {
+            const e = respostaDe.get(`${s.unidadeId}:${s.telefone}`);
+            if (!e) return null;
+            return {
+              quem: e.peloCelular ? null : (e.autor?.nome.trim().split(/\s+/)[0] ?? null),
+              peloCelular: e.peloCelular,
+              em: e.criadoEm.toISOString(),
+            };
+          })(),
           pedidoDados:
             sessao.comAtendente && sessao.pedido
               ? {
@@ -346,6 +376,8 @@ export class ConversasService {
         direcao: 'saida',
         texto,
         status: 'pendente',
+        // Quem respondeu (Conversas mostra; sugestão aprovada em 16/11/2026).
+        autorId: Contexto.usuario().id,
       },
       select: { id: true },
     });

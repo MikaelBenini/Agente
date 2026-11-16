@@ -7,6 +7,12 @@ produção (`https://seupentefino.com.br`). Detalhes técnicos e o porquê de ca
 
 ## [Não publicado]
 
+### Adicionado (sites no sitemap, Search Console na Saúde e quem respondeu)
+
+- **Sites das barbearias no sitemap:** o site publicado (/s/…) das unidades com "Aparecer no Google" entra no `sitemap.xml` (antes, só a página de agendamento).
+- **Saúde do sistema → "Google Search Console":** diz se o domínio já tem o registro de verificação do Google no DNS e, se não tiver, aponta o passo a passo.
+- **Conversas mostra quem respondeu:** "Diego respondeu há 5 min" ou "Respondida pelo celular há 5 min", na lista e no topo da conversa, para ninguém responder em dobro.
+
 ### Adicionado (SEO: IndexNow)
 
 - **Buscadores avisados na hora (IndexNow):** a cada deploy, o site avisa Bing, Yandex e os outros buscadores do IndexNow de todas as páginas do sitemap; quando uma barbearia liga "Aparecer no Google" ou publica o site com ele ligado, o endereço dela é avisado no mesmo instante. O arquivo da chave fica publicado no site.
