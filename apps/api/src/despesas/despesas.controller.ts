@@ -13,8 +13,10 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Prisma, type Transacao } from '@pente-fino/db';
 import {
+  CATEGORIA_SALARIOS,
   categoriaDespesaSchema,
   copiarFixasSchema,
+  descricaoSalario,
   despesaSchema,
   mesAnteriorDe,
   podeNaUnidade,
@@ -51,6 +53,94 @@ function exigirAlcance(unidadeId: string | null) {
     throw Erros.semPermissao(
       unidadeId === null ? 'Despesa da rede inteira é lançada pelo dono.' : undefined,
     );
+}
+
+/**
+ * Linhas de salário da prévia (decisão do dono em 16/11/2026): cada barbeiro ativo no mês com
+ * valor fixo em Equipe, que ainda não teve o salário lançado pela cópia neste mês. Lançado à mão
+ * (mesma unidade, categoria de salários e o nome dele na descrição): vem desmarcado.
+ */
+async function salariosParaCopiar(
+  tx: Transacao,
+  mes: string,
+  filtro: Record<string, unknown>,
+  doMes: {
+    unidadeId: string | null;
+    descricao: string;
+    profissionalId: string | null;
+    categoria: { nome: string };
+  }[],
+): Promise<FixaParaCopiar[]> {
+  const inicio = data(`${mes}-01`);
+  const profissionais = await tx.profissional.findMany({
+    where: {
+      ...filtro,
+      ativo: true,
+      custoFixoMensal: { gt: 0 },
+      OR: [{ dataSaida: null }, { dataSaida: { gte: inicio } }],
+    },
+    include: { usuario: { select: { nome: true } } },
+    orderBy: { usuario: { nome: 'asc' } },
+  });
+  const jaVieram = new Set(doMes.map((d) => d.profissionalId).filter(Boolean));
+  return profissionais
+    .filter((p) => !jaVieram.has(p.id))
+    .map((p) => ({
+      origemId: null,
+      profissionalId: p.id,
+      unidadeId: p.unidadeId,
+      categoria: CATEGORIA_SALARIOS,
+      descricao: descricaoSalario(p.usuario.nome),
+      valor: p.custoFixoMensal,
+      vencimento: null,
+      repetir: false,
+      jaLancada: doMes.some(
+        (d) =>
+          d.unidadeId === p.unidadeId &&
+          d.categoria.nome === CATEGORIA_SALARIOS &&
+          d.descricao.toLowerCase().includes(p.usuario.nome.toLowerCase()),
+      ),
+    }));
+}
+
+/** Lança o salário do barbeiro no mês; já lançado (clique duplo): devolve nulo. */
+async function lancarSalario(
+  tx: Transacao,
+  mes: string,
+  profissionalId: string,
+  item: { valor: number; vencimento: string | null },
+): Promise<string | null> {
+  const p = await tx.profissional.findUnique({
+    where: { id: profissionalId },
+    include: { usuario: { select: { nome: true } } },
+  });
+  if (!p) throw Erros.naoEncontrado('Barbeiro não encontrado.');
+  exigirAlcance(p.unidadeId);
+  const competencia = data(`${mes}-01`);
+  if (await tx.despesa.findFirst({ where: { profissionalId, competencia }, select: { id: true } }))
+    return null;
+  const categoria =
+    (await tx.categoriaDespesa.findFirst({ where: { nome: CATEGORIA_SALARIOS } })) ??
+    (await tx.categoriaDespesa.create({ data: { nome: CATEGORIA_SALARIOS, grupo: 'fixa' } }));
+  const nova = await tx.despesa.create({
+    data: {
+      unidadeId: p.unidadeId,
+      categoriaId: categoria.id,
+      descricao: descricaoSalario(p.usuario.nome),
+      valor: item.valor,
+      competencia,
+      vencimento: item.vencimento ? data(item.vencimento) : null,
+      profissionalId,
+    },
+  });
+  await auditar(tx, {
+    entidade: 'despesa',
+    entidadeId: nova.id,
+    acao: 'copiar_salario',
+    antes: { profissional: profissionalId, valorCadastrado: p.custoFixoMensal },
+    depois: { valor: item.valor, competencia: mes },
+  });
+  return nova.id;
 }
 
 async function detalhe(tx: Transacao, id: string): Promise<DespesaDetalhe> {
@@ -137,6 +227,8 @@ export class DespesasController {
           competencia: data(`${mesAnteriorDe(c.mes)}-01`),
           categoria: { grupo: 'fixa' },
           copia: null,
+          // O salário vem do cadastro do barbeiro (linhas abaixo), nunca da despesa do mês passado.
+          profissionalId: null,
           ...(incluiConta && !c.unidadeId ? {} : filtro),
         },
         include: { categoria: true },
@@ -145,13 +237,20 @@ export class DespesasController {
       // Lançada à mão neste mês (sem a ligação da cópia): vem desmarcada na prévia.
       const doMes = await tx.despesa.findMany({
         where: { competencia: data(`${c.mes}-01`) },
-        select: { categoriaId: true, unidadeId: true, descricao: true },
+        select: {
+          categoriaId: true,
+          unidadeId: true,
+          descricao: true,
+          profissionalId: true,
+          categoria: { select: { nome: true } },
+        },
       });
       const chave = (d: { categoriaId: string; unidadeId: string | null; descricao: string }) =>
         `${d.categoriaId}|${d.unidadeId ?? ''}|${d.descricao.trim().toLowerCase()}`;
       const existentes = new Set(doMes.map(chave));
-      return origens.map((o) => ({
+      const fixas: FixaParaCopiar[] = origens.map((o) => ({
         origemId: o.id,
+        profissionalId: null,
         unidadeId: o.unidadeId,
         categoria: o.categoria.nome,
         descricao: o.descricao,
@@ -160,6 +259,7 @@ export class DespesasController {
         repetir: o.repetir,
         jaLancada: existentes.has(chave(o)),
       }));
+      return [...fixas, ...(await salariosParaCopiar(tx, c.mes, filtro, doMes))];
     });
   }
 
@@ -173,8 +273,13 @@ export class DespesasController {
       const anterior = data(`${mesAnteriorDe(d.mes)}-01`);
       const criadas: string[] = [];
       for (const item of d.itens) {
+        if (item.profissionalId) {
+          const id = await lancarSalario(tx, d.mes, item.profissionalId, item);
+          if (id) criadas.push(id);
+          continue;
+        }
         const o = await tx.despesa.findUnique({
-          where: { id: item.origemId },
+          where: { id: item.origemId! },
           include: { copia: { select: { id: true } } },
         });
         if (!o || o.competencia.getTime() !== anterior.getTime())

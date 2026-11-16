@@ -593,6 +593,7 @@ model Profissional {
   bloqueios          BloqueioAgenda[]
   regrasComissao     RegraComissao[]
   notasCliente       NotaCliente[]
+  despesasSalario    Despesa[]
   agendamentos       Agendamento[]
   comandas           Comanda[]
   itensComanda       ItemComanda[]
@@ -1026,30 +1027,34 @@ model CategoriaDespesa {
 
 /// Unidade vazia = despesa da conta (rateio fica para os relatórios).
 model Despesa {
-  id           String    @id @default(dbgenerated("uuidv7()")) @db.Uuid
-  contaId      String    @default(dbgenerated("conta_atual()")) @map("conta_id") @db.Uuid
-  unidadeId    String?   @map("unidade_id") @db.Uuid
-  categoriaId  String    @map("categoria_id") @db.Uuid
-  descricao    String
-  valor        Int
+  id             String    @id @default(dbgenerated("uuidv7()")) @db.Uuid
+  contaId        String    @default(dbgenerated("conta_atual()")) @map("conta_id") @db.Uuid
+  unidadeId      String?   @map("unidade_id") @db.Uuid
+  categoriaId    String    @map("categoria_id") @db.Uuid
+  descricao      String
+  valor          Int
   /// Mês a que a despesa pertence (primeiro dia do mês).
-  competencia  DateTime  @db.Date
-  vencimento   DateTime? @db.Date
-  pago         Boolean   @default(false)
-  pagoEm       DateTime? @map("pago_em") @db.Timestamptz(3)
+  competencia    DateTime  @db.Date
+  vencimento     DateTime? @db.Date
+  pago           Boolean   @default(false)
+  pagoEm         DateTime? @map("pago_em") @db.Timestamptz(3)
   /// "Repetir todo mês": a rotina diária lança a cópia no mês seguinte.
-  repetir      Boolean   @default(false)
+  repetir        Boolean   @default(false)
   /// Despesa do mês anterior de onde esta foi copiada (única: nunca duas cópias da mesma).
-  origemId     String?   @unique @map("origem_id") @db.Uuid
-  criadoEm     DateTime  @default(now()) @map("criado_em") @db.Timestamptz(3)
-  atualizadoEm DateTime  @updatedAt @map("atualizado_em") @db.Timestamptz(3)
+  origemId       String?   @unique @map("origem_id") @db.Uuid
+  /// Salário do barbeiro vindo da cópia das fixas: um por barbeiro e mês (nunca duplica).
+  profissionalId String?   @map("profissional_id") @db.Uuid
+  criadoEm       DateTime  @default(now()) @map("criado_em") @db.Timestamptz(3)
+  atualizadoEm   DateTime  @updatedAt @map("atualizado_em") @db.Timestamptz(3)
 
-  conta     Conta            @relation(fields: [contaId], references: [id], onDelete: Cascade)
-  unidade   Unidade?         @relation(fields: [unidadeId], references: [id], onDelete: NoAction)
-  categoria CategoriaDespesa @relation(fields: [categoriaId], references: [id], onDelete: NoAction)
-  origem    Despesa?         @relation("CopiaDespesa", fields: [origemId], references: [id], onDelete: SetNull)
-  copia     Despesa?         @relation("CopiaDespesa")
+  conta        Conta            @relation(fields: [contaId], references: [id], onDelete: Cascade)
+  unidade      Unidade?         @relation(fields: [unidadeId], references: [id], onDelete: NoAction)
+  categoria    CategoriaDespesa @relation(fields: [categoriaId], references: [id], onDelete: NoAction)
+  origem       Despesa?         @relation("CopiaDespesa", fields: [origemId], references: [id], onDelete: SetNull)
+  copia        Despesa?         @relation("CopiaDespesa")
+  profissional Profissional?    @relation(fields: [profissionalId], references: [id], onDelete: NoAction)
 
+  @@unique([profissionalId, competencia])
   @@index([contaId, competencia])
   @@index([unidadeId, competencia])
   @@map("despesa")
