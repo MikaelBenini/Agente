@@ -110,3 +110,8 @@ jobs:
           printf '%s\n' "$CHAVE" > ~/.ssh/deploy && chmod 600 ~/.ssh/deploy
           printf '%s\n' "$CONHECIDOS" > ~/.ssh/known_hosts
           ssh -i ~/.ssh/deploy -o StrictHostKeyChecking=yes -o ConnectTimeout=20 "deploy@$HOST" "${{ github.sha }}"
+
+      # Checklist de SEO (16/11/2026): avisa os buscadores das páginas do sitemap (IndexNow).
+      - uses: actions/checkout@v7
+      - name: Avisar os buscadores (IndexNow)
+        run: node scripts/indexnow.mjs "${{ vars.APP_URL || 'https://seupentefino.com.br' }}"

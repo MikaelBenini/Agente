@@ -187,3 +187,19 @@ docker compose --env-file .env -f docker-compose.prod.yml ps
 docker compose --env-file .env -f docker-compose.prod.yml logs -f api worker
 cat .wa-senha   # senha do painel da Evolution em https://wa.seudominio (usuário admin)
 ```
+
+## Buscadores (Google, Bing e IndexNow)
+
+O site já publica `https://seupentefino.com.br/sitemap.xml` e `robots.txt`. Uma vez, pelo dono:
+
+1. **Google Search Console** (search.google.com/search-console): "Adicionar propriedade" →
+   **Domínio** → `seupentefino.com.br`. O Google mostra um registro **TXT**: crie no DNS do
+   domínio (mesmo painel dos registros A) e clique em Verificar. Depois, em **Sitemaps**, envie
+   `https://seupentefino.com.br/sitemap.xml`.
+2. **Bing Webmaster Tools** (bing.com/webmasters): "Importar do Google Search Console" (puxa o
+   site e o sitemap sozinho). Sem importar: adicione o site, verifique pelo DNS e envie o mesmo
+   sitemap.
+3. **IndexNow** não precisa de cadastro: o arquivo da chave está em
+   `https://seupentefino.com.br/103d8c06a8dbe0c36e3c472d93904fbc.txt`, o job **Implantar na VPS**
+   avisa o sitemap inteiro a cada deploy (passo "Avisar os buscadores") e a API avisa na hora o
+   endereço da barbearia que liga "Aparecer no Google" ou publica o site.

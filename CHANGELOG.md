@@ -7,6 +7,10 @@ produção (`https://seupentefino.com.br`). Detalhes técnicos e o porquê de ca
 
 ## [Não publicado]
 
+### Adicionado (SEO: IndexNow)
+
+- **Buscadores avisados na hora (IndexNow):** a cada deploy, o site avisa Bing, Yandex e os outros buscadores do IndexNow de todas as páginas do sitemap; quando uma barbearia liga "Aparecer no Google" ou publica o site com ele ligado, o endereço dela é avisado no mesmo instante. O arquivo da chave fica publicado no site.
+
 ### Adicionado (anúncios: origem do cliente, relatório e agendar o pedido)
 
 - **Clientes de anúncio:** quem chega pelo anúncio fica com a origem "Anúncio (WhatsApp)" na ficha. Em Resultados do mês → Canais, o bloco "Clientes de anúncio" mostra as conversas de anúncio, os clientes novos, quantos compraram, quanto gastaram e o ticket, com as conversas por anúncio.

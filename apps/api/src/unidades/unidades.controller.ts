@@ -14,7 +14,9 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { precoServicoVigente, Prisma } from '@pente-fino/db';
 import {
+  caminhoDoSite,
   dataLocal,
+  linkDeAgendamento,
   diaCalendarioSchema,
   faltaParaLigarLink,
   lerRegrasAgendamento,
@@ -62,6 +64,7 @@ import { BancoService } from '../comum/banco.service.js';
 import { Contexto } from '../comum/contexto.js';
 import { ErroApp, Erros } from '../comum/erros.js';
 import { data, dataTexto, exigirUnidade, GESTAO, TODOS } from '../comum/escopo.js';
+import { avisarBuscadores } from '../comum/indexnow.js';
 import { Consulta, Corpo, PipeZod } from '../comum/validacao.js';
 import { montarSitePublico } from '../publico/site.js';
 import { CONFIGURACAO, type Configuracao } from '../config/configuracao.js';
@@ -493,8 +496,21 @@ export class UnidadesController {
     summary:
       'Publicar o rascunho no endereço do site (/s/<site_slug>); sem endereço, usa a sugestão',
   })
-  publicarSite(@Param('id', ParseUUIDPipe) id: string): Promise<SitePainel> {
+  async publicarSite(@Param('id', ParseUUIDPipe) id: string): Promise<SitePainel> {
     exigirUnidade(id, GESTAO);
+    const painel = await this.publicarNoBanco(id);
+    // Site publicado de quem quer aparecer no Google: avisa os buscadores (IndexNow).
+    const u = await this.banco.daConta((tx) =>
+      tx.unidade.findUnique({ where: { id }, select: { siteSlug: true, aparecerNoGoogle: true } }),
+    );
+    if (u?.aparecerNoGoogle && u.siteSlug)
+      void avisarBuscadores(this.config.appUrl, [
+        `${this.config.appUrl}${caminhoDoSite(u.siteSlug)}`,
+      ]);
+    return painel;
+  }
+
+  private publicarNoBanco(id: string): Promise<SitePainel> {
     return this.banco.daConta(async (tx) => {
       const { u, rascunho, barbearia } = await this.unidadeDoSite(tx, id);
       // O site não depende do link de agendamento (decisão do dono, 13/11): sem link ligado, os
@@ -758,9 +774,20 @@ export class UnidadesController {
   @ApiOperation({
     summary: 'Alterar unidade (nome, endereço, dias de trabalho, capacidade, ativa)',
   })
-  alterar(
+  async alterar(
     @Param('unidadeId', ParseUUIDPipe) unidadeId: string,
     @Corpo(unidadeParcialSchema) dados: z.infer<typeof unidadeParcialSchema>,
+  ): Promise<UnidadeDetalhe> {
+    const r = await this.alterarNoBanco(unidadeId, dados);
+    // Ligou "Aparecer no Google" (ou mudou o endereço com ele ligado): avisa os buscadores na hora.
+    if ((dados.aparecerNoGoogle === true || dados.slug) && r.aparecerNoGoogle && r.slug)
+      void avisarBuscadores(this.config.appUrl, [linkDeAgendamento(this.config.appUrl, r.slug)]);
+    return r;
+  }
+
+  private alterarNoBanco(
+    unidadeId: string,
+    dados: z.infer<typeof unidadeParcialSchema>,
   ): Promise<UnidadeDetalhe> {
     return this.banco.daConta(async (tx) => {
       const antes = await tx.unidade.findUnique({ where: { id: unidadeId }, select: SELECAO });
