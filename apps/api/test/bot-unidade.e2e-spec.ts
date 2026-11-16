@@ -133,9 +133,8 @@ describe('bot mais esperto', () => {
   it('"quero cortar amanhã às 10h" pula para o horário; VOLTAR volta um passo e MENU vai ao início', async () => {
     const fala = conversa(a.unidadeA);
     const r1 = (await fala('quero cortar amanhã às 10h')).respostas.join('\n');
-    expect(r1).toContain('Anotei: Corte');
-    // Livre: confirmação; ocupado ou fora do expediente: os mais perto, ou outros dias.
-    expect(r1).toMatch(/Confere se está certo|mais perto|Estes dias têm|Horários livres/);
+    // Livre: direto para a confirmação (com o corte); ocupado: "Anotei" e os mais perto.
+    expect(r1).toMatch(/Confere se está certo:[\s\S]*Corte|Anotei: Corte/);
     const r2 = (await fala('voltar')).respostas.join('\n');
     expect(r2).not.toContain('Como posso ajudar');
     const r3 = (await fala('menu')).respostas.join('\n');
