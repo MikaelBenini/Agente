@@ -7,6 +7,7 @@ import {
   formatarTelefone,
   MAXIMO_OPCOES,
   NOME_ACAO_BOT,
+  MENSAGENS_BOT_PADRAO,
   SOBRE_MENSAGEM_BOT,
   TIPOS_MENSAGEM_BOT,
   validarMenu,
@@ -58,8 +59,31 @@ import { MensagensDeAnuncio } from './mensagens-anuncio';
 import { CabecalhoPagina, Estado, Ficha } from '../pagina';
 import { ConviteSeFaltar, SoNoPlano } from '../convite-plano';
 
-const mensagemDe = (e: unknown) =>
-  e instanceof ErroApi ? e.message : 'Não foi possível concluir. Tente de novo.';
+/** "palavrasChave.2.palavras" → "Palavras-chave, grupo 3". */
+function ondeNoMenu(campo: string): string {
+  const grupo = /^palavrasChave\.(\d+)/.exec(campo);
+  if (grupo) return `Palavras-chave, grupo ${Number(grupo[1]) + 1}`;
+  const msg = /^mensagens\.(\w+)/.exec(campo);
+  if (msg && msg[1]! in SOBRE_MENSAGEM_BOT)
+    return SOBRE_MENSAGEM_BOT[msg[1] as keyof typeof SOBRE_MENSAGEM_BOT].nome;
+  return campo.startsWith('menu') ? 'Menu' : '';
+}
+
+/**
+ * O erro da API com o lugar e o motivo (pedido do dono em 16/11/2026: "Confira os campos
+ * destacados" sem nenhum campo destacado).
+ */
+const mensagemDe = (e: unknown) => {
+  if (!(e instanceof ErroApi)) return 'Não foi possível concluir. Tente de novo.';
+  if (!e.campos.length) return e.message;
+  return e.campos
+    .slice(0, 3)
+    .map((c) => {
+      const onde = ondeNoMenu(c.campo);
+      return onde ? `${onde}: ${c.mensagem}` : c.mensagem;
+    })
+    .join(' ');
+};
 const novoId = () => Math.random().toString(36).slice(2, 10);
 const iguais = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 
@@ -88,51 +112,51 @@ export function TelaBot() {
           const e = bot.data!;
           return (
             <EscopoCtx.Provider value={escopo ? `?unidadeId=${escopo}` : ''}>
-            <div className="flex flex-col gap-6">
-            <EscolhaDoEscopo e={e} escopo={escopo} onEscopo={setEscopo} />
-            <Abas
-              rotulo="Bot"
-              atual={aba}
-              onTrocar={setAba}
-              abas={[
-                {
-                  id: 'menu',
-                  rotulo: 'Menu',
-                  conteudo: (
-                    <EditorDoBot
-                      key={`${escopo ?? 'padrao'}:${e.publicado.publicadoEm ?? 'padrao'}`}
-                      e={e}
-                      retorno={retorno}
-                      onRetorno={setRetorno}
-                      onTestar={() => setAba('testar')}
-                    />
-                  ),
-                },
-                {
-                  id: 'mensagens',
-                  rotulo: 'Mensagens prontas',
-                  conteudo: <Mensagens key={escopo ?? 'padrao'} e={e} />,
-                },
-                {
-                  id: 'anuncio',
-                  rotulo: 'Mensagens automáticas',
-                  conteudo: <MensagensDeAnuncio podeEditar={e.podeEditar} />,
-                },
-                { id: 'horario', rotulo: 'Horário', conteudo: <Horarios e={e} /> },
-                {
-                  id: 'automacoes',
-                  rotulo: 'Automações',
-                  conteudo: (
-                    <SoNoPlano recurso="automacoes">
-                      <Automacoes podeEditar={e.podeEditar} />
-                    </SoNoPlano>
-                  ),
-                },
-                { id: 'testar', rotulo: 'Testar', conteudo: <Simulador e={e} /> },
-                { id: 'conexao', rotulo: 'Conexão', conteudo: <Conexao e={e} /> },
-              ]}
-            />
-            </div>
+              <div className="flex flex-col gap-6">
+                <EscolhaDoEscopo e={e} escopo={escopo} onEscopo={setEscopo} />
+                <Abas
+                  rotulo="Bot"
+                  atual={aba}
+                  onTrocar={setAba}
+                  abas={[
+                    {
+                      id: 'menu',
+                      rotulo: 'Menu',
+                      conteudo: (
+                        <EditorDoBot
+                          key={`${escopo ?? 'padrao'}:${e.publicado.publicadoEm ?? 'padrao'}`}
+                          e={e}
+                          retorno={retorno}
+                          onRetorno={setRetorno}
+                          onTestar={() => setAba('testar')}
+                        />
+                      ),
+                    },
+                    {
+                      id: 'mensagens',
+                      rotulo: 'Mensagens prontas',
+                      conteudo: <Mensagens key={escopo ?? 'padrao'} e={e} />,
+                    },
+                    {
+                      id: 'anuncio',
+                      rotulo: 'Mensagens automáticas',
+                      conteudo: <MensagensDeAnuncio podeEditar={e.podeEditar} />,
+                    },
+                    { id: 'horario', rotulo: 'Horário', conteudo: <Horarios e={e} /> },
+                    {
+                      id: 'automacoes',
+                      rotulo: 'Automações',
+                      conteudo: (
+                        <SoNoPlano recurso="automacoes">
+                          <Automacoes podeEditar={e.podeEditar} />
+                        </SoNoPlano>
+                      ),
+                    },
+                    { id: 'testar', rotulo: 'Testar', conteudo: <Simulador e={e} /> },
+                    { id: 'conexao', rotulo: 'Conexão', conteudo: <Conexao e={e} /> },
+                  ]}
+                />
+              </div>
             </EscopoCtx.Provider>
           );
         }}
@@ -301,10 +325,7 @@ function EditorDoBot({
     [chaveBot],
   );
   const voltar = useAcao(() => api(`bot/menu/restaurar${q}`, { corpo: {} }), [chaveBot]);
-  const jogarFora = useAcao(
-    () => api(`bot/menu/rascunho${q}`, { metodo: 'DELETE' }),
-    [chaveBot],
-  );
+  const jogarFora = useAcao(() => api(`bot/menu/rascunho${q}`, { metodo: 'DELETE' }), [chaveBot]);
   const executar = async (fn: () => Promise<unknown>, sucesso: string) => {
     onRetorno(null);
     try {
@@ -822,20 +843,38 @@ function Mensagens({ e }: { e: EstadoBot }) {
         {e.escopo.unidadeId
           ? `Só na ${e.escopo.nome}: a mensagem igual à do padrão continua seguindo o padrão. `
           : 'Padrão da barbearia: vale nas unidades que não personalizaram. '}
-        Use {'{cliente}'}, {'{barbearia}'}, {'{unidade}'},{' '}
-        {'{horario}'}, {'{endereco}'} e {'{link}'}; na pesquisa, também {'{profissional}'}.
+        Use {'{cliente}'}, {'{barbearia}'}, {'{unidade}'}, {'{horario}'}, {'{endereco}'} e{' '}
+        {'{link}'}; na pesquisa, também {'{profissional}'}.
       </p>
       <fieldset disabled={!e.podeEditar} className="flex min-w-0 flex-col gap-5">
         {TIPOS_MENSAGEM_BOT.map((t) => (
-          <CampoTexto
-            key={t}
-            id={`msg-${t}`}
-            rotulo={SOBRE_MENSAGEM_BOT[t].nome}
-            dica={SOBRE_MENSAGEM_BOT[t].quando}
-            rows={2}
-            value={textos[t]}
-            onChange={(ev) => setTextos({ ...textos, [t]: ev.target.value })}
-          />
+          <div key={t} className="flex flex-col gap-2">
+            {t === 'convite_avisos' && (
+              // Pedido do dono (16/11): o convite chegava logo depois do "oi" e atrapalhava.
+              <Marcador
+                id="msg-convite-ligado"
+                rotulo="Mandar o convite para receber lembretes na primeira conversa"
+                checked={!!textos.convite_avisos}
+                onChange={(ev) =>
+                  setTextos({
+                    ...textos,
+                    convite_avisos: ev.target.checked ? MENSAGENS_BOT_PADRAO.convite_avisos : '',
+                  })
+                }
+              />
+            )}
+            {(t !== 'convite_avisos' || !!textos.convite_avisos) && (
+              <CampoTexto
+                key={t}
+                id={`msg-${t}`}
+                rotulo={SOBRE_MENSAGEM_BOT[t].nome}
+                dica={SOBRE_MENSAGEM_BOT[t].quando}
+                rows={2}
+                value={textos[t]}
+                onChange={(ev) => setTextos({ ...textos, [t]: ev.target.value })}
+              />
+            )}
+          </div>
         ))}
       </fieldset>
       {erro && <Aviso tom="erro">{erro}</Aviso>}

@@ -30,14 +30,19 @@ describe('mensagens automáticas de anúncio (pedido do dono em 16/11/2026)', ()
     const r2 = responderAnuncio(fluxo, r1.sessao, 'Corte e barba', depois(1), false, 'João')!;
     expect(r2.respostas).toEqual(['Qual dia fica melhor?']);
     const r3 = responderAnuncio(fluxo, r2.sessao, 'Sábado de manhã', depois(2), false, 'João')!;
-    expect(r3).toMatchObject({ paraEquipe: true, respostas: ['Anotado! Já passei para a equipe.'] });
+    expect(r3).toMatchObject({
+      paraEquipe: true,
+      respostas: ['Anotado! Já passei para a equipe.'],
+    });
     expect(r3.sessao.comAtendente).toBe(true);
     expect(r3.sessao.anuncio).toBeUndefined();
     expect(resumoDoAnuncio(r3.sessao.respostasAnuncio!)).toBe(
       'Do anúncio: Corte e barba · Sábado de manhã',
     );
     // Com a equipe, o fluxo não volta nem com a frase do anúncio.
-    expect(responderAnuncio(fluxo, r3.sessao, 'Olá! Quero saber mais.', depois(3), true, null)).toBeNull();
+    expect(
+      responderAnuncio(fluxo, r3.sessao, 'Olá! Quero saber mais.', depois(3), true, null),
+    ).toBeNull();
   });
 
   it('sem nome, o {cliente} some sem deixar vírgula sobrando', () => {

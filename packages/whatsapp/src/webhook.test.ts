@@ -52,7 +52,11 @@ describe('lerWebhookEvolution', () => {
         extendedTextMessage: {
           text: 'Olá! Quero saber mais.',
           contextInfo: {
-            externalAdReply: { title: 'Corte + barba por R$ 50', sourceType: 'ad', sourceId: '120' },
+            externalAdReply: {
+              title: 'Corte + barba por R$ 50',
+              sourceType: 'ad',
+              sourceId: '120',
+            },
             conversionSource: 'FB_Ads',
           },
         },

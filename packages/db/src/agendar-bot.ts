@@ -935,14 +935,8 @@ export async function agendarPeloPedido(
   if (!pedido.dia || pedido.dia < hoje) return irParaDias(tx, base, d, anotado);
   const todos = await horariosDoDia(tx, base, d, pedido.dia);
   if (todos.length === 0)
-    return irParaDias(
-      tx,
-      base,
-      d,
-      `${anotado} Nesse dia não tenho horário livre. Estes dias têm:`,
-    );
-  if (pedido.minuto === null)
-    return irParaHorarios(tx, base, d, pedido.dia, 0, anotado);
+    return irParaDias(tx, base, d, `${anotado} Nesse dia não tenho horário livre. Estes dias têm:`);
+  if (pedido.minuto === null) return irParaHorarios(tx, base, d, pedido.dia, 0, anotado);
   const exato = todos.find((h) => minutoLocal(new Date(h.inicio)) === pedido.minuto);
   if (exato) {
     const a: AgendaNaConversa = {

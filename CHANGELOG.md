@@ -18,6 +18,9 @@ produção (`https://seupentefino.com.br`). Detalhes técnicos e o porquê de ca
 - **Passagem para a recepção:** fora do horário, o bot diz quando a recepção volta; em Conversas, a equipe vê o que o cliente já tinha escolhido (serviço, profissional, dia e hora).
 - **Mensagens automáticas de anúncio** (aba nova no Bot): quem vem de anúncio do Facebook/Instagram recebe uma conversa própria, em sequência, e passa para a equipe; a conversa fica marcada "Veio de anúncio", com as respostas.
 - **Conversas:** filtro por unidade (com "Todas as unidades" no alto) e "Só quem veio de anúncio".
+- **Convite "RECEBER" desligável:** em Mensagens prontas, uma chave liga ou desliga o convite para receber lembretes, que chegava logo depois do "oi".
+- **Palavras-chave:** até 40 palavras por grupo (antes 20, sem aviso); passando disso, o problema aparece com o grupo e o limite, e o erro do bot diz o lugar e o motivo em vez de "Confira os campos destacados".
+- **{horario} do bot** usa o horário de funcionamento da unidade (antes, o expediente dos barbeiros; sem barbeiro, aparecia "a combinar").
 
 ### Corrigido e melhorado (cadastro, unidade em uso e login — revisão de 16/11)
 

@@ -15,7 +15,10 @@ const PALAVRAS_FRACAS = new Set(['de', 'da', 'do', 'com', 'e', 'a', 'o', 'na', '
  * começo ("cortar" → "Corte", "barba" → "Barba"). Só quando um serviço só combina; entre
  * "Corte" e "Corte + barba", vence o que tem mais palavras citadas.
  */
-export function servicosCitados<T extends ServicoCitavel>(texto: string, servicos: readonly T[]): T[] {
+export function servicosCitados<T extends ServicoCitavel>(
+  texto: string,
+  servicos: readonly T[],
+): T[] {
   const tokens = texto.split(' ').filter(Boolean);
   const nota = (s: T) => {
     const palavras = normalizar(s.nome)
@@ -24,11 +27,16 @@ export function servicosCitados<T extends ServicoCitavel>(texto: string, servico
     if (palavras.length === 0) return 0;
     const citadas = palavras.filter((p) =>
       tokens.some(
-        (t) => t === p || (t.length >= 4 && t.startsWith(p.slice(0, 4)) && t.length <= p.length + 3),
+        (t) =>
+          t === p || (t.length >= 4 && t.startsWith(p.slice(0, 4)) && t.length <= p.length + 3),
       ),
     );
     // Todas as palavras do nome citadas valem mais que uma só.
-    return citadas.length === 0 ? 0 : citadas.length === palavras.length ? 10 + citadas.length : citadas.length;
+    return citadas.length === 0
+      ? 0
+      : citadas.length === palavras.length
+        ? 10 + citadas.length
+        : citadas.length;
   };
   const comNota = servicos.map((s) => ({ s, n: nota(s) })).filter((x) => x.n > 0);
   if (comNota.length === 0) return [];
@@ -82,7 +90,8 @@ export function lerDia(texto: string, original: string, hoje: string): string | 
 /** Hora citada, em minutos do dia: 15h, 15h30, 15:30, às 15, 15 horas, meio-dia. */
 export function lerHora(texto: string, original: string): number | null {
   if (/\bmeio dia\b/.test(texto)) return 12 * 60;
-  const valida = (h: number, m: number) => (h >= 6 && h <= 23 && m >= 0 && m < 60 ? h * 60 + m : null);
+  const valida = (h: number, m: number) =>
+    h >= 6 && h <= 23 && m >= 0 && m < 60 ? h * 60 + m : null;
   const comDoisPontos = /\b(\d{1,2}):(\d{2})\b/.exec(original);
   if (comDoisPontos) return valida(Number(comDoisPontos[1]), Number(comDoisPontos[2]));
   const comH = /\b(\d{1,2})h(\d{2})?\b/.exec(texto);
@@ -170,11 +179,16 @@ export function descreverPedido(
   if (a.escolha) {
     const local = new Date(new Date(a.escolha.inicio).getTime() - 3 * 3_600_000);
     const dia = local.toISOString().slice(0, 10);
-    const quando = dia === hoje ? 'hoje' : `${NOME_DIA[local.getUTCDay()]}, ${dia.slice(8, 10)}/${dia.slice(5, 7)}`;
+    const quando =
+      dia === hoje
+        ? 'hoje'
+        : `${NOME_DIA[local.getUTCDay()]}, ${dia.slice(8, 10)}/${dia.slice(5, 7)}`;
     partes.push(`${quando} às ${horaTexto(local.getUTCHours() * 60 + local.getUTCMinutes())}`);
   } else if (a.dia) {
     const d = new Date(`${a.dia}T12:00:00Z`);
-    partes.push(`${a.dia === hoje ? 'hoje' : NOME_DIA[d.getUTCDay()]}, ${a.dia.slice(8, 10)}/${a.dia.slice(5, 7)}`);
+    partes.push(
+      `${a.dia === hoje ? 'hoje' : NOME_DIA[d.getUTCDay()]}, ${a.dia.slice(8, 10)}/${a.dia.slice(5, 7)}`,
+    );
   }
   return partes.length ? partes.join(' · ') : null;
 }

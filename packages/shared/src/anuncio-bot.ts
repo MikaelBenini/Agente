@@ -47,16 +47,19 @@ export type FluxoAnuncioEntrada = z.infer<typeof fluxoAnuncioSchema>;
 /** O que está gravado passa de novo pelo esquema; estragado ou vazio = o padrão (desligado). */
 export function lerFluxoAnuncio(valor: unknown): FluxoAnuncio {
   const r = fluxoAnuncioSchema.safeParse(valor);
-  return r.success ? r.data : structuredClone(FLUXO_ANUNCIO_PADRAO) as FluxoAnuncio;
+  return r.success ? r.data : (structuredClone(FLUXO_ANUNCIO_PADRAO) as FluxoAnuncio);
 }
 
 /** A mensagem é a frase pronta de um anúncio (sem diferença de acento, maiúscula e pontuação)? */
 export function ehFraseDeAnuncio(fluxo: FluxoAnuncio, entrada: string): boolean {
   const t = normalizar(entrada);
-  return !!t && fluxo.frases.some((f) => {
-    const n = normalizar(f);
-    return !!n && (t === n || t.startsWith(`${n} `) || t.includes(n));
-  });
+  return (
+    !!t &&
+    fluxo.frases.some((f) => {
+      const n = normalizar(f);
+      return !!n && (t === n || t.startsWith(`${n} `) || t.includes(n));
+    })
+  );
 }
 
 /** Respostas do cliente no fluxo, em uma linha para a equipe. */
@@ -86,8 +89,7 @@ export function responderAnuncio(
   cliente: string | null,
 ): ResultadoAnuncio | null {
   if (!fluxo.ativo || fluxo.etapas.length === 0) return null;
-  const texto = (t: string) =>
-    preencher(t, { cliente: cliente?.trim().split(/\s+/)[0] ?? null });
+  const texto = (t: string) => preencher(t, { cliente: cliente?.trim().split(/\s+/)[0] ?? null });
   const agoraIso = agora.toISOString();
   const emAndamento =
     sessaoAnterior?.anuncio &&
@@ -110,7 +112,8 @@ export function responderAnuncio(
         paraEquipe: false,
         comecou: false,
       };
-    const { anuncio: _fim, ...resto } = sessaoAnterior!;
+    const resto: SessaoBot = { ...sessaoAnterior! };
+    delete resto.anuncio;
     return {
       respostas: [texto(fluxo.final)],
       sessao: {

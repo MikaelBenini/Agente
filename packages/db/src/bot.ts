@@ -38,6 +38,7 @@ import {
   type VagaLiberada,
   caminhoAssinarClube,
   lerFluxoAnuncio,
+  lerFuncionamento,
   lerPedidoNatural,
   responderAnuncio,
   type FluxoAnuncio,
@@ -154,13 +155,18 @@ export async function situacaoDaUnidade(
 ) {
   const expediente = expedienteDaUnidade(u);
   const horario = (u.botHorario as TurnoBot[] | null) ?? null;
-  const vale = horario ?? expediente;
+  // O horário de funcionamento da unidade vem antes do expediente dos barbeiros (pedido do dono
+  // em 16/11/2026: sem barbeiro cadastrado, aparecia "a combinar").
+  const funcionamento = lerFuncionamento(u.horarioFuncionamento);
+  const vale = horario ?? (funcionamento.length ? funcionamento : expediente);
   const fechadoHoje = await tx.calendarioUnidade.findFirst({
     where: { unidadeId: u.id, data: dataParaBanco(dataLocal(agora)), trabalha: false },
   });
   return {
     expediente,
     horario,
+    /** O horário que vale para o bot (o dele, o da unidade ou o da equipe). */
+    vale,
     descricao: descreverHorario(vale),
     // Sem horário conhecido (equipe sem expediente cadastrado), não diz que está fechado.
     aberto: !fechadoHoje && (vale.length === 0 || dentroDoHorario(vale, agora)),
@@ -201,7 +207,7 @@ export async function contextoDaConversa(
     link: s.link,
     precos,
     // Quando a recepção volta, para o "falar com atendente" fora do horário.
-    proximaAbertura: s.aberto ? null : proximaAbertura(s.horario ?? s.expediente, agora),
+    proximaAbertura: s.aberto ? null : proximaAbertura(s.vale, agora),
     clube: await clubeNoBot(tx, u, clienteId, hoje as DataISO, appUrl),
     ...resto,
   };
@@ -473,7 +479,13 @@ export async function responderComAgenda(
         const menu = responder(d.menu, d.mensagens, sessao, '0', d.ctx);
         return { ...menu, respostas: [...p.respostas, ...menu.respostas] };
       }
-      return { respostas: p.respostas, sessao, acao: 'agendar', consentimento: null, avaliacao: null };
+      return {
+        respostas: p.respostas,
+        sessao,
+        acao: 'agendar',
+        consentimento: null,
+        avaliacao: null,
+      };
     }
   }
 

@@ -5,6 +5,7 @@ import { PASSOS_AGENDA } from './agendar-bot.js';
 import {
   ACOES_BOT,
   MAXIMO_OPCOES,
+  MAXIMO_PALAVRAS_GRUPO,
   TIPOS_MENSAGEM_BOT,
   VARIAVEIS_BOT,
   type GrupoPalavrasChave,
@@ -39,7 +40,11 @@ const menuNoSchema: z.ZodType<MenuNo> = z.object({
 
 const grupoSchema: z.ZodType<GrupoPalavrasChave> = z.object({
   id,
-  palavras: z.array(z.string().trim().min(1).max(40)).max(20),
+  palavras: z
+    .array(z.string().trim().min(1).max(40, { error: 'Cada palavra-chave com até 40 letras.' }))
+    .max(MAXIMO_PALAVRAS_GRUPO, {
+      error: `No máximo ${MAXIMO_PALAVRAS_GRUPO} palavras por grupo de palavras-chave.`,
+    }),
   resposta: textoLivre,
   acao,
 });
@@ -54,15 +59,26 @@ const variaveisValidas = (t: string) =>
   [...t.matchAll(/\{(\w+)\}/g)].every((m) => (m[1] as string) in VARIAVEIS_BOT);
 
 export const mensagensBotSchema = z.object({
-  mensagens: z.partialRecord(
-    z.enum(TIPOS_MENSAGEM_BOT),
-    z
-      .string()
-      .trim()
-      .min(1, { error: 'A mensagem não pode ficar vazia.' })
-      .max(1000)
-      .refine(variaveisValidas, { error: 'Use só as variáveis da lista.' }),
-  ),
+  mensagens: z
+    .partialRecord(
+      z.enum(TIPOS_MENSAGEM_BOT),
+      z
+        .string()
+        .trim()
+        .max(1000)
+        .refine(variaveisValidas, { error: 'Use só as variáveis da lista.' }),
+    )
+    .superRefine((m, ctx) => {
+      // Só o convite para receber avisos pode ficar vazio: é o "desligado" (pedido do dono em
+      // 16/11/2026: ele chegava logo depois do "oi" e atrapalhava a conversa).
+      for (const [tipo, texto] of Object.entries(m))
+        if (!texto && tipo !== 'convite_avisos')
+          ctx.addIssue({
+            code: 'custom',
+            path: [tipo],
+            message: 'A mensagem não pode ficar vazia.',
+          });
+    }),
 });
 export type MensagensBotEntrada = z.infer<typeof mensagensBotSchema>;
 

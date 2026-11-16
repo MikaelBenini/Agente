@@ -62,7 +62,14 @@ const conversa = (unidadeId: string, extra: object = {}) => {
   return async (entrada: string, mais: object = {}) => {
     const r = (
       await dono
-        .post('/bot/simular', { unidadeId, entrada, sessao, versao: 'publicado', ...extra, ...mais })
+        .post('/bot/simular', {
+          unidadeId,
+          entrada,
+          sessao,
+          versao: 'publicado',
+          ...extra,
+          ...mais,
+        })
         .expect(200)
     ).body as RespostaSimulacao;
     sessao = r.sessao;
@@ -163,6 +170,8 @@ describe('mensagens automáticas de quem vem de anúncio', () => {
     );
     expect((await conversa(a.unidadeA)('oi')).respostas.join('\n')).not.toContain('anúncio');
     // Etapas demais: recusa.
-    await dono.put('/bot/anuncio', { ...fluxo, etapas: ['1', '2', '3', '4', '5', '6'] }).expect(400);
+    await dono
+      .put('/bot/anuncio', { ...fluxo, etapas: ['1', '2', '3', '4', '5', '6'] })
+      .expect(400);
   });
 });

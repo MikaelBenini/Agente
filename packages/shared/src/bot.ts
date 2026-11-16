@@ -80,6 +80,8 @@ export type VariavelBot = keyof typeof VARIAVEIS_BOT;
 /** Palavras que o próprio sistema usa e não podem virar palavra-chave. */
 export const PALAVRAS_RESERVADAS = ['sair', 'receber', '0'] as const;
 export const MAXIMO_OPCOES = 9;
+/** Palavras por grupo de palavras-chave (pedido do dono em 16/11/2026: 25 não salvava). */
+export const MAXIMO_PALAVRAS_GRUPO = 40;
 const PROFUNDIDADE_MAXIMA = 3;
 
 // ─── Mensagens prontas ────────────────────────────────────────────────────
@@ -432,6 +434,14 @@ export function validarMenu(m: MenuBot): ProblemaMenu[] {
     const palavras = g.palavras.map(normalizar).filter(Boolean);
     if (palavras.length === 0)
       problemas.push({ onde, mensagem: 'Informe pelo menos uma palavra.' });
+    if (g.palavras.length > MAXIMO_PALAVRAS_GRUPO)
+      problemas.push({
+        onde,
+        mensagem: `No máximo ${MAXIMO_PALAVRAS_GRUPO} palavras por grupo (este tem ${g.palavras.length}). Divida em dois grupos com a mesma resposta.`,
+      });
+    for (const p of g.palavras)
+      if (p.trim().length > 40)
+        problemas.push({ onde, mensagem: `"${p.trim().slice(0, 20)}…" passa de 40 letras.` });
     if (!g.resposta.trim() && !g.acao)
       problemas.push({ onde, mensagem: 'Escreva a resposta ou escolha o que o grupo faz.' });
     checarTexto(onde, g.resposta);
@@ -741,10 +751,7 @@ export function ehSaudacao(texto: string): boolean {
  * "Barba custa R$ 35,00 e leva 30 min. Quer marcar?" quando o texto cita um serviço só; a tabela
  * inteira fica para quem pedir (lista do dono em 16/11/2026). Sem serviço citado, null.
  */
-export function respostaDePreco(
-  texto: string,
-  precos: ContextoConversa['precos'],
-): string | null {
+export function respostaDePreco(texto: string, precos: ContextoConversa['precos']): string | null {
   const citado = servicosCitados(
     texto,
     precos.map((p, i) => ({ ...p, id: String(i) })),

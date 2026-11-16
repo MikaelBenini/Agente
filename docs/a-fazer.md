@@ -648,6 +648,9 @@ Sem IA (regra do produto): tudo por palavras-chave, números e regras de data e 
 
 - [x] **Conversas por unidade** (pedido do dono em 16/11): filtro de unidade na tela Conversas e
   "Só quem veio de anúncio"
+- [x] **Ajustes do bot** (lista do dono em 16/11): chave para desligar o convite "RECEBER"; até 40
+  palavras por grupo, com o grupo e o limite no aviso; erro com o lugar e o motivo; {horario} com
+  o horário de funcionamento da unidade
 - Feito em 16/11 na branch `feat/bot-por-unidade` (CHANGELOG, linha de desenvolvimento Etapa
   23.6, documentação do produto "Bot WhatsApp sem IA" e CLAUDE.md)
 

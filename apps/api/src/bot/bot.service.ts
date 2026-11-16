@@ -214,7 +214,8 @@ export class BotService {
       if (problemas.length)
         throw Erros.validacao(problemas.map((p) => ({ campo: p.onde, mensagem: p.mensagem })));
       const antes = await this.publicadoDoEscopo(tx, unidadeId);
-      if (antes) await tx.botMenu.update({ where: { id: antes.id }, data: { status: 'arquivado' } });
+      if (antes)
+        await tx.botMenu.update({ where: { id: antes.id }, data: { status: 'arquivado' } });
       await tx.botMenu.update({
         where: { id: rascunho.id },
         data: {
@@ -245,7 +246,8 @@ export class BotService {
       if (!anterior)
         throw Erros.requisicaoInvalida('sem_anterior', 'Não há versão anterior para voltar.');
       const atual = await this.publicadoDoEscopo(tx, unidadeId);
-      if (atual) await tx.botMenu.update({ where: { id: atual.id }, data: { status: 'arquivado' } });
+      if (atual)
+        await tx.botMenu.update({ where: { id: atual.id }, data: { status: 'arquivado' } });
       await tx.botMenu.update({
         where: { id: anterior.id },
         data: {
