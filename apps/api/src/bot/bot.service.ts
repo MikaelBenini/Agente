@@ -11,6 +11,7 @@ import {
   numerosDasAutomacoes,
   Prisma,
   registrarEstadoConexao,
+  servicosParaAgendar,
   situacaoDaUnidade,
   unidadeDoBot,
   type Transacao,
@@ -19,7 +20,10 @@ import {
   dataLocal,
   lerAutomacoes,
   lerRegrasAgendamento,
+  TIPOS_MENSAGEM_BOT,
   validarMenu,
+  type AvisoDoBot,
+  type TipoMensagemBot,
   type AutomacoesConta,
   type EstadoAutomacoes,
   type ConexaoBot,
@@ -28,6 +32,7 @@ import {
   type MensagensBot,
   type MensagensBotEntrada,
   type MenuBot,
+  type DiagnosticoSimulacao,
   type RespostaSimulacao,
   type SimularBotDados,
 } from '@pente-fino/shared';
@@ -68,11 +73,40 @@ export class BotService {
     return u;
   }
 
-  async estado(): Promise<EstadoBot> {
+  /** Unidade do escopo (nulo = padrão da barbearia), conferida e com o nome. */
+  private async escopo(tx: Transacao, unidadeId: string | null) {
+    if (!unidadeId) return { unidadeId: null, nome: 'Padrão da barbearia' };
+    exigirUnidade(unidadeId, GESTAO);
+    const u = await this.unidade(tx, unidadeId);
+    return { unidadeId: u.id, nome: u.nome };
+  }
+
+  /** O publicado exatamente deste escopo (sem cair no padrão). */
+  private publicadoDoEscopo(tx: Transacao, unidadeId: string | null) {
+    return unidadeId
+      ? tx.botMenu.findFirst({ where: { status: 'publicado', unidadeId } })
+      : menuPublicado(tx);
+  }
+
+  async estado(unidadeId: string | null = null): Promise<EstadoBot> {
     return this.banco.daConta(async (tx) => {
-      const publicado = await menuPublicado(tx);
-      const rascunho = await tx.botMenu.findFirst({ where: { status: 'rascunho' } });
-      const anterior = await tx.botMenu.count({ where: { status: 'arquivado' } });
+      const escopo = await this.escopo(tx, unidadeId);
+      const publicado = await menuPublicado(tx, unidadeId);
+      const rascunho = await tx.botMenu.findFirst({ where: { status: 'rascunho', unidadeId } });
+      const anterior = await tx.botMenu.count({ where: { status: 'arquivado', unidadeId } });
+      const menuProprio =
+        !unidadeId ||
+        (await tx.botMenu.count({
+          where: { unidadeId, status: { in: ['publicado', 'rascunho'] } },
+        })) > 0;
+      const mensagensProprias = unidadeId
+        ? (
+            await tx.modeloMensagem.findMany({
+              where: { unidadeId, ativo: true, tipo: { in: [...TIPOS_MENSAGEM_BOT] } },
+              select: { tipo: true },
+            })
+          ).map((m) => m.tipo as TipoMensagemBot)
+        : [];
       const quem = publicado.publicadoPorId
         ? await tx.usuario.findUnique({
             where: { id: publicado.publicadoPorId },
@@ -85,7 +119,24 @@ export class BotService {
         orderBy: { nome: 'asc' },
       });
       const agora = new Date();
+      const hoje = dataLocal(agora);
       const menuRascunho = rascunho ? lerMenu(rascunho.menu) : null;
+      const avisos: AvisoDoBot[] = [];
+      const situacoes = await umPorVez(unidades, async (u) => {
+        const s = await situacaoDaUnidade(tx, u, agora, this.config.appUrl);
+        // Lista do dono (16/11): o que faz o bot falhar em cada unidade, antes de publicar.
+        const aviso = (mensagem: string) =>
+          avisos.push({ unidadeId: u.id, unidade: u.nome, mensagem });
+        if (u.botConexao?.status !== 'conectado')
+          aviso('Sem número de WhatsApp conectado: o bot não recebe nem responde nada.');
+        if ((await servicosParaAgendar(tx, u.id, hoje)).length === 0)
+          aviso('Nenhum serviço com preço nesta unidade: o bot não consegue marcar horário.');
+        if (!s.link)
+          aviso(
+            'Sem link de agendamento: quando o bot não conseguir marcar, não há outro caminho para o cliente.',
+          );
+        return { u, s };
+      });
       return {
         publicado: {
           menu: lerMenu(publicado.menu),
@@ -101,63 +152,66 @@ export class BotService {
               }
             : null,
         temAnterior: anterior > 0,
-        mensagens: await mensagensDoBot(tx),
+        mensagens: await mensagensDoBot(tx, unidadeId),
         pesquisaAtiva:
           (await tx.conta.findFirst({ select: { pesquisaPosAtendimento: true } }))
             ?.pesquisaPosAtendimento ?? false,
-        unidades: await umPorVez(unidades, async (u) => {
-          const s = await situacaoDaUnidade(tx, u, agora, this.config.appUrl);
-          return {
-            id: u.id,
-            nome: u.nome,
-            horario: s.horario,
-            expediente: s.expediente,
-            descricao: s.descricao,
-            aberto: s.aberto,
-            link: s.link,
-            linkGoogle: u.linkAvaliacaoGoogle,
-            conexao: u.botConexao
-              ? {
-                  status: u.botConexao.status,
-                  numero: u.botConexao.numero,
-                  caiuEm: u.botConexao.caiuEm?.toISOString() ?? null,
-                }
-              : null,
-          };
-        }),
+        unidades: situacoes.map(({ u, s }) => ({
+          id: u.id,
+          nome: u.nome,
+          horario: s.horario,
+          expediente: s.expediente,
+          descricao: s.descricao,
+          aberto: s.aberto,
+          link: s.link,
+          linkGoogle: u.linkAvaliacaoGoogle,
+          conexao: u.botConexao
+            ? {
+                status: u.botConexao.status,
+                numero: u.botConexao.numero,
+                caiuEm: u.botConexao.caiuEm?.toISOString() ?? null,
+              }
+            : null,
+        })),
         podeEditar: this.podeEditar(),
+        escopo: { ...escopo, menuProprio, mensagensProprias },
+        avisos: unidadeId ? avisos.filter((a) => a.unidadeId === unidadeId) : avisos,
       };
     });
   }
 
-  async salvarRascunho(menu: MenuBot) {
+  async salvarRascunho(menu: MenuBot, unidadeId: string | null = null) {
     this.exigirDono();
     return this.banco.daConta(async (tx) => {
-      const atual = await tx.botMenu.findFirst({ where: { status: 'rascunho' } });
+      await this.escopo(tx, unidadeId);
+      const atual = await tx.botMenu.findFirst({ where: { status: 'rascunho', unidadeId } });
       if (atual) await tx.botMenu.update({ where: { id: atual.id }, data: { menu: json(menu) } });
-      else await tx.botMenu.create({ data: { status: 'rascunho', menu: json(menu) } });
+      else await tx.botMenu.create({ data: { status: 'rascunho', menu: json(menu), unidadeId } });
       return { problemas: validarMenu(menu) };
     });
   }
 
-  async descartarRascunho() {
+  async descartarRascunho(unidadeId: string | null = null) {
     this.exigirDono();
-    await this.banco.daConta((tx) => tx.botMenu.deleteMany({ where: { status: 'rascunho' } }));
+    await this.banco.daConta((tx) =>
+      tx.botMenu.deleteMany({ where: { status: 'rascunho', unidadeId } }),
+    );
   }
 
   /** Rascunho vira o menu do bot; o que estava publicado fica guardado para voltar. */
-  async publicar() {
+  async publicar(unidadeId: string | null = null) {
     this.exigirDono();
     return this.banco.daConta(async (tx) => {
-      const rascunho = await tx.botMenu.findFirst({ where: { status: 'rascunho' } });
+      await this.escopo(tx, unidadeId);
+      const rascunho = await tx.botMenu.findFirst({ where: { status: 'rascunho', unidadeId } });
       if (!rascunho)
         throw Erros.requisicaoInvalida('sem_rascunho', 'Não há alterações para publicar.');
       const menu = lerMenu(rascunho.menu);
       const problemas = validarMenu(menu);
       if (problemas.length)
         throw Erros.validacao(problemas.map((p) => ({ campo: p.onde, mensagem: p.mensagem })));
-      const antes = await menuPublicado(tx);
-      await tx.botMenu.update({ where: { id: antes.id }, data: { status: 'arquivado' } });
+      const antes = await this.publicadoDoEscopo(tx, unidadeId);
+      if (antes) await tx.botMenu.update({ where: { id: antes.id }, data: { status: 'arquivado' } });
       await tx.botMenu.update({
         where: { id: rascunho.id },
         data: {
@@ -170,24 +224,25 @@ export class BotService {
         entidade: 'bot_menu',
         entidadeId: rascunho.id,
         acao: 'publicar',
-        antes: { versao: antes.id },
-        depois: { versao: rascunho.id },
+        antes: { versao: antes?.id ?? null, unidadeId },
+        depois: { versao: rascunho.id, unidadeId },
       });
     });
   }
 
-  /** Volta à última versão publicada antes desta. */
-  async restaurarAnterior() {
+  /** Volta à última versão publicada antes desta (no mesmo escopo). */
+  async restaurarAnterior(unidadeId: string | null = null) {
     this.exigirDono();
     return this.banco.daConta(async (tx) => {
+      await this.escopo(tx, unidadeId);
       const anterior = await tx.botMenu.findFirst({
-        where: { status: 'arquivado' },
+        where: { status: 'arquivado', unidadeId },
         orderBy: { publicadoEm: 'desc' },
       });
       if (!anterior)
         throw Erros.requisicaoInvalida('sem_anterior', 'Não há versão anterior para voltar.');
-      const atual = await menuPublicado(tx);
-      await tx.botMenu.update({ where: { id: atual.id }, data: { status: 'arquivado' } });
+      const atual = await this.publicadoDoEscopo(tx, unidadeId);
+      if (atual) await tx.botMenu.update({ where: { id: atual.id }, data: { status: 'arquivado' } });
       await tx.botMenu.update({
         where: { id: anterior.id },
         data: {
@@ -200,23 +255,51 @@ export class BotService {
         entidade: 'bot_menu',
         entidadeId: anterior.id,
         acao: 'restaurar',
-        antes: { versao: atual.id },
-        depois: { versao: anterior.id },
+        antes: { versao: atual?.id ?? null, unidadeId },
+        depois: { versao: anterior.id, unidadeId },
       });
     });
   }
 
-  async salvarMensagens(d: MensagensBotEntrada) {
+  /**
+   * Mensagens prontas do escopo. Na unidade, só ficam gravadas as que diferem do padrão da
+   * barbearia; a igual ao padrão volta a seguir o padrão.
+   */
+  async salvarMensagens(d: MensagensBotEntrada, unidadeId: string | null = null) {
     this.exigirDono();
     return this.banco.daConta(async (tx) => {
+      await this.escopo(tx, unidadeId);
+      const padrao = unidadeId ? await mensagensDoBot(tx) : null;
       for (const [tipo, texto] of Object.entries(d.mensagens)) {
         const t = tipo as keyof MensagensBot;
-        const atual = await tx.modeloMensagem.findFirst({ where: { unidadeId: null, tipo: t } });
+        const atual = await tx.modeloMensagem.findFirst({ where: { unidadeId, tipo: t } });
+        if (padrao && texto === padrao[t]) {
+          if (atual) await tx.modeloMensagem.delete({ where: { id: atual.id } });
+          continue;
+        }
         if (atual)
           await tx.modeloMensagem.update({ where: { id: atual.id }, data: { texto, ativo: true } });
-        else await tx.modeloMensagem.create({ data: { tipo: t, texto: texto! } });
+        else await tx.modeloMensagem.create({ data: { tipo: t, texto: texto!, unidadeId } });
       }
-      return mensagensDoBot(tx);
+      return mensagensDoBot(tx, unidadeId);
+    });
+  }
+
+  /** A unidade volta a usar o menu e as mensagens do padrão da barbearia. */
+  async usarPadrao(unidadeId: string) {
+    this.exigirDono();
+    return this.banco.daConta(async (tx) => {
+      await this.escopo(tx, unidadeId);
+      const menus = await tx.botMenu.deleteMany({ where: { unidadeId } });
+      const mensagens = await tx.modeloMensagem.deleteMany({
+        where: { unidadeId, tipo: { in: [...TIPOS_MENSAGEM_BOT] } },
+      });
+      await auditar(tx, {
+        entidade: 'unidade',
+        entidadeId: unidadeId,
+        acao: 'bot_usar_padrao',
+        depois: { menus: menus.count, mensagens: mensagens.count },
+      });
     });
   }
 
@@ -307,12 +390,33 @@ export class BotService {
   async simular(d: SimularBotDados): Promise<RespostaSimulacao> {
     exigirUnidade(d.unidadeId, GESTAO);
     return this.banco.daConta(async (tx) => {
+      const u = await this.unidade(tx, d.unidadeId);
+      // O rascunho da unidade; sem menu próprio, o rascunho do padrão da barbearia.
+      const menuProprio =
+        (await tx.botMenu.count({
+          where: { unidadeId: u.id, status: { in: ['publicado', 'rascunho'] } },
+        })) > 0;
       const rascunho =
         d.versao === 'rascunho'
-          ? await tx.botMenu.findFirst({ where: { status: 'rascunho' } })
+          ? await tx.botMenu.findFirst({
+              where: { status: 'rascunho', unidadeId: menuProprio ? u.id : null },
+            })
           : null;
-      const menu = lerMenu((rascunho ?? (await menuPublicado(tx))).menu);
-      const u = await this.unidade(tx, d.unidadeId);
+      const linha = rascunho ?? (await menuPublicado(tx, u.id));
+      const menu = lerMenu(linha.menu);
+      // Lista do dono (16/11): o simulador diz de onde veio o menu e por que não há opções.
+      const aviso =
+        d.versao === 'rascunho' && !rascunho
+          ? 'Não há rascunho: este teste usou o menu publicado.'
+          : menu.menu.opcoes.length === 0
+            ? 'Este menu está sem opções: o cliente só vê o texto e nenhum número funciona. Acrescente opções antes de publicar.'
+            : null;
+      const diagnostico: DiagnosticoSimulacao = {
+        versao: rascunho ? 'rascunho' : 'publicado',
+        deQuem: linha.unidadeId ? 'unidade' : 'padrao',
+        opcoes: menu.menu.opcoes.map((o) => o.rotulo),
+        aviso,
+      };
       const agora = new Date();
       const ctx = await contextoDaConversa(tx, u, agora, this.config.appUrl, {
         cliente: d.cliente,
@@ -322,9 +426,9 @@ export class BotService {
       });
       if (d.foraDoHorario) ctx.dentroDoHorario = false;
       // O mesmo passo a passo do WhatsApp, sem gravar o agendamento no fim.
-      return responderComAgenda(tx, {
+      const r = await responderComAgenda(tx, {
         menu,
-        mensagens: await mensagensDoBot(tx),
+        mensagens: await mensagensDoBot(tx, u.id),
         sessao: d.sessao,
         entrada: d.entrada,
         ctx,
@@ -338,6 +442,7 @@ export class BotService {
           regras: lerRegrasAgendamento(u.regrasAgendamento),
         },
       });
+      return { ...r, diagnostico };
     });
   }
 
