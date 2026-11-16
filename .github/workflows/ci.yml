@@ -49,6 +49,10 @@ jobs:
       - name: Cobertura mínima de 80% nas regras de cálculo
         run: pnpm --filter @pente-fino/shared test:cobertura
       - run: pnpm build
+      # Os testes não carregam todo arquivo; aqui cada módulo da API e do worker é aberto como em
+      # produção. Pega dependência que mudou o jeito de exportar (web-push 4, 16/11/2026).
+      - name: API e worker carregam todos os módulos
+        run: node scripts/conferir-modulos.mjs apps/api/dist apps/worker/dist
 
   banco:
     name: Banco, API e telas (migrações, seed, RLS e e2e)

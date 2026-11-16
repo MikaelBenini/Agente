@@ -7,6 +7,12 @@ produção (`https://seupentefino.com.br`). Detalhes técnicos e o porquê de ca
 
 ## [Não publicado]
 
+### Corrigido (bot do WhatsApp parado)
+
+- **O worker (bot do WhatsApp, lembretes e rotinas) parou em 16/11 às 13:32**, no deploy da atualização automática do `web-push` 3 → 4: a versão nova não tem mais a exportação padrão e o worker caía ao iniciar. O import foi corrigido e o bot, os lembretes e as rotinas voltam ao subir esta versão.
+- **Para não repetir:** o CI de todo PR e a construção das imagens abrem cada módulo da API e do worker como em produção (`scripts/conferir-modulos.mjs`); imagem que não abre não é enviada nem implantada. E o deploy agora espera a API, o painel **e o worker** ficarem saudáveis; antes esperava só o painel e saía verde com o worker caído.
+- **WhatsApp em duas unidades:** teste novo prova que cada unidade conecta o próprio número ao mesmo tempo (instância própria, QR próprio) e que a mensagem de cada número vai para a unidade certa.
+
 ### Segurança (deploy)
 
 - Valor do `.env` com `$` (como a chave do Asaas) era lido como vazio pelo Docker Compose e aparecia inteiro no log público do deploy. O `atualizar.sh` agora esconde o valor do aviso e diz qual variável pôr entre aspas simples.

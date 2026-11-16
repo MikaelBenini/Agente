@@ -576,6 +576,17 @@ de ganho para o barbeiro:
   ficam como estão, para os links do alto da página caírem no lugar certo), parágrafos sem palavra
   sozinha e dica de rolagem nas tabelas
 
+## 8d. Worker parado em produção (pedido do dono em 16/11)
+
+- [x] Causa: `web-push` 4 (PR #230 do Dependabot) sem exportação padrão; o worker caía ao iniciar
+  desde o deploy das 13:32. Import corrigido (16/11, branch `fix/worker-web-push-4`, CHANGELOG)
+- [x] Para não repetir: conferência dos módulos no CI e nas imagens; deploy espera o worker
+  saudável (16/11, CHANGELOG e `docs/producao.md`)
+- [x] WhatsApp em duas unidades: teste de ponta a ponta com as duas conectadas ao mesmo tempo
+  (`whatsapp.e2e-spec.ts`) e duas instâncias com QR na Evolution de teste (16/11)
+- [ ] Merge pelo dono e conferir na Saúde do sistema que o worker volta a "No ar"
+- [ ] Salário fixo dos barbeiros nas despesas fixas: aguardando a resposta do dono sobre o formato
+
 ## 9. Por último: verificação final do ecossistema
 
 - [x] Rodar a [verificação final](verificacao-final.md) (feita em 15/11: números, segurança e produção conferidos; correções C1 a C6; ficam com o dono o backup no Kuma, uma restauração de teste e o Tag Assistant) (pedido do dono em 11/11/2026): rotinas

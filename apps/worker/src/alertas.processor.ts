@@ -42,7 +42,7 @@ import {
   type TrabalhoPushEquipe,
 } from '@pente-fino/shared';
 import { Queue, Worker } from 'bullmq';
-import webpush from 'web-push';
+import * as webpush from 'web-push';
 import { CONFIGURACAO_WORKER, type ConfiguracaoWorker } from './config.js';
 
 export interface DependenciasAlertas {

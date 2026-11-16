@@ -8,7 +8,7 @@ import {
 import { enviarNotificacao, type EnviarPush, type PrismaClient } from '@pente-fino/db';
 import { FILA_NOTIFICACOES, type TrabalhoNotificacao } from '@pente-fino/shared';
 import { type Job, Worker } from 'bullmq';
-import webpush from 'web-push';
+import * as webpush from 'web-push';
 import { Banco } from './banco.js';
 import { CONFIGURACAO_WORKER, type ConfiguracaoWorker } from './config.js';
 
