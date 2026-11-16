@@ -584,8 +584,41 @@ de ganho para o barbeiro:
   saudável (16/11, CHANGELOG e `docs/producao.md`)
 - [x] WhatsApp em duas unidades: teste de ponta a ponta com as duas conectadas ao mesmo tempo
   (`whatsapp.e2e-spec.ts`) e duas instâncias com QR na Evolution de teste (16/11)
-- [ ] Merge pelo dono e conferir na Saúde do sistema que o worker volta a "No ar"
+- [x] Merge pelo dono (#232, 16/11) e deploy das 15:31 com o worker saudável (as barreiras novas
+  rodaram: 10 e 112 módulos conferidos nas imagens)
+- [x] PR #231 do Dependabot (ferramentas de desenvolvimento): o axe novo cobra a WCAG 2.5.3; nomes
+  dos botões e links corrigidos (sino, unidade, agenda, dia, mês dia a dia, planos, chat do site)
+- [ ] Merge do #231 pelo dono, com o CI verde
 - [ ] Salário fixo dos barbeiros nas despesas fixas: aguardando a resposta do dono sobre o formato
+
+## 8e. Revisão do cadastro, da unidade e do login (lista do dono em 16/11)
+
+- [ ] **Cupom no cadastro** (alta): o `cupom=LANCAMENTO` da URL não aparece no cadastro e some ao
+  escolher o plano. Mostrar "Cupom LANCAMENTO aplicado" e o preço com desconto antes de criar a
+  conta; conferir que o desconto chega à assinatura
+- [ ] **Anual no cadastro** (alta): mostrar o total do ano ao lado do equivalente mensal e o que será
+  cobrado depois do teste
+- [ ] **Unidade em uso** (alta): Agenda, Comandas e Caixa mostram "Todas as unidades" no alto e outra
+  unidade no seletor da tela; deixar claro qual unidade aparece e onde o agendamento, a comanda ou
+  a abertura do caixa será registrado
+- [ ] **Avisos × bot × Automações** (média): quadro lado a lado com o que vem nos lembretes, o que
+  marca pela conversa e o que o adicional do Agenda libera
+- [ ] **Login** (média): "Mostrar senha" como no cadastro; envio vazio com a mensagem certa para
+  cada campo
+
+## 8f. Copiar configurações de outra unidade (análise de 16/11, aguardando o dono)
+
+Já valem para a conta inteira (nada a copiar): mensagens do WhatsApp, menu do bot, pesquisa,
+equipe e clube. A conexão do WhatsApp não se copia: cada unidade lê o próprio QR. O catálogo já
+tem "Copiar catálogo de outra unidade". Proposta: "Copiar de outra unidade", escolhendo o que vem:
+
+- [ ] Horário de funcionamento e dias de trabalho
+- [ ] Feriados e dias fechados do calendário
+- [ ] Regras de agendamento (antecedência, intervalo, cancelamento)
+- [ ] Horário do bot e link de avaliação do Google
+- [ ] Site e página de agendamento (cores, textos e blocos; sem endereço, endereço do site e domínio)
+- [ ] Metas do mês
+- [ ] Opcional: mensagens do WhatsApp próprias por unidade (o banco já aceita; a tela não)
 
 ## 9. Por último: verificação final do ecossistema
 
