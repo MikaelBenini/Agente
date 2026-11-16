@@ -48,6 +48,10 @@ produção (`https://seupentefino.com.br`). Detalhes técnicos e o porquê de ca
 - **Para não repetir:** o CI de todo PR e a construção das imagens abrem cada módulo da API e do worker como em produção (`scripts/conferir-modulos.mjs`); imagem que não abre não é enviada nem implantada. E o deploy agora espera a API, o painel **e o worker** ficarem saudáveis; antes esperava só o painel e saía verde com o worker caído.
 - **WhatsApp em duas unidades:** teste novo prova que cada unidade conecta o próprio número ao mesmo tempo (instância própria, QR próprio) e que a mensagem de cada número vai para a unidade certa.
 
+### Acessibilidade (nome lido = texto visto)
+
+- Botões e links cujo nome para o leitor de tela não continha o texto que aparece (regra WCAG 2.5.3, cobrada pela versão nova do axe nos testes): sino de avisos, troca de unidade, blocos da agenda, lista do dia, mês dia a dia, "Testar 14 dias grátis" dos planos e o "Fale com a gente" do site. Agora quem usa comando de voz pode dizer o que vê; o detalhe extra continua para o leitor de tela.
+
 ### Segurança (deploy)
 
 - Valor do `.env` com `$` (como a chave do Asaas) era lido como vazio pelo Docker Compose e aparecia inteiro no log público do deploy. O `atualizar.sh` agora esconde o valor do aviso e diz qual variável pôr entre aspas simples.

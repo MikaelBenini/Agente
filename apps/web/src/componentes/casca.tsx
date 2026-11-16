@@ -380,13 +380,13 @@ function SeletorUnidade({ compacto = false }: { compacto?: boolean }) {
   return (
     <Link
       href="/unidade"
-      aria-label={`Unidade: ${nome}. Trocar unidade`}
       className={cn(
         classe,
         'hover:border-borda-forte focus-visible:outline-2 focus-visible:outline-foco',
       )}
     >
       {conteudo}
+      <span className="sr-only"> (trocar unidade)</span>
     </Link>
   );
 }
@@ -486,7 +486,6 @@ function BotaoAvisos({ className }: { className: string }) {
   return (
     <Link
       href="/avisos"
-      aria-label={rotulo}
       title={rotulo}
       className={cn(className, 'relative')}
       // No primeiro toque no sino, o navegador pergunta se pode mandar notificações (precisa
@@ -496,6 +495,7 @@ function BotaoAvisos({ className }: { className: string }) {
       }}
     >
       <Bell aria-hidden className="size-5" strokeWidth={1.75} />
+      <span className="sr-only">{rotulo}</span>
       {n > 0 && (
         <span
           aria-hidden

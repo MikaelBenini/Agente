@@ -353,11 +353,16 @@ export function ChatSite() {
         data-medir={aberto ? undefined : 'chat'}
         aria-expanded={aberto}
         aria-controls={idPainel}
-        aria-label={naoLidas ? `Chat: ${naoLidas} mensagem nova` : 'Abrir o chat com o Pente Fino'}
         className="fixed right-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-40 flex min-h-14 items-center gap-2 rounded-full bg-acao px-5 font-semibold text-sobre-acao shadow-2xl hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foco"
       >
         <MessageCircle aria-hidden className="size-6" />
-        <span className="hidden sm:inline">{aberto ? 'Fechar' : 'Fale com a gente'}</span>
+        {/* O texto visível é o nome do botão (no celular, só para o leitor de tela). */}
+        <span className="sr-only sm:not-sr-only">{aberto ? 'Fechar' : 'Fale com a gente'}</span>
+        {naoLidas > 0 && (
+          <span className="sr-only">
+            : {naoLidas} {naoLidas === 1 ? 'mensagem nova' : 'mensagens novas'}
+          </span>
+        )}
         {naoLidas > 0 && (
           <span
             aria-hidden

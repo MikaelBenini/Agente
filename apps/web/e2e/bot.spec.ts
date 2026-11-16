@@ -101,7 +101,13 @@ test('dono conecta o WhatsApp pelo QR Code e desconecta', async ({ page }, info)
     'aria-selected',
     'true',
   );
-  const centro = visivel(page.getByRole('listitem').filter({ hasText: 'Centro' })).first();
+  // O cartão da unidade (os avisos do alto também citam o Centro).
+  const centro = visivel(
+    page
+      .getByRole('listitem')
+      .filter({ hasText: 'Centro' })
+      .filter({ has: page.getByRole('button', { name: /Conectar pelo QR Code|Reconectar/ }) }),
+  ).first();
   await centro.getByRole('button', { name: /Conectar pelo QR Code|Reconectar/ }).click();
   const qr = centro.getByAltText(/QR Code para conectar o WhatsApp/);
   await expect(qr).toBeVisible();

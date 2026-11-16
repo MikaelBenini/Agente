@@ -36,7 +36,7 @@ test('o dia escolhido pelo endereço abre direto (vindo do mês dia a dia)', asy
   const tabela = visivel(page.getByRole('table', { name: /dia a dia/ }));
   await expect(tabela).toBeVisible();
   await tabela
-    .getByRole('link', { name: /^Abrir / })
+    .getByRole('link', { name: /, abrir / })
     .first()
     .click();
   await page.waitForURL(/\/dia\?dia=\d{4}-\d{2}-\d{2}/);
