@@ -225,3 +225,38 @@ describe('histórico de mensagens do cliente', () => {
     expect(c.body.consentimentoEm).toBeTruthy();
   });
 });
+
+// Pedido do dono em 16/11/2026: a barbearia com duas unidades conecta um número em cada uma.
+describe('duas unidades com WhatsApp ao mesmo tempo', () => {
+  it('cada unidade tem a própria instância, o próprio número e recebe as próprias mensagens', async () => {
+    const instanciaB = instanciaDaUnidade(a.unidadeB);
+    expect(instanciaB).not.toBe(instancia);
+
+    // A unidade A volta a conectar e, com ela conectada, a B conecta a dela.
+    await dono.post(`/bot/conexao/${a.unidadeA}`).expect(200);
+    provedor.simularLeitura(instancia, '5511900001111');
+    const b1 = (await dono.post(`/bot/conexao/${a.unidadeB}`).expect(200)).body as ConexaoBot;
+    expect(b1).toMatchObject({ status: 'aguardando_qr' });
+    expect(b1.qr).toMatch(/^data:image\//);
+    provedor.simularLeitura(instanciaB, '5511900003333');
+    await dono.get(`/bot/conexao/${a.unidadeA}`).expect(200);
+    await dono.get(`/bot/conexao/${a.unidadeB}`).expect(200);
+
+    const estado = (await dono.get('/bot').expect(200)).body as EstadoBot;
+    const porId = (id: string) => estado.unidades.find((u) => u.id === id)?.conexao;
+    expect(porId(a.unidadeA)).toMatchObject({ status: 'conectado', numero: '5511900001111' });
+    expect(porId(a.unidadeB)).toMatchObject({ status: 'conectado', numero: '5511900003333' });
+
+    // A mensagem que chega no número da B vai para a fila com a instância da B.
+    const id = `WB-${randomUUID().slice(0, 8)}`;
+    const corpo = { ...mensagem(id, 'oi unidade B'), instance: instanciaB };
+    await webhook(corpo, assinarInstancia(segredo(), instanciaB)).expect(200);
+    expect((await fila.getJob(`${instanciaB}_${id}`))?.data).toMatchObject({
+      instancia: instanciaB,
+      texto: 'oi unidade B',
+    });
+    // A assinatura da A não serve para a B.
+    await webhook(corpo, assinarInstancia(segredo(), instancia)).expect(401);
+    await (await fila.getJob(`${instanciaB}_${id}`))?.remove();
+  });
+});
