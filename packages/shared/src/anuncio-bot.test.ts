@@ -86,3 +86,22 @@ describe('relatório de clientes de anúncio', () => {
     expect(resumirAnuncios({ conversas: [], novosClientes: 0, comandas: [] }).ticket).toBe(0);
   });
 });
+
+describe('cliente comum não cai no anúncio (16/11/2026)', () => {
+  it('a frase só vale no começo da mensagem e numa conversa nova; a marca do WhatsApp vale sempre', () => {
+    // No meio do texto: não é anúncio.
+    expect(ehFraseDeAnuncio(fluxo, 'oi, queria saber mais sobre o corte')).toBe(false);
+    // No meio de uma conversa (sessão de 5 min atrás): a frase não começa o fluxo.
+    const emConversa = { caminho: [], comAtendente: false, ultimaEm: depois(-5).toISOString() };
+    expect(
+      responderAnuncio(fluxo, emConversa, 'Olá! Quero saber mais.', agora, false, null),
+    ).toBeNull();
+    // Conversa nova (última mensagem há 2 h): a frase começa o fluxo.
+    const antiga = { caminho: [], comAtendente: false, ultimaEm: depois(-120).toISOString() };
+    expect(
+      responderAnuncio(fluxo, antiga, 'Olá! Quero saber mais.', agora, false, null)?.comecou,
+    ).toBe(true);
+    // Com a marca do WhatsApp, vale mesmo no meio de uma conversa.
+    expect(responderAnuncio(fluxo, emConversa, 'oi', agora, true, null)?.comecou).toBe(true);
+  });
+});

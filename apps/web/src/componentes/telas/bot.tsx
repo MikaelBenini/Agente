@@ -21,6 +21,7 @@ import {
   type MenuNo,
   type OpcaoMenu,
   type DiagnosticoSimulacao,
+  type FluxoAnuncioDoEscopo,
   type RespostaSimulacao,
   type SessaoBot,
   type TurnoBot,
@@ -47,7 +48,7 @@ import {
   Trash2,
   TriangleAlert,
 } from 'lucide-react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { createContext, useContext, useEffect, useState, type FormEvent } from 'react';
@@ -1167,6 +1168,13 @@ function Simulador({ e }: { e: EstadoBot }) {
   const [cliente, setCliente] = useState('João Silva');
   const [fechado, setFechado] = useState(false);
   const [doAnuncio, setDoAnuncio] = useState(false);
+  // Só dá para simular a chegada por anúncio com as mensagens de anúncio ligadas na unidade.
+  const anuncio = useQuery({
+    queryKey: [...chaveBot, 'anuncio', unidadeId || 'padrao'],
+    queryFn: () => api<FluxoAnuncioDoEscopo>(`bot/anuncio?unidadeId=${unidadeId}`),
+    enabled: !!unidadeId,
+  });
+  const anuncioLigado = anuncio.data?.ativo === true;
   // De onde veio o menu do teste (lista do dono em 16/11: "rascunho sem opções").
   const [diagnostico, setDiagnostico] = useState<DiagnosticoSimulacao | null>(null);
   const [falas, setFalas] = useState<Fala[]>([]);
@@ -1196,7 +1204,7 @@ function Simulador({ e }: { e: EstadoBot }) {
           cliente: cliente.trim() || null,
           foraDoHorario: fechado,
           // Só a primeira mensagem chega "pelo anúncio"; as respostas seguem a conversa.
-          doAnuncio: doAnuncio && sessao === null,
+          doAnuncio: anuncioLigado && doAnuncio && sessao === null,
         },
       });
       setSessao(r.sessao);
@@ -1279,18 +1287,25 @@ function Simulador({ e }: { e: EstadoBot }) {
           />
           Simular fora do horário
         </label>
-        <label className="flex min-h-11 items-center gap-2">
-          <input
-            type="checkbox"
-            checked={doAnuncio}
-            onChange={(ev) => {
-              setDoAnuncio(ev.target.checked);
-              reiniciar();
-            }}
-            className="size-5 accent-[var(--modulo)]"
-          />
-          Chegou por anúncio
-        </label>
+        {anuncioLigado ? (
+          <label className="flex min-h-11 items-center gap-2">
+            <input
+              type="checkbox"
+              checked={doAnuncio}
+              onChange={(ev) => {
+                setDoAnuncio(ev.target.checked);
+                reiniciar();
+              }}
+              className="size-5 accent-[var(--modulo)]"
+            />
+            Chegou por anúncio
+          </label>
+        ) : (
+          <p className="text-sm text-tinta-suave">
+            Para testar quem vem de anúncio, ligue as mensagens de anúncio desta unidade em
+            Mensagens automáticas.
+          </p>
+        )}
         <Botao variante="secundario" onClick={reiniciar}>
           <RotateCcw aria-hidden className="size-4" /> Recomeçar conversa
         </Botao>
