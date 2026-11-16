@@ -1,7 +1,7 @@
 'use client';
 
 import { Selecao } from '@pente-fino/ui';
-import { useEffect, useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import { useApp } from './contexto-app';
 
 /** A escolha vale entre Agenda, Comandas e Caixa enquanto a aba estiver aberta. */
@@ -14,6 +14,8 @@ function lerEscolha(): string | null {
     return null;
   }
 }
+
+const semAvisos = () => () => undefined;
 
 function guardarEscolha(id: string) {
   try {
@@ -32,11 +34,10 @@ function guardarEscolha(id: string) {
 export function useUnidadeTrabalho(): { unidadeId: string | null; seletor: React.ReactNode } {
   const { unidades, unidadeAtiva } = useApp();
   const ativas = unidades.filter((u) => u.ativa);
-  const [escolhida, setEscolhida] = useState<string | null>(null);
-  useEffect(() => {
-    const guardada = lerEscolha();
-    if (guardada) setEscolhida(guardada);
-  }, []);
+  // A escolhida nesta tela vale; antes de escolher, a guardada na aba (no servidor, nenhuma).
+  const guardada = useSyncExternalStore(semAvisos, lerEscolha, () => null);
+  const [escolhaDaTela, setEscolhida] = useState<string | null>(null);
+  const escolhida = escolhaDaTela ?? guardada;
   if (unidadeAtiva !== 'todas') return { unidadeId: unidadeAtiva, seletor: null };
   const unidadeId =
     (escolhida && ativas.some((u) => u.id === escolhida) ? escolhida : null) ??
