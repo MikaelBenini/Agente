@@ -497,8 +497,10 @@ function CopiarFixas({
     (corpo: object) => api('despesas/copiar-fixas', { corpo }),
     [chavesResultados.despesas, chavesResultados.indicadores],
   );
+  // Linha de despesa do mês anterior ou de salário (barbeiro com valor fixo em Equipe).
+  const chave = (f: FixaParaCopiar) => f.origemId ?? `salario-${f.profissionalId}`;
   const linha = (f: FixaParaCopiar) =>
-    edicao[f.origemId] ?? { marcada: !f.jaLancada, valor: valorParaCampo(f.valor) };
+    edicao[chave(f)] ?? { marcada: !f.jaLancada, valor: valorParaCampo(f.valor) };
   function fechar() {
     setEdicao({});
     setErro(null);
@@ -513,8 +515,9 @@ function CopiarFixas({
             return (
               <div className="flex flex-col gap-4">
                 <p className="text-tinta-suave">
-                  Nenhuma despesa fixa do mês anterior para copiar: ou não houve, ou já foram
-                  copiadas para este mês.
+                  Nenhuma despesa fixa do mês anterior nem salário de barbeiro para copiar: ou não
+                  houve, ou já foram copiados para este mês. O salário vem do valor fixo de cada
+                  barbeiro em Equipe.
                 </p>
                 <Botao className="self-end" variante="secundario" onClick={fechar}>
                   Fechar
@@ -535,7 +538,11 @@ function CopiarFixas({
                   const valor = lerMoeda(linha(f).valor);
                   if (!valor || valor <= 0)
                     return setErro(`Informe o valor de "${f.descricao}". Ex.: 1.250,00`);
-                  itens.push({ origemId: f.origemId, valor, vencimento: f.vencimento });
+                  itens.push(
+                    f.profissionalId
+                      ? { profissionalId: f.profissionalId, valor, vencimento: f.vencimento }
+                      : { origemId: f.origemId, valor, vencimento: f.vencimento },
+                  );
                 }
                 if (itens.length === 0) return setErro('Marque pelo menos uma despesa.');
                 try {
@@ -548,22 +555,22 @@ function CopiarFixas({
             >
               <p className="text-sm text-tinta-suave">
                 Confira os valores antes de copiar. Elas entram neste mês a pagar, com o vencimento
-                no mesmo dia.
+                no mesmo dia. Os salários vêm do valor fixo de cada barbeiro em Equipe.
               </p>
               {erro && <Aviso tom="erro">{erro}</Aviso>}
               <ul className="flex flex-col gap-3" aria-label="Despesas fixas do mês anterior">
                 {lista.map((f) => {
                   const l = linha(f);
                   const mudar = (novo: Partial<typeof l>) =>
-                    setEdicao({ ...edicao, [f.origemId]: { ...l, ...novo } });
+                    setEdicao({ ...edicao, [chave(f)]: { ...l, ...novo } });
                   return (
                     <li
-                      key={f.origemId}
+                      key={chave(f)}
                       className="flex flex-wrap items-end gap-3 border-b border-borda pb-3"
                     >
                       <div className="min-w-0 flex-1">
                         <Marcador
-                          id={`copiar-${f.origemId}`}
+                          id={`copiar-${chave(f)}`}
                           rotulo={f.descricao}
                           checked={l.marcada}
                           onChange={(e) => mudar({ marcada: e.target.checked })}
@@ -574,6 +581,7 @@ function CopiarFixas({
                             ? ` · vence ${formatarData(`${f.vencimento}T12:00:00Z`)}`
                             : ''}
                           {f.repetir && ' · repete todo mês'}
+                          {f.profissionalId && ' · valor fixo em Equipe'}
                         </span>
                         {f.jaLancada && (
                           <span className="block pl-8 text-sm font-semibold text-aviso-texto">
@@ -583,7 +591,7 @@ function CopiarFixas({
                       </div>
                       <div className="w-36">
                         <Campo
-                          id={`copiar-valor-${f.origemId}`}
+                          id={`copiar-valor-${chave(f)}`}
                           rotulo="Valor (R$)"
                           inputMode="decimal"
                           disabled={!l.marcada}

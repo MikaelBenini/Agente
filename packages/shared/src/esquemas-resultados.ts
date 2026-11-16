@@ -57,7 +57,10 @@ export function vencimentoNoMesSeguinte(vencimento: string | null): string | nul
 
 /** Uma fixa do mês anterior que ainda não veio para este mês (prévia do "Copiar"). */
 export interface FixaParaCopiar {
-  origemId: string;
+  /** Despesa fixa do mês anterior; nulo na linha de salário. */
+  origemId: string | null;
+  /** Linha de salário: o barbeiro com valor fixo cadastrado em Equipe (decisão de 16/11/2026). */
+  profissionalId: string | null;
   unidadeId: string | null;
   categoria: string;
   descricao: string;
@@ -74,16 +77,26 @@ export const copiarFixasSchema = z.object({
   mes: mesIso,
   itens: z
     .array(
-      z.object({
-        origemId: uuid('Despesa'),
-        valor: centavos.min(1, { error: 'O valor precisa ser maior que zero.' }),
-        vencimento: dataIso.nullable(),
-      }),
+      z
+        .object({
+          origemId: uuid('Despesa').optional(),
+          profissionalId: uuid('Barbeiro').optional(),
+          valor: centavos.min(1, { error: 'O valor precisa ser maior que zero.' }),
+          vencimento: dataIso.nullable(),
+        })
+        .refine((i) => !i.origemId !== !i.profissionalId, {
+          error: 'Cada item é uma despesa do mês anterior ou o salário de um barbeiro.',
+        }),
     )
     .min(1, { error: 'Marque pelo menos uma despesa.' })
     .max(200),
 });
 export type CopiarFixasEntrada = z.infer<typeof copiarFixasSchema>;
+
+/** Categoria das linhas de salário na cópia das fixas (criada na conta se não existir). */
+export const CATEGORIA_SALARIOS = 'Salários e encargos';
+/** Descrição da despesa de salário de um barbeiro. */
+export const descricaoSalario = (nome: string) => `Salário: ${nome}`;
 
 export const categoriaDespesaSchema = z.object({
   nome: z.string().trim().min(2).max(60),

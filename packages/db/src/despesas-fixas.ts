@@ -34,9 +34,12 @@ export async function repetirDespesasDoMes(
             vencimento: o.vencimento ? dia(vencimentoNoMesSeguinte(texto(o.vencimento))!) : null,
             repetir: true,
             origemId: o.id,
+            // Salário de barbeiro que repete: leva o barbeiro, e o único (barbeiro, mês) segura
+            // a cópia que já veio pela prévia das fixas.
+            profissionalId: o.profissionalId,
           },
         ],
-        // Corrida com a cópia manual: a origem única segura, e aqui só pula.
+        // Corrida com a cópia manual: a origem única (e o salário único) segura, e aqui só pula.
         skipDuplicates: true,
       });
       lancadas += r.count;

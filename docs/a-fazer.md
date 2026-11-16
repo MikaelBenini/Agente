@@ -589,7 +589,7 @@ de ganho para o barbeiro:
 - [x] PR #231 do Dependabot (ferramentas de desenvolvimento): o axe novo cobra a WCAG 2.5.3; nomes
   dos botões e links corrigidos (sino, unidade, agenda, dia, mês dia a dia, planos, chat do site)
 - [ ] Merge do #231 pelo dono, com o CI verde
-- [ ] **Salário fixo dos barbeiros nas despesas fixas** (decisão do dono em 16/11): no "Copiar
+- [x] **Salário fixo dos barbeiros nas despesas fixas** (16/11, branch `feat/salario-nas-fixas`; linha de desenvolvimento Etapa 23.6, RN-07a, CLAUDE.md e CHANGELOG) (decisão do dono em 16/11): no "Copiar
   fixas do mês anterior", uma linha por barbeiro com valor fixo (categoria "Salários e encargos"),
   editável e marcável antes de gravar; nunca duplica
 

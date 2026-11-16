@@ -143,3 +143,94 @@ describe('copiar fixas do mês anterior', () => {
       .expect(404);
   });
 });
+
+// Decisão do dono em 16/11/2026: o salário (valor fixo em Equipe) entra na prévia das fixas.
+describe('salário dos barbeiros na cópia das fixas', () => {
+  it('uma linha por barbeiro com valor fixo; copia com o valor editado, uma vez por mês', async () => {
+    const prof = (
+      await dono
+        .post('/profissionais', {
+          unidadeId: a.unidadeA,
+          nome: 'Saulo Salário',
+          email: `saulo-${Date.now()}@e2e.pentefino.dev`,
+          dataEntrada: '2025-01-01',
+          comissaoServico: { percentualBp: 4000, valorFixo: null },
+          comissaoProduto: { percentualBp: 1000, valorFixo: null },
+        })
+        .expect(201)
+    ).body.id as string;
+    const salarios = async (cliente: Cliente, mes: string) =>
+      (
+        (await cliente.get(`/despesas/fixas-para-copiar?mes=${mes}`).expect(200))
+          .body as FixaParaCopiar[]
+      ).filter((f) => f.profissionalId);
+
+    // Só comissão (sem valor fixo): nenhuma linha de salário.
+    expect(await salarios(dono, '2025-06')).toEqual([]);
+    await dono.patch(`/profissionais/${prof}`, { custoFixoMensal: 180_000 }).expect(200);
+    expect(await salarios(dono, '2025-06')).toEqual([
+      expect.objectContaining({
+        origemId: null,
+        profissionalId: prof,
+        unidadeId: a.unidadeA,
+        categoria: 'Salários e encargos',
+        descricao: 'Salário: Saulo Salário',
+        valor: 180_000,
+        jaLancada: false,
+      }),
+    ]);
+    // O gestor da unidade A vê e copia o salário do barbeiro dela.
+    expect((await salarios(gestor, '2025-06')).map((f) => f.profissionalId)).toEqual([prof]);
+
+    const copiadas = (
+      await gestor
+        .post('/despesas/copiar-fixas', {
+          mes: '2025-06',
+          itens: [{ profissionalId: prof, valor: 185_000, vencimento: '2025-06-05' }],
+        })
+        .expect(201)
+    ).body as DespesaDetalhe[];
+    expect(copiadas).toEqual([
+      expect.objectContaining({
+        descricao: 'Salário: Saulo Salário',
+        valor: 185_000,
+        competencia: '2025-06',
+        vencimento: '2025-06-05',
+        pago: false,
+      }),
+    ]);
+
+    // Já veio: sai da prévia e não duplica; no mês seguinte volta a aparecer.
+    expect(await salarios(dono, '2025-06')).toEqual([]);
+    await dono
+      .post('/despesas/copiar-fixas', {
+        mes: '2025-06',
+        itens: [{ profissionalId: prof, valor: 185_000, vencimento: null }],
+      })
+      .expect(409);
+    const junho = (await dono.get('/despesas?mes=2025-06').expect(200)).body as DespesaDetalhe[];
+    expect(junho.filter((d) => d.descricao === 'Salário: Saulo Salário')).toHaveLength(1);
+    // A despesa de salário de junho não vira linha "do mês anterior" em julho: vem do cadastro.
+    const julho = (await dono.get('/despesas/fixas-para-copiar?mes=2025-07').expect(200))
+      .body as FixaParaCopiar[];
+    expect(julho.filter((f) => f.descricao === 'Salário: Saulo Salário')).toEqual([
+      expect.objectContaining({ origemId: null, profissionalId: prof, valor: 180_000 }),
+    ]);
+
+    // Barbeiro de outra conta ou inexistente: 404; os dois ao mesmo tempo no item: 400.
+    await dono
+      .post('/despesas/copiar-fixas', {
+        mes: '2025-06',
+        itens: [
+          { profissionalId: '0193a5b2-7c1d-7e8f-9a0b-1c2d3e4f5a6c', valor: 1, vencimento: null },
+        ],
+      })
+      .expect(404);
+    await dono
+      .post('/despesas/copiar-fixas', {
+        mes: '2025-06',
+        itens: [{ profissionalId: prof, origemId: aluguel, valor: 1, vencimento: null }],
+      })
+      .expect(400);
+  });
+});

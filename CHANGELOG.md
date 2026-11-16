@@ -7,6 +7,10 @@ produção (`https://seupentefino.com.br`). Detalhes técnicos e o porquê de ca
 
 ## [Não publicado]
 
+### Adicionado (salário dos barbeiros nas despesas fixas)
+
+- **Financeiro → Despesas → "Copiar fixas do mês anterior"** agora traz também o salário de cada barbeiro que tem valor fixo em Equipe ("Mudar valor fixo"): uma linha "Salário: nome", na categoria "Salários e encargos", com o valor do cadastro para conferir ou mudar antes de gravar. Assim o salário entra nas despesas fixas e no resultado do mês. Nunca duplica: um salário por barbeiro e mês, e o lançado à mão com o nome dele vem desmarcado.
+
 ### Corrigido (bot do WhatsApp parado)
 
 - **O worker (bot do WhatsApp, lembretes e rotinas) parou em 16/11 às 13:32**, no deploy da atualização automática do `web-push` 3 → 4: a versão nova não tem mais a exportação padrão e o worker caía ao iniciar. O import foi corrigido e o bot, os lembretes e as rotinas voltam ao subir esta versão.
