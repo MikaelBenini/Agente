@@ -5,6 +5,7 @@ import type { AgendaNaConversa } from './agendar-bot.js';
 import { lerNota } from './avaliacao.js';
 import { textoClubeNoBot, type ClubeNoBot } from './clube.js';
 import { formatarMoeda } from './formatacao.js';
+import { perguntaDePreco, servicosCitados } from './pedido-bot.js';
 
 // ─── Menu ─────────────────────────────────────────────────────────────────
 
@@ -79,6 +80,8 @@ export type VariavelBot = keyof typeof VARIAVEIS_BOT;
 /** Palavras que o próprio sistema usa e não podem virar palavra-chave. */
 export const PALAVRAS_RESERVADAS = ['sair', 'receber', '0'] as const;
 export const MAXIMO_OPCOES = 9;
+/** Palavras por grupo de palavras-chave (pedido do dono em 16/11/2026: 25 não salvava). */
+export const MAXIMO_PALAVRAS_GRUPO = 40;
 const PROFUNDIDADE_MAXIMA = 3;
 
 // ─── Mensagens prontas ────────────────────────────────────────────────────
@@ -431,6 +434,14 @@ export function validarMenu(m: MenuBot): ProblemaMenu[] {
     const palavras = g.palavras.map(normalizar).filter(Boolean);
     if (palavras.length === 0)
       problemas.push({ onde, mensagem: 'Informe pelo menos uma palavra.' });
+    if (g.palavras.length > MAXIMO_PALAVRAS_GRUPO)
+      problemas.push({
+        onde,
+        mensagem: `No máximo ${MAXIMO_PALAVRAS_GRUPO} palavras por grupo (este tem ${g.palavras.length}). Divida em dois grupos com a mesma resposta.`,
+      });
+    for (const p of g.palavras)
+      if (p.trim().length > 40)
+        problemas.push({ onde, mensagem: `"${p.trim().slice(0, 20)}…" passa de 40 letras.` });
     if (!g.resposta.trim() && !g.acao)
       problemas.push({ onde, mensagem: 'Escreva a resposta ou escolha o que o grupo faz.' });
     checarTexto(onde, g.resposta);
@@ -527,6 +538,15 @@ export interface SessaoBot {
   lembrete?: { agendamentoId: string; tipo: '24h' | '2h' };
   /** Oferta da lista de espera enviada: a próxima resposta 1/2 vale para ela. */
   oferta?: { esperaId: string };
+  /**
+   * O que o cliente já tinha escolhido quando pediu atendente (serviço, profissional, dia e
+   * horário): a equipe vê na conversa (lista do dono em 16/11/2026).
+   */
+  pedido?: AgendaNaConversa;
+  /** Conversa automática de quem veio de anúncio, em andamento (pedido do dono em 16/11/2026). */
+  anuncio?: { etapa: number; respostas: string[] };
+  /** Respostas do fluxo do anúncio, para a equipe ver depois da passagem. */
+  respostasAnuncio?: string[];
 }
 
 export type PassoPesquisa = 'atendimento' | 'barbearia' | 'comentario';
@@ -554,7 +574,9 @@ export interface ContextoConversa {
   horario: string;
   dentroDoHorario: boolean;
   link: string | null;
-  precos: readonly { nome: string; valor: number }[];
+  precos: readonly { nome: string; valor: number; duracaoMin?: number }[];
+  /** Fora do horário: quando a recepção volta ("amanhã às 9h"), para o pedido de atendente. */
+  proximaAbertura?: string | null;
   /** Número que ainda não escolheu se recebe avisos: a primeira conversa termina com o convite. */
   pedirConsentimento?: boolean;
   /**
@@ -725,6 +747,20 @@ export function ehSaudacao(texto: string): boolean {
   );
 }
 
+/**
+ * "Barba custa R$ 35,00 e leva 30 min. Quer marcar?" quando o texto cita um serviço só; a tabela
+ * inteira fica para quem pedir (lista do dono em 16/11/2026). Sem serviço citado, null.
+ */
+export function respostaDePreco(texto: string, precos: ContextoConversa['precos']): string | null {
+  const citado = servicosCitados(
+    texto,
+    precos.map((p, i) => ({ ...p, id: String(i) })),
+  )[0];
+  if (!citado) return null;
+  const leva = citado.duracaoMin ? ` e leva ${citado.duracaoMin} min` : '';
+  return `${citado.nome} custa ${formatarMoeda(citado.valor)}${leva}. Quer marcar? Responda MARCAR.\nPara ver a tabela inteira, responda PREÇOS.`;
+}
+
 /** Uma mensagem do cliente → o que o bot responde e como a conversa fica. */
 export function responder(
   m: MenuBot,
@@ -854,6 +890,9 @@ export function responder(
           { acao },
         );
       case 'ver_precos': {
+        // Lista do dono (16/11): perguntou de um serviço só, responde só ele e oferece marcar.
+        const direto = respostaDePreco(texto, ctx.precos);
+        if (direto) return resultado([...abertura, direto], { acao });
         const tabela = ctx.precos.length
           ? ctx.precos.map((p) => `• ${p.nome}: ${formatarMoeda(p.valor)}`).join('\n')
           : 'A tabela de preços ainda não foi cadastrada.';
@@ -879,9 +918,15 @@ export function responder(
           [...abertura, corpo || 'Para ver ou mudar o seu horário, responda ATENDENTE.'],
           { acao },
         );
-      case 'falar_com_atendente':
+      case 'falar_com_atendente': {
         sessao.comAtendente = true;
-        return resultado([...abertura, corpo || msg('transferencia')], { acao });
+        // Fora do horário, diz quando a recepção volta (lista do dono em 16/11).
+        const volta =
+          !ctx.dentroDoHorario && ctx.proximaAbertura
+            ? `A recepção volta ${ctx.proximaAbertura}. Deixe aqui o que precisa que respondemos assim que abrir.`
+            : '';
+        return resultado([...abertura, corpo || msg('transferencia'), volta], { acao });
+      }
       default:
         return resultado([...abertura, corpo, 'Digite 0 para ver o menu.'], { acao });
     }
@@ -890,6 +935,12 @@ export function responder(
   // Palavra-chave em qualquer ponto da conversa.
   const grupo = grupoMaisEspecifico(m, texto);
   if (grupo) return comConvite(executar(grupo.resposta, grupo.acao));
+
+  // "Quanto é a barba?" sem palavra-chave de preço: responde o serviço citado.
+  if (perguntaDePreco(texto)) {
+    const direto = respostaDePreco(texto, ctx.precos);
+    if (direto) return comConvite(resultado([...abertura, direto], { acao: 'ver_precos' }));
+  }
 
   // Conversa nova sem palavra-chave: abertura, menu e (se for o caso) o convite.
   if (expirou) return comConvite(resultado([...abertura, menuAtual()]));

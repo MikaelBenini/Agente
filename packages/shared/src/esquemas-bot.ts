@@ -5,6 +5,7 @@ import { PASSOS_AGENDA } from './agendar-bot.js';
 import {
   ACOES_BOT,
   MAXIMO_OPCOES,
+  MAXIMO_PALAVRAS_GRUPO,
   TIPOS_MENSAGEM_BOT,
   VARIAVEIS_BOT,
   type GrupoPalavrasChave,
@@ -14,6 +15,7 @@ import {
   type OpcaoMenu,
   type ProblemaMenu,
   type SessaoBot,
+  type TipoMensagemBot,
   type TurnoBot,
 } from './bot.js';
 
@@ -38,7 +40,11 @@ const menuNoSchema: z.ZodType<MenuNo> = z.object({
 
 const grupoSchema: z.ZodType<GrupoPalavrasChave> = z.object({
   id,
-  palavras: z.array(z.string().trim().min(1).max(40)).max(20),
+  palavras: z
+    .array(z.string().trim().min(1).max(40, { error: 'Cada palavra-chave com até 40 letras.' }))
+    .max(MAXIMO_PALAVRAS_GRUPO, {
+      error: `No máximo ${MAXIMO_PALAVRAS_GRUPO} palavras por grupo de palavras-chave.`,
+    }),
   resposta: textoLivre,
   acao,
 });
@@ -53,15 +59,26 @@ const variaveisValidas = (t: string) =>
   [...t.matchAll(/\{(\w+)\}/g)].every((m) => (m[1] as string) in VARIAVEIS_BOT);
 
 export const mensagensBotSchema = z.object({
-  mensagens: z.partialRecord(
-    z.enum(TIPOS_MENSAGEM_BOT),
-    z
-      .string()
-      .trim()
-      .min(1, { error: 'A mensagem não pode ficar vazia.' })
-      .max(1000)
-      .refine(variaveisValidas, { error: 'Use só as variáveis da lista.' }),
-  ),
+  mensagens: z
+    .partialRecord(
+      z.enum(TIPOS_MENSAGEM_BOT),
+      z
+        .string()
+        .trim()
+        .max(1000)
+        .refine(variaveisValidas, { error: 'Use só as variáveis da lista.' }),
+    )
+    .superRefine((m, ctx) => {
+      // Só o convite para receber avisos pode ficar vazio: é o "desligado" (pedido do dono em
+      // 16/11/2026: ele chegava logo depois do "oi" e atrapalhava a conversa).
+      for (const [tipo, texto] of Object.entries(m))
+        if (!texto && tipo !== 'convite_avisos')
+          ctx.addIssue({
+            code: 'custom',
+            path: [tipo],
+            message: 'A mensagem não pode ficar vazia.',
+          });
+    }),
 });
 export type MensagensBotEntrada = z.infer<typeof mensagensBotSchema>;
 
@@ -104,6 +121,15 @@ const sessaoSchema: z.ZodType<SessaoBot> = z.object({
   comAtendente: z.boolean(),
   erros: z.number().int().min(0).max(10).optional(),
   agenda: agendaSchema.optional(),
+  // Lista do dono (16/11): o pedido guardado na passagem e o fluxo do anúncio no simulador.
+  pedido: agendaSchema.optional(),
+  anuncio: z
+    .object({
+      etapa: z.number().int().min(0).max(10),
+      respostas: z.array(z.string().max(300)).max(10),
+    })
+    .optional(),
+  respostasAnuncio: z.array(z.string().max(300)).max(10).optional(),
 });
 
 export const simularBotSchema = z.object({
@@ -115,6 +141,8 @@ export const simularBotSchema = z.object({
   cliente: z.string().trim().max(60).nullable().default(null),
   /** Testar a mensagem de fora do horário sem esperar a barbearia fechar. */
   foraDoHorario: z.boolean().default(false),
+  /** Simular a mensagem chegando por um anúncio (fluxo automático do anúncio). */
+  doAnuncio: z.boolean().default(false),
 });
 export type SimularBotEntrada = z.input<typeof simularBotSchema>;
 export type SimularBotDados = z.output<typeof simularBotSchema>;
@@ -186,6 +214,13 @@ export interface ConversaResumo {
   conectado: boolean;
   ultimaMensagem: { texto: string; direcao: 'entrada' | 'saida'; criadoEm: string } | null;
   atualizadoEm: string;
+  /**
+   * O que o cliente já tinha escolhido no bot quando pediu atendente ("Corte + Barba · com
+   * Diego · sábado às 15h"); null quando não estava marcando (lista do dono em 16/11/2026).
+   */
+  pedido: string | null;
+  /** Chegou por anúncio: desde quando e o título do anúncio, quando o WhatsApp manda. */
+  anuncio: { desde: string; titulo: string | null } | null;
 }
 
 export interface ListaConversas {
@@ -216,13 +251,53 @@ export interface EstadoBot {
   podeEditar: boolean;
   /** Pesquisa de 1 a 5 depois do atendimento ligada para a conta. */
   pesquisaAtiva: boolean;
+  /**
+   * O que está sendo editado (decisão do dono em 16/11/2026): o padrão da barbearia
+   * (unidadeId nulo) ou uma unidade, que usa o padrão até personalizar.
+   */
+  escopo: EscopoBot;
+  /** O que impede o bot de funcionar bem em cada unidade (aparece antes de publicar). */
+  avisos: AvisoDoBot[];
 }
+
+export interface EscopoBot {
+  unidadeId: string | null;
+  nome: string;
+  /** A unidade tem menu próprio (rascunho ou publicado). No padrão, sempre true. */
+  menuProprio: boolean;
+  /** Mensagens que a unidade personalizou; as outras vêm do padrão. */
+  mensagensProprias: TipoMensagemBot[];
+}
+
+export interface AvisoDoBot {
+  unidadeId: string;
+  unidade: string;
+  mensagem: string;
+}
+
+/** Escolha do que editar: sem unidade, o padrão da barbearia. */
+export const escopoBotSchema = z.object({
+  unidadeId: z.uuid({ error: 'Unidade inválida.' }).optional(),
+});
+export type EscopoBotEntrada = z.infer<typeof escopoBotSchema>;
 
 export interface RespostaSimulacao {
   respostas: string[];
   sessao: SessaoBot;
   acao: string | null;
   consentimento: boolean | null;
+  /** De onde veio o menu que o simulador usou (lista 16/11/2026: "rascunho sem opções"). */
+  diagnostico: DiagnosticoSimulacao;
+}
+
+export interface DiagnosticoSimulacao {
+  versao: 'rascunho' | 'publicado';
+  /** Menu da própria unidade ou o padrão da barbearia. */
+  deQuem: 'unidade' | 'padrao';
+  /** As opções do menu principal carregado, na ordem. */
+  opcoes: string[];
+  /** Pediu o rascunho e não havia (usou o publicado), ou o menu está sem opções. */
+  aviso: string | null;
 }
 
 export const listarConversasSchema = z.object({

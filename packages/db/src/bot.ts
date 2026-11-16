@@ -5,6 +5,7 @@ import {
   dataLocal,
   dataParaBanco,
   dentroDoHorario,
+  proximaAbertura,
   descreverHorario,
   EXPIRACAO_SESSAO_MIN,
   grupoDaPalavraChave,
@@ -36,14 +37,21 @@ import {
   type DataISO,
   type VagaLiberada,
   caminhoAssinarClube,
+  lerFluxoAnuncio,
+  lerFuncionamento,
+  lerPedidoNatural,
+  responderAnuncio,
+  type FluxoAnuncio,
   linkDeAgendamento,
 } from '@pente-fino/shared';
 import { Prisma, type PrismaClient } from './generated/prisma/client.js';
 import { naConta } from './index.js';
 import {
+  agendarPeloPedido,
   mudarHorarioDoLembrete,
   passoDaAgenda,
   podeAgendarPelaConversa,
+  servicosParaAgendar,
   type DadosDaConversa,
   type PassoDaAgenda,
 } from './agendar-bot.js';
@@ -68,22 +76,45 @@ export function lerMenu(valor: unknown): MenuBot {
   return r.success ? r.data : structuredClone(MENU_BOT_PADRAO);
 }
 
-/** Menu publicado; conta antiga sem menu recebe o padrão publicado na hora. */
-export async function menuPublicado(tx: Tx) {
-  const atual = await tx.botMenu.findFirst({ where: { status: 'publicado' } });
+/**
+ * Menu publicado. Com a unidade (decisão do dono em 16/11/2026): o dela, se ela personalizou;
+ * senão, o padrão da barbearia. Conta antiga sem menu recebe o padrão publicado na hora.
+ */
+export async function menuPublicado(tx: Tx, unidadeId: string | null = null) {
+  if (unidadeId) {
+    const daUnidade = await tx.botMenu.findFirst({ where: { status: 'publicado', unidadeId } });
+    if (daUnidade) return daUnidade;
+  }
+  const atual = await tx.botMenu.findFirst({ where: { status: 'publicado', unidadeId: null } });
   if (atual) return atual;
   return tx.botMenu.create({
     data: { status: 'publicado', menu: json(MENU_BOT_PADRAO), publicadoEm: new Date() },
   });
 }
 
-/** Mensagens prontas da conta, com o padrão onde o dono não mexeu. */
-export async function mensagensDoBot(tx: Tx): Promise<MensagensBot> {
+/**
+ * Mensagens prontas: o padrão do sistema, por cima as da barbearia e, com a unidade, as que ela
+ * personalizou (decisão do dono em 16/11/2026).
+ */
+export async function mensagensDoBot(
+  tx: Tx,
+  unidadeId: string | null = null,
+): Promise<MensagensBot> {
   const salvas = await tx.modeloMensagem.findMany({
-    where: { unidadeId: null, ativo: true, tipo: { in: [...TIPOS_MENSAGEM_BOT] } },
+    where: {
+      unidadeId: unidadeId ? { in: [unidadeId] } : null,
+      ativo: true,
+      tipo: { in: [...TIPOS_MENSAGEM_BOT] },
+    },
   });
+  const daConta = unidadeId
+    ? await tx.modeloMensagem.findMany({
+        where: { unidadeId: null, ativo: true, tipo: { in: [...TIPOS_MENSAGEM_BOT] } },
+      })
+    : [];
   const m: MensagensBot = { ...MENSAGENS_BOT_PADRAO };
-  for (const s of salvas) m[s.tipo as keyof MensagensBot] = s.texto;
+  // A da unidade vem por último: vence a da barbearia.
+  for (const s of [...daConta, ...salvas]) m[s.tipo as keyof MensagensBot] = s.texto;
   return m;
 }
 
@@ -124,13 +155,18 @@ export async function situacaoDaUnidade(
 ) {
   const expediente = expedienteDaUnidade(u);
   const horario = (u.botHorario as TurnoBot[] | null) ?? null;
-  const vale = horario ?? expediente;
+  // O horário de funcionamento da unidade vem antes do expediente dos barbeiros (pedido do dono
+  // em 16/11/2026: sem barbeiro cadastrado, aparecia "a combinar").
+  const funcionamento = lerFuncionamento(u.horarioFuncionamento);
+  const vale = horario ?? (funcionamento.length ? funcionamento : expediente);
   const fechadoHoje = await tx.calendarioUnidade.findFirst({
     where: { unidadeId: u.id, data: dataParaBanco(dataLocal(agora)), trabalha: false },
   });
   return {
     expediente,
     horario,
+    /** O horário que vale para o bot (o dele, o da unidade ou o da equipe). */
+    vale,
     descricao: descreverHorario(vale),
     // Sem horário conhecido (equipe sem expediente cadastrado), não diz que está fechado.
     aberto: !fechadoHoje && (vale.length === 0 || dentroDoHorario(vale, agora)),
@@ -156,10 +192,10 @@ export async function contextoDaConversa(
   });
   const conta = await tx.conta.findFirst({ select: { nome: true } });
   const hoje = dataLocal(agora);
-  const precos: { nome: string; valor: number }[] = [];
+  const precos: { nome: string; valor: number; duracaoMin: number }[] = [];
   for (const sv of servicos) {
     const valor = await precoServicoVigente(tx, sv.id, u.id, hoje);
-    if (valor !== undefined) precos.push({ nome: sv.nome, valor });
+    if (valor !== undefined) precos.push({ nome: sv.nome, valor, duracaoMin: sv.duracaoMin });
   }
   return {
     agora,
@@ -170,6 +206,8 @@ export async function contextoDaConversa(
     dentroDoHorario: s.aberto,
     link: s.link,
     precos,
+    // Quando a recepção volta, para o "falar com atendente" fora do horário.
+    proximaAbertura: s.aberto ? null : proximaAbertura(s.vale, agora),
     clube: await clubeNoBot(tx, u, clienteId, hoje as DataISO, appUrl),
     ...resto,
   };
@@ -281,9 +319,13 @@ export async function responderComAgenda(
     entrada: string;
     ctx: ContextoConversa;
     dados: DadosDaConversa;
+    /** Fluxo de quem vem de anúncio e se esta mensagem veio de um (pedido do dono em 16/11). */
+    anuncio?: { fluxo: FluxoAnuncio; doAnuncio: boolean };
   },
 ): Promise<
   ResultadoConversa & {
+    /** Começou agora a conversa automática do anúncio (marca a conversa). */
+    anuncioComecou?: boolean;
     agendamento?: { id: string; inicio: string };
     mudanca?: PassoDaAgenda['mudanca'];
     /** Lista de espera: "já foi preenchido" para os outros que receberam a vaga. */
@@ -292,6 +334,27 @@ export async function responderComAgenda(
     vaga?: VagaLiberada;
   }
 > {
+  // Quem vem de anúncio tem conversa própria, antes do menu (pedido do dono em 16/11).
+  if (d.anuncio && !d.sessao?.pesquisa) {
+    const a = responderAnuncio(
+      d.anuncio.fluxo,
+      d.sessao,
+      d.entrada,
+      d.dados.agora,
+      d.anuncio.doAnuncio,
+      d.ctx.cliente,
+    );
+    if (a)
+      return {
+        respostas: a.respostas,
+        sessao: a.sessao,
+        acao: a.paraEquipe ? 'falar_com_atendente' : null,
+        consentimento: null,
+        avaliacao: null,
+        anuncioComecou: a.comecou,
+      };
+  }
+
   const { agenda, lembrete, oferta, ...resto } = d.sessao ?? ({} as SessaoBot);
   const base: SessaoBot | null = d.sessao ? resto : null;
   const texto = normalizar(d.entrada);
@@ -363,7 +426,9 @@ export async function responderComAgenda(
     !venceu(d.sessao, d.dados.agora) &&
     texto !== 'sair' &&
     texto !== 'receber' &&
-    !(lerNumeros(d.entrada).length === 0 && grupoDaPalavraChave(d.menu, d.entrada));
+    // VOLTAR e MENU são do passo a passo (lista do dono em 16/11), mesmo sendo palavras-chave.
+    (['voltar', 'menu', 'inicio'].includes(texto) ||
+      !(lerNumeros(d.entrada).length === 0 && grupoDaPalavraChave(d.menu, d.entrada)));
 
   if (emAndamento) {
     const p = await passoDaAgenda(tx, agenda, d.entrada, d.dados);
@@ -390,9 +455,45 @@ export async function responderComAgenda(
     };
   }
 
+  // "Quero cortar amanhã às 15h": serviço, dia e hora na frase (lista do dono em 16/11).
+  if (d.ctx.agendarPelaConversa && !base?.comAtendente && !base?.pesquisa) {
+    const hoje = dataLocal(d.dados.agora);
+    const local = new Date(d.dados.agora.getTime() - 3 * 3_600_000);
+    const pedido = lerPedidoNatural(
+      d.entrada,
+      await servicosParaAgendar(tx, d.dados.unidadeId, hoje),
+      hoje,
+      local.getUTCHours() * 60 + local.getUTCMinutes(),
+    );
+    if (pedido) {
+      const p = await agendarPeloPedido(tx, pedido, d.dados);
+      const sessao: SessaoBot = {
+        ...(base ?? {}),
+        caminho: [],
+        comAtendente: false,
+        ultimaEm: agoraIso,
+        erros: 0,
+        ...(p.agenda ? { agenda: p.agenda } : {}),
+      };
+      if (p.voltarAoMenu) {
+        const menu = responder(d.menu, d.mensagens, sessao, '0', d.ctx);
+        return { ...menu, respostas: [...p.respostas, ...menu.respostas] };
+      }
+      return {
+        respostas: p.respostas,
+        sessao,
+        acao: 'agendar',
+        consentimento: null,
+        avaliacao: null,
+      };
+    }
+  }
+
   // "Prefere pelo WhatsApp?" do site: começa o agendamento já pela conversa.
   const porAqui = texto === normalizar(TEXTO_AGENDAR_POR_AQUI);
   const r = responder(d.menu, d.mensagens, base, porAqui ? 'agendar' : d.entrada, d.ctx);
+  // Pediu atendente no meio do agendamento: o que já escolheu fica para a equipe ver.
+  if (r.acao === 'falar_com_atendente' && agenda) r.sessao.pedido = agenda;
   if ((r.acao !== 'agendar' && r.acao !== 'meus_horarios') || !d.ctx.agendarPelaConversa) return r;
   if (porAqui && d.dados.clienteId && !d.dados.simulacao)
     await tx.cliente.update({
@@ -570,7 +671,7 @@ export async function atenderMensagem(
           pedirConsentimento: cliente.consentimentoEm === null && !conversouAntes,
           agendarPelaConversa: await podeAgendarPelaConversa(tx, unidadeId, dataLocal(agora)),
         });
-        const menu = lerMenu((await menuPublicado(tx)).menu);
+        const menu = lerMenu((await menuPublicado(tx, unidadeId)).menu);
         // Pesquisa vencida ou já cancelada sai da sessão antes de responder.
         const sessaoSalva = await pesquisaValida(
           tx,
@@ -579,7 +680,7 @@ export async function atenderMensagem(
         );
         const r = await responderComAgenda(tx, {
           menu,
-          mensagens: await mensagensDoBot(tx),
+          mensagens: await mensagensDoBot(tx, unidadeId),
           sessao: sessaoSalva,
           entrada: evento.texto,
           ctx,
@@ -593,6 +694,12 @@ export async function atenderMensagem(
             agora,
             regras: lerRegrasAgendamento(u.regrasAgendamento),
           },
+          anuncio: {
+            fluxo: lerFluxoAnuncio(
+              (await tx.conta.findFirst({ select: { fluxoAnuncio: true } }))?.fluxoAnuncio,
+            ),
+            doAnuncio: !!evento.anuncio,
+          },
         });
         if (r.avaliacao) await gravarRespostaPesquisa(tx, r.avaliacao, agora);
         // Fim da pesquisa com nota 5 e link do Google na unidade: convite para avaliar lá.
@@ -602,7 +709,7 @@ export async function atenderMensagem(
             select: { notaAtendimento: true, notaBarbearia: true },
           });
           if (av && mereceConviteGoogle(av.notaAtendimento, av.notaBarbearia)) {
-            const mensagens = await mensagensDoBot(tx);
+            const mensagens = await mensagensDoBot(tx, unidadeId);
             r.respostas.push(
               preencher(mensagens.convite_google, {
                 barbearia: ctx.barbearia,
@@ -629,6 +736,12 @@ export async function atenderMensagem(
 
         // Pediu atendente agora: entra na fila da tela Conversas; o bot voltou: sai dela.
         const atendenteDesde = r.sessao.comAtendente ? (salva?.atendenteDesde ?? agora) : null;
+        // Veio de anúncio (o WhatsApp avisou, ou entrou no fluxo pela frase): a conversa fica marcada.
+        const deAnuncio = !!evento.anuncio || !!r.anuncioComecou;
+        const anuncio = {
+          anuncioEm: deAnuncio ? (salva?.anuncioEm ?? agora) : (salva?.anuncioEm ?? null),
+          anuncioTitulo: evento.anuncio?.titulo ?? salva?.anuncioTitulo ?? null,
+        };
         await tx.botSessao.upsert({
           where: { unidadeId_telefone: { unidadeId, telefone: evento.telefone } },
           create: {
@@ -637,8 +750,9 @@ export async function atenderMensagem(
             clienteId: cliente.id,
             sessao: json(r.sessao),
             atendenteDesde,
+            ...anuncio,
           },
-          update: { clienteId: cliente.id, sessao: json(r.sessao), atendenteDesde },
+          update: { clienteId: cliente.id, sessao: json(r.sessao), atendenteDesde, ...anuncio },
         });
         if (r.consentimento !== null) {
           await tx.cliente.update({
@@ -794,7 +908,7 @@ export async function encerrarEsperaDoAtendente(
     });
     const conexao = s.unidade.botConexao;
     if (conexao?.status !== 'conectado') return null;
-    const texto = (await mensagensDoBot(tx)).atendente_sem_resposta;
+    const texto = (await mensagensDoBot(tx, job.unidadeId)).atendente_sem_resposta;
     const m = await tx.mensagem.create({
       data: {
         unidadeId: job.unidadeId,

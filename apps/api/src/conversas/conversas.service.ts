@@ -1,6 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { json, mensagensDoBot, type Prisma } from '@pente-fino/db';
 import {
+  dataLocal,
+  descreverPedido,
+  resumoDoAnuncio,
   preencher,
   variantesTelefone,
   type ConversaResumo,
@@ -79,6 +82,31 @@ export class ConversasService {
         conexoes.filter((c) => c.status === 'conectado').map((c) => c.unidadeId),
       );
       const ultimaDe = new Map(ultimas.map((m) => [`${m.unidadeId}:${m.telefone}`, m]));
+      // O que cada cliente já tinha escolhido no bot antes de pedir atendente.
+      const pedidos = sessoes.map((s) => lerSessao(s.sessao).pedido).filter((p) => !!p);
+      const ids = [
+        ...new Set(
+          pedidos.flatMap((p) => [
+            ...p!.servicoIds,
+            ...(p!.escolha ? [p!.escolha.profissionalId] : []),
+            ...(p!.profissionalId ? [p!.profissionalId] : []),
+          ]),
+        ),
+      ];
+      const nomes = new Map<string, string>();
+      if (ids.length) {
+        for (const sv of await tx.servico.findMany({
+          where: { id: { in: ids } },
+          select: { id: true, nome: true },
+        }))
+          nomes.set(sv.id, sv.nome);
+        for (const p of await tx.profissional.findMany({
+          where: { id: { in: ids } },
+          select: { id: true, usuario: { select: { nome: true } } },
+        }))
+          nomes.set(p.id, p.usuario.nome.trim().split(/\s+/)[0]!);
+      }
+      const hoje = dataLocal(new Date());
       const conversas: ConversaResumo[] = sessoes.map((s) => {
         const sessao = lerSessao(s.sessao);
         const m = ultimaDe.get(`${s.unidadeId}:${s.telefone}`);
@@ -95,6 +123,16 @@ export class ConversasService {
             ? { texto: m.texto, direcao: m.direcao, criadoEm: m.criadoEm.toISOString() }
             : null,
           atualizadoEm: s.atualizadoEm.toISOString(),
+          pedido: !sessao.comAtendente
+            ? null
+            : sessao.respostasAnuncio
+              ? resumoDoAnuncio(sessao.respostasAnuncio)
+              : sessao.pedido
+                ? descreverPedido(sessao.pedido, nomes, hoje)
+                : null,
+          anuncio: s.anuncioEm
+            ? { desde: s.anuncioEm.toISOString(), titulo: s.anuncioTitulo }
+            : null,
         };
       });
       return {
@@ -196,7 +234,7 @@ export class ConversasService {
       // Sem conexão, devolve em silêncio: o encerramento não teria como sair.
       if (conexao?.status !== 'conectado') return null;
       const conta = await tx.conta.findFirst({ select: { nome: true } });
-      const texto = preencher((await mensagensDoBot(tx)).encerramento, {
+      const texto = preencher((await mensagensDoBot(tx, s.unidadeId)).encerramento, {
         cliente: s.cliente?.nome.split(/\s+/)[0] ?? null,
         barbearia: conta?.nome ?? s.unidade.nome,
         unidade: s.unidade.nome,

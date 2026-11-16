@@ -73,7 +73,7 @@ dono, gestor, recepcao, barbeiro. Ver a matriz de permissões em `docs/`.
 - Validação com zod compartilhado entre API e front.
 - Toda regra de cálculo nova vai para `packages/shared` com teste unitário antes da tela.
 - Nunca publicar porta de PostgreSQL, Redis ou Evolution API na VPS (o Docker ignora o UFW).
-- Nada de IA no produto: o bot é uma árvore de menus e palavras-chave.
+- Nada de IA no produto: o bot é uma árvore de menus e palavras-chave (o pedido em frase e o preço direto são regras puras em `packages/shared/src/pedido-bot.ts`). Menu e mensagens do bot: padrão da barbearia (`bot_menu.unidade_id` nulo) e, por cima, os da unidade que personalizou (`menuPublicado(tx, unidadeId)`, `mensagensDoBot(tx, unidadeId)`).
 - Sem páginas repetidas: cada número ou função fica num lugar só (Início = o dia e o resumo do mês; Resultados do mês = o detalhe do mês; Financeiro = o contábil; Equipe = o cadastro). Antes de criar tela ou bloco, conferir se o dado já existe e estender a tela dona.
 - Ao desenvolver, aprender com o código e com os concorrentes (BestBarbers, Cash Barber, Trinks, AppBarber, Avec) e sugerir melhorias e funções extras para sair na frente: toda entrega termina com 2 a 5 sugestões concretas, ligadas ao que foi feito. Só implementar sugestão aprovada; as aprovadas entram na linha de desenvolvimento.
 

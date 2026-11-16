@@ -76,6 +76,41 @@ export function instanciaDoWebhook(corpo: unknown): string | null {
   return r.success ? r.data.instance : null;
 }
 
+type Solto = Record<string, unknown>;
+const objeto = (v: unknown): Solto | null =>
+  v && typeof v === 'object' && !Array.isArray(v) ? (v as Solto) : null;
+const texto = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim().slice(0, 200) : null);
+
+/**
+ * Anúncio de clique para o WhatsApp (Facebook/Instagram): o WhatsApp manda no contextInfo da
+ * primeira mensagem o externalAdReply (título, id do anúncio) e/ou conversionSource "FB_Ads".
+ * A Evolution entrega o contextInfo no dado da mensagem ou dentro do texto estendido.
+ */
+export function anuncioDaMensagem(
+  dado: unknown,
+): { titulo: string | null; origemId: string | null } | null {
+  const d = objeto(dado);
+  if (!d) return null;
+  const msg = objeto(d.message);
+  const contextos = [
+    objeto(d.contextInfo),
+    objeto(objeto(msg?.extendedTextMessage)?.contextInfo),
+    objeto(objeto(msg?.imageMessage)?.contextInfo),
+    objeto(objeto(msg?.videoMessage)?.contextInfo),
+    objeto(msg?.messageContextInfo),
+  ].filter((c): c is Solto => !!c);
+  for (const c of contextos) {
+    const ad = objeto(c.externalAdReply);
+    const fonte = `${texto(c.conversionSource) ?? ''} ${texto(c.entryPointConversionSource) ?? ''}`;
+    const deAnuncio =
+      (ad && (texto(ad.sourceType) === 'ad' || texto(ad.sourceId) || texto(ad.ctwaClid))) ||
+      /ads|ctwa/i.test(fonte);
+    if (deAnuncio)
+      return { titulo: texto(ad?.title) ?? texto(ad?.body), origemId: texto(ad?.sourceId) };
+  }
+  return null;
+}
+
 function textoDa(m: z.infer<typeof mensagem> | null | undefined): string {
   if (!m) return '';
   return (
@@ -111,6 +146,7 @@ export function lerWebhookEvolution(corpo: unknown, agora = new Date()): EventoW
       telefone,
       nome: pushName?.trim().slice(0, 80) || null,
       texto: textoDa(message),
+      anuncio: anuncioDaMensagem(msg.data.data),
       recebidaEm: (Number.isFinite(segundos) && segundos > 0
         ? new Date(segundos * 1000)
         : agora

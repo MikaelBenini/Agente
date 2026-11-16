@@ -588,7 +588,7 @@ de ganho para o barbeiro:
   rodaram: 10 e 112 módulos conferidos nas imagens)
 - [x] PR #231 do Dependabot (ferramentas de desenvolvimento): o axe novo cobra a WCAG 2.5.3; nomes
   dos botões e links corrigidos (sino, unidade, agenda, dia, mês dia a dia, planos, chat do site)
-- [ ] Merge do #231 pelo dono, com o CI verde
+- [x] Merge do #231 pelo dono (16/11)
 - [x] **Salário fixo dos barbeiros nas despesas fixas** (16/11, PR #233, mesclado pelo dono; linha de desenvolvimento Etapa 23.6, RN-07a, CLAUDE.md e CHANGELOG) (decisão do dono em 16/11): no "Copiar
   fixas do mês anterior", uma linha por barbeiro com valor fixo (categoria "Salários e encargos"),
   editável e marcável antes de gravar; nunca duplica
@@ -628,19 +628,31 @@ tem "Copiar catálogo de outra unidade".
 
 Sem IA (regra do produto): tudo por palavras-chave, números e regras de data e hora.
 
-- [ ] **Diagnóstico antes de publicar:** o simulador mostra quais opções carregou e de onde
+- [x] **Diagnóstico antes de publicar:** o simulador mostra quais opções carregou e de onde
   (rascunho ou publicado); rascunho vazio explicado na hora. Antes de publicar, avisar unidade sem
   número conectado, sem serviço com preço ou sem link de agendamento
-- [ ] **Pedido em uma frase:** "quero cortar amanhã às 15h" reconhece serviço, dia e hora e pergunta
+- [x] **Pedido em uma frase:** "quero cortar amanhã às 15h" reconhece serviço, dia e hora e pergunta
   só o que falta; horário ocupado sugere os mais próximos livres da agenda
-- [ ] **Resposta direta:** "quanto é a barba?" responde "Barba custa R$ 35 e leva 30 min. Quer
+- [x] **Resposta direta:** "quanto é a barba?" responde "Barba custa R$ 35 e leva 30 min. Quer
   marcar?", com a tabela inteira só para quem pedir
-- [ ] **Correções previsíveis:** "voltar" volta uma etapa e "menu" vai ao início, em qualquer
+- [x] **Correções previsíveis:** "voltar" volta uma etapa e "menu" vai ao início, em qualquer
   etapa; trocar só o barbeiro ou o horário mantendo o serviço
-- [ ] **Passagem para a recepção:** fora do horário, dizer quando a recepção volta; a equipe vê o
+- [x] **Passagem para a recepção:** fora do horário, dizer quando a recepção volta; a equipe vê o
   que o cliente já pediu (serviço, dia e horário)
-- [ ] **Menu e mensagens por unidade, com padrão** (decisão do dono em 16/11): a barbearia tem o
+- [x] **Mensagens automáticas para quem vem de anúncio** (pedido do dono em 16/11): aba própria no
+  Bot; quem chega por anúncio do Facebook/Instagram (clique para o WhatsApp) recebe um fluxo
+  diferente do menu (respostas em sequência) e depois passa para a equipe; o chat marca
+  "Veio de anúncio" (pelo dado do anúncio que o WhatsApp manda, ou pela frase pronta do anúncio)
+- [x] **Menu e mensagens por unidade, com padrão** (decisão do dono em 16/11): a barbearia tem o
   menu e as mensagens padrão; cada unidade pode personalizar os seus ou herdar o padrão
+
+- [x] **Conversas por unidade** (pedido do dono em 16/11): filtro de unidade na tela Conversas e
+  "Só quem veio de anúncio"
+- [x] **Ajustes do bot** (lista do dono em 16/11): chave para desligar o convite "RECEBER"; até 40
+  palavras por grupo, com o grupo e o limite no aviso; erro com o lugar e o motivo; {horario} com
+  o horário de funcionamento da unidade
+- Feito em 16/11 na branch `feat/bot-por-unidade` (CHANGELOG, linha de desenvolvimento Etapa
+  23.6, documentação do produto "Bot WhatsApp sem IA" e CLAUDE.md)
 
 ## 9. Por último: verificação final do ecossistema
 

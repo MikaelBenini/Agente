@@ -15,6 +15,11 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   automacoesSchema,
   dataLocal,
+  escopoBotSchema,
+  fluxoAnuncioSchema,
+  type EscopoBotEntrada,
+  type FluxoAnuncio,
+  type FluxoAnuncioEntrada,
   horarioBotSchema,
   mensagensBotSchema,
   pesquisaBotSchema,
@@ -58,8 +63,8 @@ export class BotController {
   @ApiOperation({
     summary: 'Menu publicado e rascunho, mensagens prontas e horário de cada unidade',
   })
-  estado(): Promise<EstadoBot> {
-    return this.servico.estado();
+  estado(@Consulta(escopoBotSchema) e: EscopoBotEntrada): Promise<EstadoBot> {
+    return this.servico.estado(e.unidadeId ?? null);
   }
 
   @Put('menu')
@@ -67,16 +72,16 @@ export class BotController {
   @ApiOperation({
     summary: 'Salvar o rascunho do menu (pode estar incompleto; volta os problemas)',
   })
-  salvar(@Corpo(menuBotSchema) menu: MenuBot) {
-    return this.servico.salvarRascunho(menu);
+  salvar(@Corpo(menuBotSchema) menu: MenuBot, @Consulta(escopoBotSchema) e: EscopoBotEntrada) {
+    return this.servico.salvarRascunho(menu, e.unidadeId ?? null);
   }
 
   @Delete('menu/rascunho')
   @Papeis('dono')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Descartar o rascunho' })
-  descartar() {
-    return this.servico.descartarRascunho();
+  descartar(@Consulta(escopoBotSchema) e: EscopoBotEntrada) {
+    return this.servico.descartarRascunho(e.unidadeId ?? null);
   }
 
   @Post('menu/publicar')
@@ -84,8 +89,8 @@ export class BotController {
   @Auditada()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Publicar o rascunho (só sem problemas); o anterior fica guardado' })
-  publicar() {
-    return this.servico.publicar();
+  publicar(@Consulta(escopoBotSchema) e: EscopoBotEntrada) {
+    return this.servico.publicar(e.unidadeId ?? null);
   }
 
   @Post('menu/restaurar')
@@ -93,8 +98,34 @@ export class BotController {
   @Auditada()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Voltar à versão publicada antes desta' })
-  restaurar() {
-    return this.servico.restaurarAnterior();
+  restaurar(@Consulta(escopoBotSchema) e: EscopoBotEntrada) {
+    return this.servico.restaurarAnterior(e.unidadeId ?? null);
+  }
+
+  @Delete('unidade/:unidadeId/personalizacao')
+  @Papeis('dono')
+  @Auditada()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'A unidade volta a usar o menu e as mensagens do padrão da barbearia' })
+  usarPadrao(@Param('unidadeId', ParseUUIDPipe) unidadeId: string) {
+    return this.servico.usarPadrao(unidadeId);
+  }
+
+  @Get('anuncio')
+  @Papeis(...GESTAO)
+  @ApiOperation({ summary: 'Mensagens automáticas de quem vem de anúncio' })
+  anuncio(): Promise<FluxoAnuncio> {
+    return this.servico.fluxoAnuncio();
+  }
+
+  @Put('anuncio')
+  @Papeis('dono')
+  @Auditada()
+  @ApiOperation({
+    summary: 'Gravar o fluxo de quem vem de anúncio: frases, mensagens em sequência e a final',
+  })
+  salvarAnuncio(@Corpo(fluxoAnuncioSchema) d: FluxoAnuncioEntrada): Promise<FluxoAnuncio> {
+    return this.servico.salvarFluxoAnuncio(d);
   }
 
   @Put('pesquisa')
@@ -108,8 +139,11 @@ export class BotController {
   @Put('mensagens')
   @Papeis('dono')
   @ApiOperation({ summary: 'Mensagens prontas (boas-vindas, fora do horário, não entendi…)' })
-  mensagens(@Corpo(mensagensBotSchema) d: MensagensBotEntrada) {
-    return this.servico.salvarMensagens(d);
+  mensagens(
+    @Corpo(mensagensBotSchema) d: MensagensBotEntrada,
+    @Consulta(escopoBotSchema) e: EscopoBotEntrada,
+  ) {
+    return this.servico.salvarMensagens(d, e.unidadeId ?? null);
   }
 
   @Put('horario/:unidadeId')

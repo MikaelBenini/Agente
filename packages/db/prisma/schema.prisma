@@ -299,6 +299,8 @@ model Conta {
   descontoBp              Int           @default(0) @map("desconto_bp")
   canceladaEm             DateTime?     @map("cancelada_em") @db.Timestamptz(3)
   motivoCancelamento      String?       @map("motivo_cancelamento")
+  /// Mensagens automáticas de quem vem de anúncio (pedido do dono em 16/11/2026); nulo = desligado.
+  fluxoAnuncio            Json?         @map("fluxo_anuncio")
   criadoEm                DateTime      @default(now()) @map("criado_em") @db.Timestamptz(3)
   atualizadoEm            DateTime      @updatedAt @map("atualizado_em") @db.Timestamptz(3)
 
@@ -414,6 +416,7 @@ model Unidade {
   despesas          Despesa[]
   metas             Meta[]
   botConexao        BotConexao?
+  botMenus          BotMenu[]
   modelosMensagem   ModeloMensagem[]
   botSessoes        BotSessao[]
   mensagens         Mensagem[]
@@ -1157,6 +1160,10 @@ model BotSessao {
   sessao         Json
   /// Pediu atendente e espera a recepção (tela Conversas). Volta a null ao devolver ao bot.
   atendenteDesde DateTime? @map("atendente_desde") @db.Timestamptz(3)
+  /// Chegou por anúncio (clique para o WhatsApp ou a frase do anúncio): a tela Conversas marca.
+  anuncioEm      DateTime? @map("anuncio_em") @db.Timestamptz(3)
+  /// Título do anúncio, quando o WhatsApp manda.
+  anuncioTitulo  String?   @map("anuncio_titulo")
   atualizadoEm   DateTime  @updatedAt @map("atualizado_em") @db.Timestamptz(3)
 
   conta   Conta    @relation(fields: [contaId], references: [id], onDelete: Cascade)
@@ -1203,6 +1210,8 @@ model Mensagem {
 model BotMenu {
   id             String        @id @default(dbgenerated("uuidv7()")) @db.Uuid
   contaId        String        @default(dbgenerated("conta_atual()")) @map("conta_id") @db.Uuid
+  /// Menu próprio da unidade (decisão do dono em 16/11/2026); nulo = o padrão da barbearia.
+  unidadeId      String?       @map("unidade_id") @db.Uuid
   status         StatusMenuBot
   menu           Json
   publicadoEm    DateTime?     @map("publicado_em") @db.Timestamptz(3)
@@ -1212,8 +1221,10 @@ model BotMenu {
 
   conta        Conta    @relation(fields: [contaId], references: [id], onDelete: Cascade)
   publicadoPor Usuario? @relation("BotMenuPublicadoPor", fields: [publicadoPorId], references: [id], onDelete: SetNull)
+  unidade      Unidade? @relation(fields: [unidadeId], references: [id], onDelete: Cascade)
 
   @@index([contaId, status])
+  @@index([unidadeId, status])
   @@map("bot_menu")
 }
 
