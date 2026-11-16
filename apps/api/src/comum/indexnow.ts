@@ -22,7 +22,8 @@ export async function avisarBuscadores(
       body: JSON.stringify(corpo),
       signal: AbortSignal.timeout(5_000),
     });
-    if (!r.ok) logger.warn(`IndexNow respondeu ${r.status} para ${corpo.urlList.length} endereço(s)`);
+    if (!r.ok)
+      logger.warn(`IndexNow respondeu ${r.status} para ${corpo.urlList.length} endereço(s)`);
     return r.ok;
   } catch (e) {
     logger.warn(`IndexNow não respondeu: ${(e as Error).message}`);

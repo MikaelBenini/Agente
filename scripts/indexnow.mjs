@@ -19,7 +19,9 @@ if (!arquivo) {
 }
 const chave = readFileSync(new URL(arquivo, pasta), 'utf8').trim();
 try {
-  const xml = await (await fetch(`${site}/sitemap.xml`, { signal: AbortSignal.timeout(15_000) })).text();
+  const xml = await (
+    await fetch(`${site}/sitemap.xml`, { signal: AbortSignal.timeout(15_000) })
+  ).text();
   const host = new URL(site).host;
   const urls = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)]
     .map((m) => m[1].trim())
