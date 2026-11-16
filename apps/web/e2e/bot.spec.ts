@@ -50,7 +50,9 @@ test('dono edita, testa o rascunho, publica e volta à versão anterior', async 
   // Sem resposta, não publica.
   await expect(visivel(page.getByText('Corrija antes de publicar:'))).toBeVisible();
   await expect(visivel(page.getByRole('button', { name: 'Publicar' }))).toBeDisabled();
-  await visivel(page.getByLabel('Resposta')).nth(5).fill('Corte ilimitado por R$ 99,90 ao mês.');
+  await visivel(page.getByLabel('Resposta', { exact: true }))
+    .nth(5)
+    .fill('Corte ilimitado por R$ 99,90 ao mês.');
   await expect(visivel(page.getByText('Corrija antes de publicar:'))).toHaveCount(0);
   await visivel(page.getByRole('button', { name: 'Salvar rascunho' })).click();
   await expect(visivel(page.getByText('Rascunho salvo.'))).toBeVisible();
