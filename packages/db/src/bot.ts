@@ -175,6 +175,12 @@ export async function situacaoDaUnidade(
   };
 }
 
+/** Mensagens de anúncio: as da unidade, se ela personalizou; senão, as da conta. */
+export async function fluxoAnuncioDaUnidade(tx: Tx, u: { fluxoAnuncio: Prisma.JsonValue | null }) {
+  if (u.fluxoAnuncio !== null) return lerFluxoAnuncio(u.fluxoAnuncio);
+  return lerFluxoAnuncio((await tx.conta.findFirst({ select: { fluxoAnuncio: true } }))?.fluxoAnuncio);
+}
+
 /** O que o motor precisa saber da unidade para responder. */
 export async function contextoDaConversa(
   tx: Tx,
@@ -697,9 +703,7 @@ export async function atenderMensagem(
             regras: lerRegrasAgendamento(u.regrasAgendamento),
           },
           anuncio: {
-            fluxo: lerFluxoAnuncio(
-              (await tx.conta.findFirst({ select: { fluxoAnuncio: true } }))?.fluxoAnuncio,
-            ),
+            fluxo: await fluxoAnuncioDaUnidade(tx, u),
             doAnuncio: !!evento.anuncio,
           },
         });

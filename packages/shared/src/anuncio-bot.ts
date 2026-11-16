@@ -46,6 +46,8 @@ export const fluxoAnuncioSchema = z.object({
   final: textoEtapa,
 });
 export type FluxoAnuncioEntrada = z.infer<typeof fluxoAnuncioSchema>;
+/** O fluxo de um escopo: `proprio` = a unidade tem o dela (no padrão da conta, sempre true). */
+export type FluxoAnuncioDoEscopo = FluxoAnuncio & { proprio: boolean };
 
 /** O que está gravado passa de novo pelo esquema; estragado ou vazio = o padrão (desligado). */
 export function lerFluxoAnuncio(valor: unknown): FluxoAnuncio {

@@ -19,6 +19,7 @@ import {
   fluxoAnuncioSchema,
   type EscopoBotEntrada,
   type FluxoAnuncio,
+  type FluxoAnuncioDoEscopo,
   type FluxoAnuncioEntrada,
   horarioBotSchema,
   mensagensBotSchema,
@@ -114,8 +115,17 @@ export class BotController {
   @Get('anuncio')
   @Papeis(...GESTAO)
   @ApiOperation({ summary: 'Mensagens automáticas de quem vem de anúncio' })
-  anuncio(): Promise<FluxoAnuncio> {
-    return this.servico.fluxoAnuncio();
+  anuncio(@Consulta(escopoBotSchema) e: EscopoBotEntrada): Promise<FluxoAnuncioDoEscopo> {
+    return this.servico.fluxoAnuncio(e.unidadeId ?? null);
+  }
+
+  @Delete('anuncio')
+  @Papeis('dono')
+  @Auditada()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'A unidade volta a usar as mensagens de anúncio da barbearia' })
+  anuncioDoPadrao(@Consulta(escopoBotSchema.required()) e: Required<EscopoBotEntrada>) {
+    return this.servico.anuncioDoPadrao(e.unidadeId);
   }
 
   @Put('anuncio')
@@ -124,8 +134,11 @@ export class BotController {
   @ApiOperation({
     summary: 'Gravar o fluxo de quem vem de anúncio: frases, mensagens em sequência e a final',
   })
-  salvarAnuncio(@Corpo(fluxoAnuncioSchema) d: FluxoAnuncioEntrada): Promise<FluxoAnuncio> {
-    return this.servico.salvarFluxoAnuncio(d);
+  salvarAnuncio(
+    @Corpo(fluxoAnuncioSchema) d: FluxoAnuncioEntrada,
+    @Consulta(escopoBotSchema) e: EscopoBotEntrada,
+  ): Promise<FluxoAnuncio> {
+    return this.servico.salvarFluxoAnuncio(d, e.unidadeId ?? null);
   }
 
   @Put('pesquisa')

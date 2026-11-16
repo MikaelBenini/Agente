@@ -1,6 +1,10 @@
 'use client';
 
-import { FLUXO_ANUNCIO_PADRAO, type FluxoAnuncio } from '@pente-fino/shared';
+import {
+  FLUXO_ANUNCIO_PADRAO,
+  type FluxoAnuncio,
+  type FluxoAnuncioDoEscopo,
+} from '@pente-fino/shared';
 import { Botao, CampoTexto, Marcador } from '@pente-fino/ui';
 import { useQuery } from '@tanstack/react-query';
 import { Plus, Trash2 } from 'lucide-react';
@@ -18,22 +22,76 @@ const MAX_ETAPAS = 5;
  * anúncio do Facebook/Instagram (clique para o WhatsApp), ou escreve a frase pronta do anúncio,
  * recebe estas mensagens em sequência, sem o menu do bot, e depois passa para a equipe.
  */
-export function MensagensDeAnuncio({ podeEditar }: { podeEditar: boolean }) {
-  const fluxo = useQuery({ queryKey: chave, queryFn: () => api<FluxoAnuncio>('bot/anuncio') });
+export function MensagensDeAnuncio({
+  podeEditar,
+  unidadeId,
+  nome,
+}: {
+  podeEditar: boolean;
+  /** Nulo = o padrão da barbearia; com a unidade, as dela (sugestão aprovada em 16/11/2026). */
+  unidadeId: string | null;
+  nome: string;
+}) {
+  const q = unidadeId ? `?unidadeId=${unidadeId}` : '';
+  const fluxo = useQuery({
+    queryKey: [...chave, unidadeId ?? 'padrao'],
+    queryFn: () => api<FluxoAnuncioDoEscopo>(`bot/anuncio${q}`),
+  });
+  const padrao = useAcao(() => api(`bot/anuncio${q}`, { metodo: 'DELETE' }), [chave]);
   return (
     <Estado consulta={fluxo}>
-      {() => <Formulario inicial={fluxo.data!} podeEditar={podeEditar} />}
+      {() => (
+        <div className="flex max-w-3xl flex-col gap-4">
+          {unidadeId && !fluxo.data!.proprio && (
+            <Aviso tom="info">
+              A {nome} usa as mensagens de anúncio do padrão da barbearia. O que você salvar aqui
+              vale só para ela.
+            </Aviso>
+          )}
+          {unidadeId && fluxo.data!.proprio && podeEditar && (
+            <div className="flex flex-wrap items-center gap-3">
+              <p className="text-sm text-tinta-suave">A {nome} tem mensagens de anúncio próprias.</p>
+              <Botao
+                variante="secundario"
+                carregando={padrao.isPending}
+                onClick={() => padrao.mutate(undefined)}
+              >
+                Voltar ao padrão
+              </Botao>
+            </div>
+          )}
+          <Formulario
+            key={`${fluxo.data!.proprio}`}
+            inicial={fluxo.data!}
+            podeEditar={podeEditar}
+            q={q}
+          />
+        </div>
+      )}
     </Estado>
   );
 }
 
-function Formulario({ inicial, podeEditar }: { inicial: FluxoAnuncio; podeEditar: boolean }) {
-  const [f, setF] = useState<FluxoAnuncio>(inicial);
+function Formulario({
+  inicial,
+  podeEditar,
+  q,
+}: {
+  inicial: FluxoAnuncio;
+  podeEditar: boolean;
+  q: string;
+}) {
+  const [f, setF] = useState<FluxoAnuncio>({
+    ativo: inicial.ativo,
+    frases: inicial.frases,
+    etapas: inicial.etapas,
+    final: inicial.final,
+  });
   const [frases, setFrases] = useState(inicial.frases.join('\n'));
   const [erro, setErro] = useState<string | null>(null);
   const [ok, setOk] = useState(false);
   const salvar = useAcao(
-    (d: FluxoAnuncio) => api<FluxoAnuncio>('bot/anuncio', { metodo: 'PUT', corpo: d }),
+    (d: FluxoAnuncio) => api<FluxoAnuncio>(`bot/anuncio${q}`, { metodo: 'PUT', corpo: d }),
     [chave],
   );
   const enviar = async (ev: FormEvent) => {
@@ -61,7 +119,7 @@ function Formulario({ inicial, podeEditar }: { inicial: FluxoAnuncio; podeEditar
     setF({ ...f, etapas: f.etapas.map((e, j) => (j === i ? texto : e)) });
 
   return (
-    <form onSubmit={enviar} className="flex max-w-3xl flex-col gap-5">
+    <form onSubmit={enviar} className="flex flex-col gap-5">
       <p className="text-tinta-suave">
         Para quem chega por um anúncio do Facebook ou do Instagram que abre o WhatsApp. O bot manda
         estas mensagens em sequência, esperando a resposta do cliente depois de cada uma, e no fim
