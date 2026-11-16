@@ -14,10 +14,12 @@ import {
   DIAS_TESTE_INDICADA,
   type PlanoConta,
   aplicarDesconto,
+  descontoQueVale,
   formatarPercentualBp,
   OFERTA_LANCAMENTO,
   precoPorMes,
   textoEconomiaAnual,
+  valorDaCobranca,
   type CadastroContaEntrada,
 } from '@pente-fino/shared';
 import { Botao, Campo, cn } from '@pente-fino/ui';
@@ -27,13 +29,14 @@ import { useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useForm, useWatch } from 'react-hook-form';
 import type { z } from 'zod';
-import { api, ErroApi } from '@/lib/api';
+import { api, cupomRecusado, ErroApi } from '@/lib/api';
 import { useTabelaPrecos } from '@/lib/consultas';
 import { lerOrigem } from '@/lib/origem';
 import { conversaDoChat } from '@/componentes/site/chat-site';
 import { aplicarErroDaApi } from '@/lib/formularios';
 import { useHidratado } from '@/lib/hidratado';
 import { Aviso } from '../aviso';
+import { CampoSenha } from '../campo-senha';
 import { eventoGoogle } from '../site/tag-google';
 
 function limitePlano(p: PlanoConta) {
@@ -84,7 +87,6 @@ export function FormularioCadastro() {
       );
     }
   }
-  const [verSenha, setVerSenha] = useState(false);
   const comecou = useRef(false);
   const router = useRouter();
   const params = useSearchParams();
@@ -126,12 +128,16 @@ export function FormularioCadastro() {
         `publico/cupom/${encodeURIComponent(cupomDoLink)}`,
       ),
     enabled: cupomDoLink !== '',
-    retry: false,
+    retry: (vezes, e) => !cupomRecusado(e) && vezes < 2,
     staleTime: Infinity,
   });
   // A oferta de lançamento acabou e o visitante veio por um link antigo: o cupom some em silêncio.
+  // Só com a recusa da API: uma falha passageira (limite de requisições, rede) mantém o cupom no
+  // campo, e a API confere de novo ao criar a conta (revisão de 16/11/2026).
   const ofertaDoLinkAcabou =
-    doLink.isError && cupomDoLink.toUpperCase() === OFERTA_LANCAMENTO.codigo;
+    doLink.isError &&
+    cupomRecusado(doLink.error) &&
+    cupomDoLink.toUpperCase() === OFERTA_LANCAMENTO.codigo;
   useEffect(() => {
     if (ofertaDoLinkAcabou) setValue('cupom', '');
   }, [ofertaDoLinkAcabou, setValue]);
@@ -139,12 +145,18 @@ export function FormularioCadastro() {
   const erroDoCupom = tocouCupom
     ? erroCupom
     : doLink.isError && !ofertaDoLinkAcabou
-      ? doLink.error instanceof ErroApi
+      ? cupomRecusado(doLink.error) && doLink.error instanceof ErroApi
         ? (doLink.error.campos[0]?.mensagem ?? doLink.error.message)
-        : 'Não deu para conferir o cupom.'
+        : 'Não deu para conferir o cupom agora. Ele é conferido de novo ao criar a conta.'
       : null;
   const plano = useWatch({ control, name: 'plano' });
   const ciclo: Ciclo = useWatch({ control, name: 'ciclo' }) ?? 'mensal';
+  const automacoes = useWatch({ control, name: 'automacoes' }) === true;
+  // Revisão de 16/11/2026: o cadastro mostra o mesmo valor que a assinatura vai cobrar (o cupom
+  // no Agenda só vale com as Automações) e, no anual, o total do ano.
+  const descontoDe = (p: PlanoConta) => descontoQueVale(p, automacoes, cupomAtivo?.descontoBp);
+  const porMesDe = (p: PlanoConta) =>
+    aplicarDesconto(precoPorMes(p, ciclo, 1, tabela), descontoDe(p));
 
   const enviar = (site: string) =>
     handleSubmit(async (dados) => {
@@ -235,28 +247,16 @@ export function FormularioCadastro() {
         erro={formState.errors.email?.message}
         {...register('email')}
       />
-      <div className="flex flex-col gap-1">
-        <Campo
-          id="cadastro-senha"
-          rotulo="Senha"
-          type={verSenha ? 'text' : 'password'}
-          autoComplete="new-password"
-          dica="Pelo menos 8 caracteres."
-          required
-          aria-required
-          erro={formState.errors.senha?.message}
-          {...register('senha')}
-        />
-        <button
-          type="button"
-          aria-controls="cadastro-senha"
-          aria-pressed={verSenha}
-          onClick={() => setVerSenha(!verSenha)}
-          className="inline-flex min-h-11 items-center self-start text-sm font-medium text-tinta-suave underline-offset-4 hover:text-tinta hover:underline focus-visible:outline-2 focus-visible:outline-foco"
-        >
-          {verSenha ? 'Esconder senha' : 'Mostrar senha'}
-        </button>
-      </div>
+      <CampoSenha
+        id="cadastro-senha"
+        rotulo="Senha"
+        autoComplete="new-password"
+        dica="Pelo menos 8 caracteres."
+        required
+        aria-required
+        erro={formState.errors.senha?.message}
+        {...register('senha')}
+      />
       <Campo
         id="cadastro-whatsapp"
         rotulo="WhatsApp (opcional)"
@@ -317,20 +317,23 @@ export function FormularioCadastro() {
               <span className="flex flex-1 flex-col">
                 <span className="font-semibold">
                   {NOME_PLANO[p]} ·{' '}
-                  {cupomAtivo && (
+                  {descontoDe(p) > 0 && (
                     <s className="font-denso font-normal text-tinta-suave tabular-nums">
                       <span className="sr-only">de </span>
                       {formatarMoeda(precoPorMes(p, ciclo, 1, tabela))}
                     </s>
                   )}{' '}
                   <span className="font-denso tabular-nums">
-                    {cupomAtivo && <span className="sr-only">por </span>}
-                    {formatarMoeda(
-                      aplicarDesconto(precoPorMes(p, ciclo, 1, tabela), cupomAtivo?.descontoBp),
-                    )}
+                    {descontoDe(p) > 0 && <span className="sr-only">por </span>}
+                    {formatarMoeda(porMesDe(p))}
                     /mês
                   </span>
                 </span>
+                {ciclo === 'anual' && (
+                  <span className="text-sm font-medium tabular-nums">
+                    {formatarMoeda(porMesDe(p) * 12)} por ano, numa cobrança só
+                  </span>
+                )}
                 <span className="text-sm text-tinta-suave">{limitePlano(p)}</span>
               </span>
             </label>
@@ -369,6 +372,23 @@ export function FormularioCadastro() {
         erro={formState.errors.cupom?.message ?? erroDoCupom ?? undefined}
         {...register('cupom', { onBlur: (e) => conferirCupom(e.target.value) })}
       />
+      {!!plano && (
+        <p
+          aria-live="polite"
+          className="rounded-md border border-borda bg-superficie-2 p-3 text-sm tabular-nums"
+        >
+          <span className="font-semibold">Depois do teste grátis, se assinar: </span>
+          {ciclo === 'anual'
+            ? `${formatarMoeda(valorDaCobranca(plano, ciclo, 1, tabela, cupomAtivo?.descontoBp, automacoes))} por ano (${formatarMoeda(valorDaCobranca(plano, ciclo, 1, tabela, cupomAtivo?.descontoBp, automacoes) / 12)}/mês)`
+            : `${formatarMoeda(valorDaCobranca(plano, ciclo, 1, tabela, cupomAtivo?.descontoBp, automacoes))} por mês`}
+          {automacoes && automacoesAParte(plano) ? ', com as Automações' : ''}
+          {cupomAtivo && descontoDe(plano) > 0
+            ? `. Cupom ${cupomAtivo.codigo} aplicado: ${formatarPercentualBp(cupomAtivo.descontoBp)} de desconto.`
+            : cupomAtivo
+              ? `. No ${NOME_PLANO.agenda}, o cupom ${cupomAtivo.codigo} vale com as Automações.`
+              : '.'}
+        </p>
+      )}
       <label className="flex min-h-11 items-start gap-3">
         <input
           type="checkbox"

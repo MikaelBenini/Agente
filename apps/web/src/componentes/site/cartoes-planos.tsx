@@ -293,6 +293,57 @@ export function CartoesPlanos({ compacto = false }: { compacto?: boolean }) {
           No anual, o Pro sai {formatarMoeda(economiaPro)} mais barato por ano.
         </p>
       )}
+      {!compacto && (
+        <AvisosEAutomacoes
+          preco={tabela.automacoes[ciclo === 'mensal' ? 'mensal' : 'anualPorMes']}
+        />
+      )}
     </div>
+  );
+}
+
+/**
+ * Revisão de 16/11/2026: avisos (todo plano), bot que marca pela conversa e o adicional das
+ * Automações lado a lado, para ninguém confundir lembrete com bot.
+ */
+function AvisosEAutomacoes({ preco }: { preco: number }) {
+  const colunas = [
+    {
+      titulo: 'Avisos no WhatsApp',
+      quem: 'Todos os planos',
+      texto:
+        'Confirmação do agendamento e lembrete antes do horário, pelo número da barbearia. O cliente confirma pelo próprio lembrete.',
+    },
+    {
+      titulo: 'Bot que marca pela conversa',
+      quem: 'Pro e Premium; no Agenda e no Básico, com as Automações',
+      texto:
+        'O cliente escreve e o bot responde pelo menu que você monta (sem IA): vê preços e horários e marca o horário sozinho.',
+    },
+    {
+      titulo: 'Automações',
+      quem: `Adicional de ${formatarMoeda(preco)} por mês no Agenda e no Básico; já vêm no Pro e no Premium`,
+      texto:
+        'Liberam o bot, a lista de espera, a pesquisa depois do atendimento, o retorno de quem sumiu, o aniversário e o aviso do clube.',
+    },
+  ];
+  return (
+    <section aria-labelledby="avisos-automacoes" className="flex flex-col gap-4">
+      <h2 id="avisos-automacoes" className="text-center text-xl font-semibold">
+        Avisos, bot e Automações: o que vem em cada um
+      </h2>
+      <ul className="grid gap-3 md:grid-cols-3">
+        {colunas.map((c) => (
+          <li
+            key={c.titulo}
+            className="flex flex-col gap-2 rounded-lg border border-borda bg-superficie p-4"
+          >
+            <h3 className="font-semibold">{c.titulo}</h3>
+            <p className="text-sm font-medium text-acao-texto">{c.quem}</p>
+            <p className="text-sm text-tinta-suave">{c.texto}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

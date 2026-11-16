@@ -356,6 +356,64 @@ export interface ProdutoDetalhe extends Omit<ProdutoEntrada, 'unidadeIds'> {
 /** "Copiar catálogo de outra unidade": serviços (com os preços de hoje) e produtos. */
 export const copiarCatalogoSchema = z.object({ deUnidadeId: uuid('Unidade') });
 
+/**
+ * "Copiar de outra unidade" (aprovado pelo dono em 16/11/2026): a pessoa escolhe o que vem. As
+ * mensagens do WhatsApp, o menu do bot, a equipe e o clube já valem para a conta inteira; o
+ * endereço, o endereço do site, o domínio, o link do Google e a conexão do WhatsApp são de cada
+ * unidade e nunca são copiados. O catálogo tem a cópia própria.
+ */
+export const ITENS_COPIA_UNIDADE = [
+  'funcionamento',
+  'calendario',
+  'regras',
+  'bot',
+  'site',
+  'visual',
+  'metas',
+] as const;
+export type ItemCopiaUnidade = (typeof ITENS_COPIA_UNIDADE)[number];
+
+export const NOME_ITEM_COPIA_UNIDADE: Readonly<
+  Record<ItemCopiaUnidade, { nome: string; detalhe: string }>
+> = {
+  funcionamento: {
+    nome: 'Horário de funcionamento',
+    detalhe: 'Os turnos de cada dia e os dias em que abre.',
+  },
+  calendario: {
+    nome: 'Folgas e feriados',
+    detalhe: 'Os dias marcados de hoje em diante; os que esta unidade já marcou ficam como estão.',
+  },
+  regras: {
+    nome: 'Regras de agendamento',
+    detalhe: 'Antecedência, janela, intervalo, prazo para mudar e os lembretes.',
+  },
+  bot: { nome: 'Horário do bot', detalhe: 'Quando o bot responde sozinho nesta unidade.' },
+  site: {
+    nome: 'Site da barbearia (rascunho)',
+    detalhe: 'Textos, cores e blocos vão para o rascunho; você confere e publica.',
+  },
+  visual: {
+    nome: 'Visual da página de agendamento',
+    detalhe: 'Cores e aparência do link de agendamento.',
+  },
+  metas: {
+    nome: 'Metas deste mês',
+    detalhe: 'Só se esta unidade ainda não tem meta no mês.',
+  },
+};
+
+export const copiarConfiguracoesSchema = z.object({
+  deUnidadeId: uuid('Unidade'),
+  itens: z
+    .array(z.enum(ITENS_COPIA_UNIDADE))
+    .min(1, { error: 'Marque pelo menos um item para copiar.' })
+    .max(ITENS_COPIA_UNIDADE.length),
+});
+export type CopiarConfiguracoesEntrada = z.infer<typeof copiarConfiguracoesSchema>;
+/** Quantos itens vieram de cada parte (1 = copiado; folgas e metas contam cada uma). */
+export type ResultadoCopiaConfiguracoes = Partial<Record<ItemCopiaUnidade, number>>;
+
 // ─── Caixa ────────────────────────────────────────────────────────────────
 
 export const abrirCaixaSchema = z.object({

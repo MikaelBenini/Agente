@@ -12,6 +12,13 @@ export class ErroApi extends Error {
   }
 }
 
+/**
+ * A API recusou o cupom (não existe, venceu, acabaram as vagas)? Só isso encerra a oferta na
+ * tela: limite de requisições (429), queda ou erro do servidor não apagam o cupom (16/11/2026).
+ */
+export const cupomRecusado = (e: unknown): boolean =>
+  e instanceof ErroApi && e.campos.some((c) => c.campo === 'cupom');
+
 export const MENSAGEM_SEM_CONEXAO = 'Sem conexão com a internet. Confira o sinal e tente de novo.';
 
 export async function api<T>(

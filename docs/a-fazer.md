@@ -589,38 +589,58 @@ de ganho para o barbeiro:
 - [x] PR #231 do Dependabot (ferramentas de desenvolvimento): o axe novo cobra a WCAG 2.5.3; nomes
   dos botões e links corrigidos (sino, unidade, agenda, dia, mês dia a dia, planos, chat do site)
 - [ ] Merge do #231 pelo dono, com o CI verde
-- [x] **Salário fixo dos barbeiros nas despesas fixas** (16/11, branch `feat/salario-nas-fixas`; linha de desenvolvimento Etapa 23.6, RN-07a, CLAUDE.md e CHANGELOG) (decisão do dono em 16/11): no "Copiar
+- [x] **Salário fixo dos barbeiros nas despesas fixas** (16/11, PR #233, mesclado pelo dono; linha de desenvolvimento Etapa 23.6, RN-07a, CLAUDE.md e CHANGELOG) (decisão do dono em 16/11): no "Copiar
   fixas do mês anterior", uma linha por barbeiro com valor fixo (categoria "Salários e encargos"),
   editável e marcável antes de gravar; nunca duplica
 
 ## 8e. Revisão do cadastro, da unidade e do login (lista do dono em 16/11, aprovada como próximo lote)
 
-- [ ] **Cupom no cadastro** (alta): o `cupom=LANCAMENTO` da URL não aparece no cadastro e some ao
+- [x] **Cupom no cadastro** (alta): o `cupom=LANCAMENTO` da URL não aparece no cadastro e some ao
   escolher o plano. Mostrar "Cupom LANCAMENTO aplicado" e o preço com desconto antes de criar a
   conta; conferir que o desconto chega à assinatura
-- [ ] **Anual no cadastro** (alta): mostrar o total do ano ao lado do equivalente mensal e o que será
+- [x] **Anual no cadastro** (alta): mostrar o total do ano ao lado do equivalente mensal e o que será
   cobrado depois do teste
-- [ ] **Unidade em uso** (alta): Agenda, Comandas e Caixa mostram "Todas as unidades" no alto e outra
+- [x] **Unidade em uso** (alta): Agenda, Comandas e Caixa mostram "Todas as unidades" no alto e outra
   unidade no seletor da tela; deixar claro qual unidade aparece e onde o agendamento, a comanda ou
   a abertura do caixa será registrado
-- [ ] **Avisos × bot × Automações** (média): quadro lado a lado com o que vem nos lembretes, o que
+- [x] **Avisos × bot × Automações** (média): quadro lado a lado com o que vem nos lembretes, o que
   marca pela conversa e o que o adicional do Agenda libera
-- [ ] **Login** (média): "Mostrar senha" como no cadastro; envio vazio com a mensagem certa para
+- [x] **Login** (média): "Mostrar senha" como no cadastro; envio vazio com a mensagem certa para
   cada campo
+- Feito em 16/11 (branch `feat/revisao-cadastro`, CHANGELOG e linha de desenvolvimento, Etapa
+  23.6). Causa do cupom: `GET /publico/cupom` usava o limite do login (10/min por IP) e toda
+  página do site confere a oferta
 
 ## 8f. Copiar configurações de outra unidade (aprovado pelo dono em 16/11, escolhendo os itens)
 
 Já valem para a conta inteira (nada a copiar): mensagens do WhatsApp, menu do bot, pesquisa,
 equipe e clube. A conexão do WhatsApp não se copia: cada unidade lê o próprio QR. O catálogo já
-tem "Copiar catálogo de outra unidade". Proposta: "Copiar de outra unidade", escolhendo o que vem:
+tem "Copiar catálogo de outra unidade".
 
-- [ ] Horário de funcionamento e dias de trabalho
-- [ ] Feriados e dias fechados do calendário
-- [ ] Regras de agendamento (antecedência, intervalo, cancelamento)
-- [ ] Horário do bot e link de avaliação do Google
-- [ ] Site e página de agendamento (cores, textos e blocos; sem endereço, endereço do site e domínio)
-- [ ] Metas do mês
-- [ ] Opcional: mensagens do WhatsApp próprias por unidade (o banco já aceita; a tela não)
+- [x] "Copiar de outra unidade" em Configurações → Unidades, com os itens marcáveis: horário de
+  funcionamento, folgas e feriados, regras de agendamento, horário do bot, site (no rascunho),
+  visual da página de agendamento e metas do mês (16/11, junto do lote 8e, branch
+  `feat/revisao-cadastro`; CHANGELOG e linha de desenvolvimento). O link do Google ficou de fora:
+  cada endereço tem a própria ficha no Google
+- [ ] Opcional, a decidir: mensagens do WhatsApp próprias por unidade (o banco já aceita; a tela não)
+
+## 8g. Bot do WhatsApp mais esperto (lista do dono em 16/11, aprovada inteira como próximo lote)
+
+Sem IA (regra do produto): tudo por palavras-chave, números e regras de data e hora.
+
+- [ ] **Diagnóstico antes de publicar:** o simulador mostra quais opções carregou e de onde
+  (rascunho ou publicado); rascunho vazio explicado na hora. Antes de publicar, avisar unidade sem
+  número conectado, sem serviço com preço ou sem link de agendamento
+- [ ] **Pedido em uma frase:** "quero cortar amanhã às 15h" reconhece serviço, dia e hora e pergunta
+  só o que falta; horário ocupado sugere os mais próximos livres da agenda
+- [ ] **Resposta direta:** "quanto é a barba?" responde "Barba custa R$ 35 e leva 30 min. Quer
+  marcar?", com a tabela inteira só para quem pedir
+- [ ] **Correções previsíveis:** "voltar" volta uma etapa e "menu" vai ao início, em qualquer
+  etapa; trocar só o barbeiro ou o horário mantendo o serviço
+- [ ] **Passagem para a recepção:** fora do horário, dizer quando a recepção volta; a equipe vê o
+  que o cliente já pediu (serviço, dia e horário)
+- [ ] **Menu e mensagens por unidade, com padrão** (decisão do dono em 16/11): a barbearia tem o
+  menu e as mensagens padrão; cada unidade pode personalizar os seus ou herdar o padrão
 
 ## 9. Por último: verificação final do ecossistema
 

@@ -28,6 +28,9 @@ import {
   type UnidadeDetalhe,
   type UnidadeEntrada,
   copiarCatalogoSchema,
+  copiarConfiguracoesSchema,
+  type CopiarConfiguracoesEntrada,
+  type ResultadoCopiaConfiguracoes,
   diasQueAbre,
   horarioFuncionamentoSchema,
   lerFuncionamento,
@@ -638,6 +641,112 @@ export class UnidadesController {
         entidadeId: id,
         acao: 'copiar_catalogo',
         depois: { de: origem.id, ...r },
+      });
+      return r;
+    });
+  }
+
+  /**
+   * "Copiar de outra unidade" (aprovado pelo dono em 16/11/2026): só os itens marcados. Nunca
+   * copia endereço, endereço do site, domínio, link do Google nem a conexão do WhatsApp.
+   */
+  @Post(':id/copiar-configuracoes')
+  @Papeis(...GESTAO)
+  @Auditada()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Copiar configurações de outra unidade, escolhendo o que vem' })
+  async copiarConfiguracoes(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Corpo(copiarConfiguracoesSchema) d: CopiarConfiguracoesEntrada,
+  ): Promise<ResultadoCopiaConfiguracoes> {
+    if (d.deUnidadeId === id)
+      throw Erros.requisicaoInvalida('mesma_unidade', 'Escolha outra unidade para copiar.');
+    // O gestor precisa alcançar as duas unidades.
+    exigirUnidade(id, GESTAO);
+    exigirUnidade(d.deUnidadeId, GESTAO);
+    const itens = new Set(d.itens);
+    return this.banco.daConta(async (tx) => {
+      const [destino, origem] = await Promise.all([
+        tx.unidade.findUnique({ where: { id } }),
+        tx.unidade.findUnique({ where: { id: d.deUnidadeId } }),
+      ]);
+      if (!destino || !origem) throw Erros.naoEncontrado('Unidade não encontrada.');
+      const r: ResultadoCopiaConfiguracoes = {};
+      const dados: Prisma.UnidadeUpdateInput = {};
+      const json = (v: Prisma.JsonValue | null) =>
+        v === null ? Prisma.DbNull : (v as Prisma.InputJsonValue);
+      if (itens.has('funcionamento')) {
+        dados.horarioFuncionamento = origem.horarioFuncionamento as Prisma.InputJsonValue;
+        dados.diasTrabalho = origem.diasTrabalho;
+        r.funcionamento = 1;
+      }
+      if (itens.has('regras')) {
+        dados.regrasAgendamento = origem.regrasAgendamento as Prisma.InputJsonValue;
+        r.regras = 1;
+      }
+      if (itens.has('bot')) {
+        dados.botHorario = json(origem.botHorario);
+        r.bot = 1;
+      }
+      if (itens.has('site')) {
+        // Vai para o rascunho: o que o cliente vê só muda quando publicar.
+        const site = origem.siteRascunho ?? origem.sitePublicado;
+        if (site !== null) dados.siteRascunho = site as Prisma.InputJsonValue;
+        r.site = site === null ? 0 : 1;
+      }
+      if (itens.has('visual')) {
+        if (origem.agendamentoVisual !== null)
+          dados.agendamentoVisual = origem.agendamentoVisual as Prisma.InputJsonValue;
+        r.visual = origem.agendamentoVisual === null ? 0 : 1;
+      }
+      if (Object.keys(dados).length) await tx.unidade.update({ where: { id }, data: dados });
+
+      const hoje = dataLocal(new Date());
+      if (itens.has('calendario')) {
+        const dias = await tx.calendarioUnidade.findMany({
+          where: { unidadeId: origem.id, data: { gte: data(hoje) } },
+        });
+        const criados = await tx.calendarioUnidade.createMany({
+          data: dias.map((c) => ({
+            unidadeId: id,
+            data: c.data,
+            trabalha: c.trabalha,
+            motivo: c.motivo,
+          })),
+          // O que esta unidade já marcou fica como está.
+          skipDuplicates: true,
+        });
+        r.calendario = criados.count;
+      }
+      if (itens.has('metas')) {
+        const mes = data(`${hoje.slice(0, 7)}-01`);
+        r.metas = 0;
+        if (!(await tx.meta.count({ where: { unidadeId: id, mes } }))) {
+          const metas = await tx.meta.findMany({ where: { unidadeId: origem.id, mes } });
+          for (const m of metas) {
+            // Meta de serviço só vem se o serviço está nesta unidade.
+            if (m.servicoId) {
+              const sv = await tx.servico.findUnique({ where: { id: m.servicoId } });
+              if (!sv?.unidadeIds.includes(id)) continue;
+            }
+            await tx.meta.create({
+              data: {
+                unidadeId: id,
+                mes,
+                tipo: m.tipo,
+                servicoId: m.servicoId,
+                objetivo: m.objetivo,
+              },
+            });
+            r.metas++;
+          }
+        }
+      }
+      await auditar(tx, {
+        entidade: 'unidade',
+        entidadeId: id,
+        acao: 'copiar_configuracoes',
+        depois: { de: origem.id, itens: d.itens, ...r },
       });
       return r;
     });
