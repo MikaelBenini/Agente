@@ -414,6 +414,7 @@ model Unidade {
   despesas          Despesa[]
   metas             Meta[]
   botConexao        BotConexao?
+  botMenus          BotMenu[]
   modelosMensagem   ModeloMensagem[]
   botSessoes        BotSessao[]
   mensagens         Mensagem[]
@@ -1203,6 +1204,8 @@ model Mensagem {
 model BotMenu {
   id             String        @id @default(dbgenerated("uuidv7()")) @db.Uuid
   contaId        String        @default(dbgenerated("conta_atual()")) @map("conta_id") @db.Uuid
+  /// Menu próprio da unidade (decisão do dono em 16/11/2026); nulo = o padrão da barbearia.
+  unidadeId      String?       @map("unidade_id") @db.Uuid
   status         StatusMenuBot
   menu           Json
   publicadoEm    DateTime?     @map("publicado_em") @db.Timestamptz(3)
@@ -1212,8 +1215,10 @@ model BotMenu {
 
   conta        Conta    @relation(fields: [contaId], references: [id], onDelete: Cascade)
   publicadoPor Usuario? @relation("BotMenuPublicadoPor", fields: [publicadoPorId], references: [id], onDelete: SetNull)
+  unidade      Unidade? @relation(fields: [unidadeId], references: [id], onDelete: Cascade)
 
   @@index([contaId, status])
+  @@index([unidadeId, status])
   @@map("bot_menu")
 }
 

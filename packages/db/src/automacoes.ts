@@ -70,7 +70,13 @@ export async function rodarAutomacoes(
     // Plano sem as Automações (Agenda ou Básico sem contratar): nada sai.
     if (!temRecurso(conta.plano, 'automacoes', conta.automacoesContratadas)) return [];
     const hoje = dataLocal(agora);
-    const mensagens = await mensagensDoBot(tx);
+    // Mensagens de cada unidade (a que personalizou usa as dela; decisão do dono em 16/11/2026).
+    const mensagensPorUnidade = new Map<string, Awaited<ReturnType<typeof mensagensDoBot>>>();
+    const mensagensDe = async (unidadeId: string) => {
+      if (!mensagensPorUnidade.has(unidadeId))
+        mensagensPorUnidade.set(unidadeId, await mensagensDoBot(tx, unidadeId));
+      return mensagensPorUnidade.get(unidadeId)!;
+    };
 
     // Visitas do último ano (comandas fechadas com cliente), da mais recente para a mais antiga.
     const fechadas = await tx.comanda.findMany({
@@ -134,7 +140,7 @@ export async function rodarAutomacoes(
       const u = await unidadeDoEnvio(unidadeId);
       if (!u || u.enviadas >= LIMITE_AUTOMACOES_DIA) return false;
       if (!(await conversou(unidadeId, cliente.telefone))) return false;
-      const texto = preencher(mensagens[tipo], {
+      const texto = preencher((await mensagensDe(unidadeId))[tipo], {
         cliente: primeiroNome(cliente.nome),
         barbearia: conta.nome,
         unidade: u.nome,

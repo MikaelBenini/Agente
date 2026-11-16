@@ -69,7 +69,7 @@ export async function enviarLembrete(
     const conta = await tx.conta.findFirst({ select: { nome: true } });
     const barbearia = conta?.nome ?? ag.unidade.nome;
     const profissional = ag.profissional.usuario.nome.trim().split(/\s+/)[0]!;
-    const mensagens = await mensagensDoBot(tx);
+    const mensagens = await mensagensDoBot(tx, ag.unidadeId);
     const texto = textoLembrete(
       job.lembrete,
       {

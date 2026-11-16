@@ -68,22 +68,45 @@ export function lerMenu(valor: unknown): MenuBot {
   return r.success ? r.data : structuredClone(MENU_BOT_PADRAO);
 }
 
-/** Menu publicado; conta antiga sem menu recebe o padrão publicado na hora. */
-export async function menuPublicado(tx: Tx) {
-  const atual = await tx.botMenu.findFirst({ where: { status: 'publicado' } });
+/**
+ * Menu publicado. Com a unidade (decisão do dono em 16/11/2026): o dela, se ela personalizou;
+ * senão, o padrão da barbearia. Conta antiga sem menu recebe o padrão publicado na hora.
+ */
+export async function menuPublicado(tx: Tx, unidadeId: string | null = null) {
+  if (unidadeId) {
+    const daUnidade = await tx.botMenu.findFirst({ where: { status: 'publicado', unidadeId } });
+    if (daUnidade) return daUnidade;
+  }
+  const atual = await tx.botMenu.findFirst({ where: { status: 'publicado', unidadeId: null } });
   if (atual) return atual;
   return tx.botMenu.create({
     data: { status: 'publicado', menu: json(MENU_BOT_PADRAO), publicadoEm: new Date() },
   });
 }
 
-/** Mensagens prontas da conta, com o padrão onde o dono não mexeu. */
-export async function mensagensDoBot(tx: Tx): Promise<MensagensBot> {
+/**
+ * Mensagens prontas: o padrão do sistema, por cima as da barbearia e, com a unidade, as que ela
+ * personalizou (decisão do dono em 16/11/2026).
+ */
+export async function mensagensDoBot(
+  tx: Tx,
+  unidadeId: string | null = null,
+): Promise<MensagensBot> {
   const salvas = await tx.modeloMensagem.findMany({
-    where: { unidadeId: null, ativo: true, tipo: { in: [...TIPOS_MENSAGEM_BOT] } },
+    where: {
+      unidadeId: unidadeId ? { in: [unidadeId] } : null,
+      ativo: true,
+      tipo: { in: [...TIPOS_MENSAGEM_BOT] },
+    },
   });
+  const daConta = unidadeId
+    ? await tx.modeloMensagem.findMany({
+        where: { unidadeId: null, ativo: true, tipo: { in: [...TIPOS_MENSAGEM_BOT] } },
+      })
+    : [];
   const m: MensagensBot = { ...MENSAGENS_BOT_PADRAO };
-  for (const s of salvas) m[s.tipo as keyof MensagensBot] = s.texto;
+  // A da unidade vem por último: vence a da barbearia.
+  for (const s of [...daConta, ...salvas]) m[s.tipo as keyof MensagensBot] = s.texto;
   return m;
 }
 
@@ -570,7 +593,7 @@ export async function atenderMensagem(
           pedirConsentimento: cliente.consentimentoEm === null && !conversouAntes,
           agendarPelaConversa: await podeAgendarPelaConversa(tx, unidadeId, dataLocal(agora)),
         });
-        const menu = lerMenu((await menuPublicado(tx)).menu);
+        const menu = lerMenu((await menuPublicado(tx, unidadeId)).menu);
         // Pesquisa vencida ou já cancelada sai da sessão antes de responder.
         const sessaoSalva = await pesquisaValida(
           tx,
@@ -579,7 +602,7 @@ export async function atenderMensagem(
         );
         const r = await responderComAgenda(tx, {
           menu,
-          mensagens: await mensagensDoBot(tx),
+          mensagens: await mensagensDoBot(tx, unidadeId),
           sessao: sessaoSalva,
           entrada: evento.texto,
           ctx,
@@ -602,7 +625,7 @@ export async function atenderMensagem(
             select: { notaAtendimento: true, notaBarbearia: true },
           });
           if (av && mereceConviteGoogle(av.notaAtendimento, av.notaBarbearia)) {
-            const mensagens = await mensagensDoBot(tx);
+            const mensagens = await mensagensDoBot(tx, unidadeId);
             r.respostas.push(
               preencher(mensagens.convite_google, {
                 barbearia: ctx.barbearia,
@@ -794,7 +817,7 @@ export async function encerrarEsperaDoAtendente(
     });
     const conexao = s.unidade.botConexao;
     if (conexao?.status !== 'conectado') return null;
-    const texto = (await mensagensDoBot(tx)).atendente_sem_resposta;
+    const texto = (await mensagensDoBot(tx, job.unidadeId)).atendente_sem_resposta;
     const m = await tx.mensagem.create({
       data: {
         unidadeId: job.unidadeId,

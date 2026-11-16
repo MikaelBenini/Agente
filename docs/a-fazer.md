@@ -639,6 +639,10 @@ Sem IA (regra do produto): tudo por palavras-chave, números e regras de data e 
   etapa; trocar só o barbeiro ou o horário mantendo o serviço
 - [ ] **Passagem para a recepção:** fora do horário, dizer quando a recepção volta; a equipe vê o
   que o cliente já pediu (serviço, dia e horário)
+- [ ] **Mensagens automáticas para quem vem de anúncio** (pedido do dono em 16/11): aba própria no
+  Bot; quem chega por anúncio do Facebook/Instagram (clique para o WhatsApp) recebe um fluxo
+  diferente do menu (respostas em sequência) e depois passa para a equipe; o chat marca
+  "Veio de anúncio" (pelo dado do anúncio que o WhatsApp manda, ou pela frase pronta do anúncio)
 - [ ] **Menu e mensagens por unidade, com padrão** (decisão do dono em 16/11): a barbearia tem o
   menu e as mensagens padrão; cada unidade pode personalizar os seus ou herdar o padrão
 

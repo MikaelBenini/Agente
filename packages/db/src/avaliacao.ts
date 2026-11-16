@@ -121,7 +121,7 @@ export async function iniciarPesquisa(
     });
 
     const conta = await tx.conta.findFirst({ select: { nome: true } });
-    const texto = preencher((await mensagensDoBot(tx)).pesquisa_atendimento, {
+    const texto = preencher((await mensagensDoBot(tx, a.unidadeId)).pesquisa_atendimento, {
       cliente: primeiroNome(a.cliente.nome),
       barbearia: conta?.nome ?? a.unidade.nome,
       unidade: a.unidade.nome,

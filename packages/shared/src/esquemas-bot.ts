@@ -14,6 +14,7 @@ import {
   type OpcaoMenu,
   type ProblemaMenu,
   type SessaoBot,
+  type TipoMensagemBot,
   type TurnoBot,
 } from './bot.js';
 
@@ -216,13 +217,53 @@ export interface EstadoBot {
   podeEditar: boolean;
   /** Pesquisa de 1 a 5 depois do atendimento ligada para a conta. */
   pesquisaAtiva: boolean;
+  /**
+   * O que está sendo editado (decisão do dono em 16/11/2026): o padrão da barbearia
+   * (unidadeId nulo) ou uma unidade, que usa o padrão até personalizar.
+   */
+  escopo: EscopoBot;
+  /** O que impede o bot de funcionar bem em cada unidade (aparece antes de publicar). */
+  avisos: AvisoDoBot[];
 }
+
+export interface EscopoBot {
+  unidadeId: string | null;
+  nome: string;
+  /** A unidade tem menu próprio (rascunho ou publicado). No padrão, sempre true. */
+  menuProprio: boolean;
+  /** Mensagens que a unidade personalizou; as outras vêm do padrão. */
+  mensagensProprias: TipoMensagemBot[];
+}
+
+export interface AvisoDoBot {
+  unidadeId: string;
+  unidade: string;
+  mensagem: string;
+}
+
+/** Escolha do que editar: sem unidade, o padrão da barbearia. */
+export const escopoBotSchema = z.object({
+  unidadeId: z.uuid({ error: 'Unidade inválida.' }).optional(),
+});
+export type EscopoBotEntrada = z.infer<typeof escopoBotSchema>;
 
 export interface RespostaSimulacao {
   respostas: string[];
   sessao: SessaoBot;
   acao: string | null;
   consentimento: boolean | null;
+  /** De onde veio o menu que o simulador usou (lista 16/11/2026: "rascunho sem opções"). */
+  diagnostico: DiagnosticoSimulacao;
+}
+
+export interface DiagnosticoSimulacao {
+  versao: 'rascunho' | 'publicado';
+  /** Menu da própria unidade ou o padrão da barbearia. */
+  deQuem: 'unidade' | 'padrao';
+  /** As opções do menu principal carregado, na ordem. */
+  opcoes: string[];
+  /** Pediu o rascunho e não havia (usou o publicado), ou o menu está sem opções. */
+  aviso: string | null;
 }
 
 export const listarConversasSchema = z.object({

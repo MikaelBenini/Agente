@@ -196,7 +196,7 @@ export class ConversasService {
       // Sem conexão, devolve em silêncio: o encerramento não teria como sair.
       if (conexao?.status !== 'conectado') return null;
       const conta = await tx.conta.findFirst({ select: { nome: true } });
-      const texto = preencher((await mensagensDoBot(tx)).encerramento, {
+      const texto = preencher((await mensagensDoBot(tx, s.unidadeId)).encerramento, {
         cliente: s.cliente?.nome.split(/\s+/)[0] ?? null,
         barbearia: conta?.nome ?? s.unidade.nome,
         unidade: s.unidade.nome,
