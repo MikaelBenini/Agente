@@ -105,6 +105,15 @@ const sessaoSchema: z.ZodType<SessaoBot> = z.object({
   comAtendente: z.boolean(),
   erros: z.number().int().min(0).max(10).optional(),
   agenda: agendaSchema.optional(),
+  // Lista do dono (16/11): o pedido guardado na passagem e o fluxo do anúncio no simulador.
+  pedido: agendaSchema.optional(),
+  anuncio: z
+    .object({
+      etapa: z.number().int().min(0).max(10),
+      respostas: z.array(z.string().max(300)).max(10),
+    })
+    .optional(),
+  respostasAnuncio: z.array(z.string().max(300)).max(10).optional(),
 });
 
 export const simularBotSchema = z.object({

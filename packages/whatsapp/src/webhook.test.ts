@@ -40,8 +40,39 @@ describe('lerWebhookEvolution', () => {
       telefone: '5511988887777',
       nome: 'João Silva',
       texto: 'oi',
+      anuncio: null,
       recebidaEm: new Date(1_793_811_600_000).toISOString(),
     });
+  });
+
+  // Pedido do dono em 16/11/2026: identificar quem chegou por anúncio.
+  it('mensagem de anúncio (clique para o WhatsApp) vem marcada com o título do anúncio', () => {
+    const doAnuncio = mensagem({
+      message: {
+        extendedTextMessage: {
+          text: 'Olá! Quero saber mais.',
+          contextInfo: {
+            externalAdReply: { title: 'Corte + barba por R$ 50', sourceType: 'ad', sourceId: '120' },
+            conversionSource: 'FB_Ads',
+          },
+        },
+      },
+    });
+    expect(lerWebhookEvolution(doAnuncio, agora)).toMatchObject({
+      texto: 'Olá! Quero saber mais.',
+      anuncio: { titulo: 'Corte + barba por R$ 50', origemId: '120' },
+    });
+    // Só a origem (sem o cartão do anúncio), no contextInfo do dado.
+    expect(
+      lerWebhookEvolution(mensagem({ contextInfo: { conversionSource: 'FB_Ads' } }), agora),
+    ).toMatchObject({ anuncio: { titulo: null, origemId: null } });
+    // Resposta comum a outra mensagem: não é anúncio.
+    expect(
+      lerWebhookEvolution(
+        mensagem({ contextInfo: { quotedMessage: { conversation: 'oi' } } }),
+        agora,
+      ),
+    ).toMatchObject({ anuncio: null });
   });
 
   it('lê texto estendido, legenda de foto e resposta de lista', () => {

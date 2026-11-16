@@ -533,6 +533,10 @@ export interface SessaoBot {
    * horário): a equipe vê na conversa (lista do dono em 16/11/2026).
    */
   pedido?: AgendaNaConversa;
+  /** Conversa automática de quem veio de anúncio, em andamento (pedido do dono em 16/11/2026). */
+  anuncio?: { etapa: number; respostas: string[] };
+  /** Respostas do fluxo do anúncio, para a equipe ver depois da passagem. */
+  respostasAnuncio?: string[];
 }
 
 export type PassoPesquisa = 'atendimento' | 'barbearia' | 'comentario';

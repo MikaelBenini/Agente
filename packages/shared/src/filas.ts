@@ -91,6 +91,11 @@ export type EventoWhatsapp =
       /** Texto da mensagem; vazio para áudio, foto e figurinha. */
       texto: string;
       recebidaEm: string;
+      /**
+       * Chegou por um anúncio do Facebook/Instagram (clique para o WhatsApp): o título do
+       * anúncio e o id dele, quando o WhatsApp manda (pedido do dono em 16/11/2026).
+       */
+      anuncio?: { titulo: string | null; origemId: string | null } | null;
     }
   | {
       tipo: 'conexao';
