@@ -689,6 +689,15 @@ descrição, OpenGraph (título, descrição e imagem 1200×630) e o cartão do 
   (a pagar); mudar o valor em Equipe ajusta o do mês ainda não pago; zerar tira; nunca duplica, e
   o lançado à mão com o nome dele vale no lugar (16/11, branch `fix/salario-automatico`)
 
+## 8l. Anúncio sem conflito e menus reorganizados (pedido do dono em 16/11)
+
+- [x] Frase do anúncio só no começo da primeira mensagem de uma conversa nova; a marca do WhatsApp
+  vale sempre; "Chegou por anúncio" no Testar só com as mensagens ligadas
+- [x] Bot em 4 abas por etapa (escolha do dono): Conexão, Respostas, Automáticas, Testar
+- [x] Saúde do sistema com resumo no alto e abas (escolha do dono): Servidor, WhatsApp e rotinas,
+  Erros e e-mails, Integrações
+- Feito em 16/11 na branch `fix/anuncio-ajustes` (CHANGELOG e linha de desenvolvimento)
+
 ## 9. Por último: verificação final do ecossistema
 
 - [x] Rodar a [verificação final](verificacao-final.md) (feita em 15/11: números, segurança e produção conferidos; correções C1 a C6; ficam com o dono o backup no Kuma, uma restauração de teste e o Tag Assistant) (pedido do dono em 11/11/2026): rotinas

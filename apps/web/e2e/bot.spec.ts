@@ -62,7 +62,9 @@ test('dono edita, testa o rascunho, publica e volta à versão anterior', async 
     '6. Conhecer o clube',
   );
 
-  await page.getByRole('tab', { name: 'Menu' }).click();
+  // Abas reorganizadas em 16/11/2026: Respostas → Menu e palavras-chave.
+  await page.getByRole('tab', { name: '2. Respostas' }).click();
+  await page.getByRole('tab', { name: 'Menu e palavras-chave' }).click();
   await visivel(page.getByRole('button', { name: 'Publicar' })).click();
   await expect(visivel(page.getByText('Este é o menu que o bot usa.'))).toBeVisible();
   await visivel(page.getByRole('button', { name: 'Voltar à versão anterior' })).click();
@@ -122,7 +124,8 @@ test('dono conecta o WhatsApp pelo QR Code e desconecta', async ({ page }, info)
 test('automações: o dono vê os números do mês e o que liga; o gestor só vê', async ({ page }) => {
   await entrar(page, 'dono@demo.pentefino.dev');
   await page.goto('/bot');
-  await page.getByRole('tab', { name: 'Automações' }).click();
+  await page.getByRole('tab', { name: '3. Automáticas' }).click();
+  await page.getByRole('tab', { name: 'Retorno, aniversário e clube' }).click();
   await expect(
     page.getByLabel('Convidar para voltar quem passou do tempo de costume'),
   ).toBeVisible();

@@ -97,7 +97,7 @@ export function TelaBot() {
   const [escopo, setEscopo] = useState<string | null>(null);
   const bot = useBot(true, escopo);
   // O aviso de queda no topo do painel abre direto na aba Conexão.
-  const abaInicial = useSearchParams().get('aba') === 'conexao' ? 'conexao' : 'menu';
+  const abaInicial = useSearchParams().get('aba') === 'conexao' ? 'conexao' : 'respostas';
   const [aba, setAba] = useState(abaInicial);
   // Fora do editor: o editor é recriado quando a versão publicada muda e a confirmação continua.
   const [retorno, setRetorno] = useState<Retorno | null>(null);
@@ -115,53 +115,80 @@ export function TelaBot() {
             <EscopoCtx.Provider value={escopo ? `?unidadeId=${escopo}` : ''}>
               <div className="flex flex-col gap-6">
                 <EscolhaDoEscopo e={e} escopo={escopo} onEscopo={setEscopo} />
+                {/* Reorganizado em 16/11/2026 (pedido do dono): 4 abas na ordem de uso. */}
                 <Abas
                   rotulo="Bot"
                   atual={aba}
                   onTrocar={setAba}
                   abas={[
+                    { id: 'conexao', rotulo: '1. Conexão', conteudo: <Conexao e={e} /> },
                     {
-                      id: 'menu',
-                      rotulo: 'Menu',
+                      id: 'respostas',
+                      rotulo: '2. Respostas',
                       conteudo: (
-                        <EditorDoBot
-                          key={`${escopo ?? 'padrao'}:${e.publicado.publicadoEm ?? 'padrao'}`}
-                          e={e}
-                          retorno={retorno}
-                          onRetorno={setRetorno}
-                          onTestar={() => setAba('testar')}
+                        <SubAbas
+                          rotulo="Respostas do bot"
+                          abas={[
+                            {
+                              id: 'menu',
+                              rotulo: 'Menu e palavras-chave',
+                              conteudo: (
+                                <EditorDoBot
+                                  key={`${escopo ?? 'padrao'}:${e.publicado.publicadoEm ?? 'padrao'}`}
+                                  e={e}
+                                  retorno={retorno}
+                                  onRetorno={setRetorno}
+                                  onTestar={() => setAba('testar')}
+                                />
+                              ),
+                            },
+                            {
+                              id: 'mensagens',
+                              rotulo: 'Mensagens prontas',
+                              conteudo: <Mensagens key={escopo ?? 'padrao'} e={e} />,
+                            },
+                            {
+                              id: 'horario',
+                              rotulo: 'Horário do bot',
+                              conteudo: <Horarios e={e} />,
+                            },
+                          ]}
                         />
                       ),
                     },
                     {
-                      id: 'mensagens',
-                      rotulo: 'Mensagens prontas',
-                      conteudo: <Mensagens key={escopo ?? 'padrao'} e={e} />,
-                    },
-                    {
-                      id: 'anuncio',
-                      rotulo: 'Mensagens automáticas',
+                      id: 'automaticas',
+                      rotulo: '3. Automáticas',
                       conteudo: (
-                        <MensagensDeAnuncio
-                          key={escopo ?? 'padrao'}
-                          podeEditar={e.podeEditar}
-                          unidadeId={escopo}
-                          nome={e.escopo.nome}
+                        <SubAbas
+                          rotulo="Mensagens automáticas"
+                          abas={[
+                            {
+                              id: 'anuncio',
+                              rotulo: 'Quem vem de anúncio',
+                              conteudo: (
+                                <MensagensDeAnuncio
+                                  key={escopo ?? 'padrao'}
+                                  podeEditar={e.podeEditar}
+                                  unidadeId={escopo}
+                                  nome={e.escopo.nome}
+                                />
+                              ),
+                            },
+                            {
+                              id: 'retorno',
+                              rotulo: 'Retorno, aniversário e clube',
+                              conteudo: (
+                                <SoNoPlano recurso="automacoes">
+                                  <Automacoes podeEditar={e.podeEditar} />
+                                </SoNoPlano>
+                              ),
+                            },
+                          ]}
                         />
                       ),
                     },
-                    { id: 'horario', rotulo: 'Horário', conteudo: <Horarios e={e} /> },
-                    {
-                      id: 'automacoes',
-                      rotulo: 'Automações',
-                      conteudo: (
-                        <SoNoPlano recurso="automacoes">
-                          <Automacoes podeEditar={e.podeEditar} />
-                        </SoNoPlano>
-                      ),
-                    },
-                    { id: 'testar', rotulo: 'Testar', conteudo: <Simulador e={e} /> },
-                    { id: 'conexao', rotulo: 'Conexão', conteudo: <Conexao e={e} /> },
+                    { id: 'testar', rotulo: '4. Testar', conteudo: <Simulador e={e} /> },
                   ]}
                 />
               </div>
@@ -171,6 +198,18 @@ export function TelaBot() {
       </Estado>
     </div>
   );
+}
+
+/** Abas de segundo nível dentro de "Respostas" e "Automáticas", cada uma com o seu estado. */
+function SubAbas({
+  rotulo,
+  abas,
+}: {
+  rotulo: string;
+  abas: { id: string; rotulo: string; conteudo: React.ReactNode }[];
+}) {
+  const [atual, setAtual] = useState(abas[0]!.id);
+  return <Abas rotulo={rotulo} atual={atual} onTrocar={setAtual} abas={abas} />;
 }
 
 /** Consultas do estado do bot (padrão e unidades), sem a conexão de cada unidade. */
