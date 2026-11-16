@@ -624,6 +624,25 @@ tem "Copiar catálogo de outra unidade".
   cada endereço tem a própria ficha no Google
 - [ ] Opcional, a decidir: mensagens do WhatsApp próprias por unidade (o banco já aceita; a tela não)
 
+## 8g. Bot do WhatsApp mais esperto (lista do dono em 16/11)
+
+Sem IA (regra do produto): tudo por palavras-chave, números e regras de data e hora.
+
+- [ ] **Diagnóstico antes de publicar:** o simulador mostra quais opções carregou e de onde
+  (rascunho ou publicado); rascunho vazio explicado na hora. Antes de publicar, avisar unidade sem
+  número conectado, sem serviço com preço ou sem link de agendamento
+- [ ] **Pedido em uma frase:** "quero cortar amanhã às 15h" reconhece serviço, dia e hora e pergunta
+  só o que falta; horário ocupado sugere os mais próximos livres da agenda
+- [ ] **Resposta direta:** "quanto é a barba?" responde "Barba custa R$ 35 e leva 30 min. Quer
+  marcar?", com a tabela inteira só para quem pedir
+- [ ] **Correções previsíveis:** "voltar" volta uma etapa e "menu" vai ao início, em qualquer
+  etapa; trocar só o barbeiro ou o horário mantendo o serviço
+- [ ] **Passagem para a recepção:** fora do horário, dizer quando a recepção volta; a equipe vê o
+  que o cliente já pediu (serviço, dia e horário)
+- [ ] **Por unidade ou por barbearia?** (pedido do dono em 16/11: "as respostas e configurações do
+  WhatsApp devem ser para cada barbearia"): cada conta já tem menu e mensagens próprios; falta
+  decidir se cada **unidade** da mesma barbearia terá os seus
+
 ## 9. Por último: verificação final do ecossistema
 
 - [x] Rodar a [verificação final](verificacao-final.md) (feita em 15/11: números, segurança e produção conferidos; correções C1 a C6; ficam com o dono o backup no Kuma, uma restauração de teste e o Tag Assistant) (pedido do dono em 11/11/2026): rotinas
