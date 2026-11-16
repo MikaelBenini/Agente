@@ -624,7 +624,7 @@ tem "Copiar catálogo de outra unidade".
   cada endereço tem a própria ficha no Google
 - [ ] Opcional, a decidir: mensagens do WhatsApp próprias por unidade (o banco já aceita; a tela não)
 
-## 8g. Bot do WhatsApp mais esperto (lista do dono em 16/11)
+## 8g. Bot do WhatsApp mais esperto (lista do dono em 16/11, aprovada inteira como próximo lote)
 
 Sem IA (regra do produto): tudo por palavras-chave, números e regras de data e hora.
 
@@ -639,9 +639,8 @@ Sem IA (regra do produto): tudo por palavras-chave, números e regras de data e 
   etapa; trocar só o barbeiro ou o horário mantendo o serviço
 - [ ] **Passagem para a recepção:** fora do horário, dizer quando a recepção volta; a equipe vê o
   que o cliente já pediu (serviço, dia e horário)
-- [ ] **Por unidade ou por barbearia?** (pedido do dono em 16/11: "as respostas e configurações do
-  WhatsApp devem ser para cada barbearia"): cada conta já tem menu e mensagens próprios; falta
-  decidir se cada **unidade** da mesma barbearia terá os seus
+- [ ] **Menu e mensagens por unidade, com padrão** (decisão do dono em 16/11): a barbearia tem o
+  menu e as mensagens padrão; cada unidade pode personalizar os seus ou herdar o padrão
 
 ## 9. Por último: verificação final do ecossistema
 
