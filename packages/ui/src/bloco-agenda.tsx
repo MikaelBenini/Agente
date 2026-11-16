@@ -54,7 +54,6 @@ export function BlocoAgenda({
     return (
       <button
         type="button"
-        aria-label={descricao}
         title={descricao}
         className={cn(
           'relative flex w-full min-h-11 items-center overflow-hidden rounded-md border border-borda bg-superficie text-left',
@@ -73,14 +72,18 @@ export function BlocoAgenda({
             <span className="font-semibold text-tinta">{clienteCurto ?? cliente}</span>
             <span className="text-tinta-suave"> · {servico}</span>
           </span>
-          {confirmado && <span className="shrink-0 text-xs font-semibold text-acao-texto">✓</span>}
+          {confirmado && (
+            <span aria-hidden className="shrink-0 text-xs font-semibold text-acao-texto">
+              ✓
+            </span>
+          )}
         </span>
+        <span className="sr-only">: {descricao}</span>
       </button>
     );
   return (
     <button
       type="button"
-      aria-label={descricao}
       title={descricao}
       className={cn(
         'relative flex w-full min-h-11 overflow-hidden rounded-md border border-borda bg-superficie text-left',

@@ -31,7 +31,7 @@ test('planos: anual, calculadora do Premium e cadastro com plano escolhido', asy
   await expect(page.getByText('R$ 449,70')).toBeVisible();
   await expect(page.getByText('Em breve').first()).toBeVisible();
 
-  await page.getByRole('link', { name: /Testar o plano Premium/ }).click();
+  await page.getByRole('link', { name: /Testar 14 dias grátis no plano Premium/ }).click();
   await expect(page).toHaveURL(/plano=premium&ciclo=mensal/);
   await expect(page.getByRole('radio', { name: /Premium/ })).toBeChecked();
   await expect(page.getByRole('radio', { name: 'Mensal' })).toBeChecked();
@@ -368,7 +368,7 @@ test('N4: blog lista o post publicado; rascunho não vai ao ar', async ({ page, 
 // ─── Admin F6: chat do site ─────
 test('F6: visitante abre o chat, deixa o contato e a dúvida e entra na fila', async ({ page }) => {
   await page.goto('/planos');
-  await page.getByRole('button', { name: 'Abrir o chat com o Pente Fino' }).click();
+  await page.getByRole('button', { name: 'Fale com a gente' }).click();
   const chat = page.getByRole('region', { name: 'Chat com o Pente Fino' });
   await chat.getByLabel('Seu nome').fill('Visitante de Teste');
   await chat.getByLabel('WhatsApp ou e-mail').fill('visitante@teste.dev');
@@ -380,7 +380,7 @@ test('F6: visitante abre o chat, deixa o contato e a dúvida e entra na fila', a
   await expect(chat.getByRole('status')).toContainText(/fila|fora do horário/);
   // A conversa fica guardada neste navegador: recarregar não perde.
   await page.reload();
-  await page.getByRole('button', { name: /chat/i }).click();
+  await page.getByRole('button', { name: /^Fale com a gente/ }).click();
   await expect(
     page
       .getByRole('region', { name: 'Chat com o Pente Fino' })
@@ -406,10 +406,9 @@ test('Plano Agenda no site: faixa em /planos, coluna na tabela e página de busc
   await page.goto('/planos');
   const faixa = page.getByRole('region', { name: 'Só precisa da agenda?' });
   await expect(faixa).toContainText('R$ 8,25');
-  await expect(faixa.getByRole('link', { name: /Testar o plano Agenda/ })).toHaveAttribute(
-    'href',
-    /plano=agenda/,
-  );
+  await expect(
+    faixa.getByRole('link', { name: /Testar 14 dias grátis no plano Agenda/ }),
+  ).toHaveAttribute('href', /plano=agenda/);
   await expect(page.getByRole('columnheader', { name: 'Agenda' })).toBeVisible();
   await page.goto('/agenda-para-barbeiro');
   await expect(page.getByRole('heading', { level: 1, name: /Agenda para barbeiro/ })).toBeVisible();

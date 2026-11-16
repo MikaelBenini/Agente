@@ -108,12 +108,9 @@ function FaixaAgenda({
           <span className="font-denso text-4xl font-bold tabular-nums">{formatarMoeda(preco)}</span>
           <span className="text-tinta-suave">/mês</span>
         </p>
-        <LinkCadastro
-          extra={`plano=agenda&ciclo=${ciclo}`}
-          variante="contorno"
-          aria-label={`Testar o plano ${NOME_PLANO.agenda} grátis por ${DIAS_TESTE} dias`}
-        >
+        <LinkCadastro extra={`plano=agenda&ciclo=${ciclo}`} variante="contorno">
           Testar {DIAS_TESTE} dias grátis
+          <span className="sr-only"> no plano {NOME_PLANO.agenda}</span>
         </LinkCadastro>
       </div>
     </section>
@@ -223,9 +220,9 @@ export function CartoesPlanos({ compacto = false }: { compacto?: boolean }) {
                 extra={`plano=${p}&ciclo=${ciclo}`}
                 variante={destaque ? 'acao' : 'contorno'}
                 className="mt-auto"
-                aria-label={`Testar o plano ${NOME_PLANO[p]} grátis por ${DIAS_TESTE} dias`}
               >
                 Testar {DIAS_TESTE} dias grátis
+                <span className="sr-only"> no plano {NOME_PLANO[p]}</span>
               </LinkCadastro>
             </li>
           );

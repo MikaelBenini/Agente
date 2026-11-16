@@ -7,7 +7,6 @@ import {
   formatarHora,
   formatarMoeda,
   formatarNumero,
-  NOME_SITUACAO_DIA,
   type ItemDoDia,
   type ProfissionalDoDia,
   type ResumoDoDia,
@@ -359,7 +358,6 @@ function LinhaDoDia({ i }: { i: ItemDoDia }) {
       {i.comandaId ? (
         <Link
           href={`/comandas?id=${i.comandaId}`}
-          aria-label={`${formatarHora(i.inicio)}, ${i.cliente ?? 'cliente'}: ${NOME_SITUACAO_DIA[i.situacao]}`}
           className="flex items-start gap-3 py-3 hover:bg-superficie-2 focus-visible:outline-2 focus-visible:outline-foco"
         >
           {conteudo}
@@ -446,7 +444,6 @@ export function DiaADia({ mes }: { mes: string }) {
                       <th scope="row" className={`${td} text-left font-medium whitespace-nowrap`}>
                         <Link
                           href={`/dia?dia=${d.data}`}
-                          aria-label={`Abrir ${diaLongo(d.data)}`}
                           className="inline-flex min-h-11 items-center gap-2 rounded-md underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-foco"
                         >
                           <span className="w-8 text-tinta-suave">
@@ -454,6 +451,7 @@ export function DiaADia({ mes }: { mes: string }) {
                           </span>
                           {d.data.slice(8)}
                           {!d.trabalha && <span className="text-sm font-normal">fechado</span>}
+                          <span className="sr-only">, abrir {diaLongo(d.data)}</span>
                         </Link>
                       </th>
                       <td className={`${td} text-right`}>{d.agendados || '—'}</td>
