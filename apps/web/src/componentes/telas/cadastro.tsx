@@ -36,6 +36,7 @@ import { conversaDoChat } from '@/componentes/site/chat-site';
 import { aplicarErroDaApi } from '@/lib/formularios';
 import { useHidratado } from '@/lib/hidratado';
 import { Aviso } from '../aviso';
+import { CampoSenha } from '../campo-senha';
 import { eventoGoogle } from '../site/tag-google';
 
 function limitePlano(p: PlanoConta) {
@@ -86,7 +87,6 @@ export function FormularioCadastro() {
       );
     }
   }
-  const [verSenha, setVerSenha] = useState(false);
   const comecou = useRef(false);
   const router = useRouter();
   const params = useSearchParams();
@@ -247,28 +247,16 @@ export function FormularioCadastro() {
         erro={formState.errors.email?.message}
         {...register('email')}
       />
-      <div className="flex flex-col gap-1">
-        <Campo
-          id="cadastro-senha"
-          rotulo="Senha"
-          type={verSenha ? 'text' : 'password'}
-          autoComplete="new-password"
-          dica="Pelo menos 8 caracteres."
-          required
-          aria-required
-          erro={formState.errors.senha?.message}
-          {...register('senha')}
-        />
-        <button
-          type="button"
-          aria-controls="cadastro-senha"
-          aria-pressed={verSenha}
-          onClick={() => setVerSenha(!verSenha)}
-          className="inline-flex min-h-11 items-center self-start text-sm font-medium text-tinta-suave underline-offset-4 hover:text-tinta hover:underline focus-visible:outline-2 focus-visible:outline-foco"
-        >
-          {verSenha ? 'Esconder senha' : 'Mostrar senha'}
-        </button>
-      </div>
+      <CampoSenha
+        id="cadastro-senha"
+        rotulo="Senha"
+        autoComplete="new-password"
+        dica="Pelo menos 8 caracteres."
+        required
+        aria-required
+        erro={formState.errors.senha?.message}
+        {...register('senha')}
+      />
       <Campo
         id="cadastro-whatsapp"
         rotulo="WhatsApp (opcional)"

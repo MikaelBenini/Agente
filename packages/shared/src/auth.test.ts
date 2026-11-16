@@ -13,6 +13,14 @@ describe('loginSchema', () => {
     expect(r.success).toBe(false);
     expect(r.error?.issues[0]?.message).toBe('E-mail inválido.');
   });
+
+  it('login vazio pede o e-mail e a senha, sem chamar o vazio de inválido', () => {
+    const r = loginSchema.safeParse({ email: '  ', senha: '' });
+    expect(r.error?.issues.map((i) => [i.path[0], i.message])).toEqual([
+      ['email', 'Informe o e-mail.'],
+      ['senha', 'Informe a senha.'],
+    ]);
+  });
 });
 
 describe('senhaSchema', () => {

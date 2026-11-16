@@ -7,6 +7,14 @@ produção (`https://seupentefino.com.br`). Detalhes técnicos e o porquê de ca
 
 ## [Não publicado]
 
+### Corrigido e melhorado (cadastro, unidade em uso e login — revisão de 16/11)
+
+- **Cupom que sumia:** quem navegava por algumas páginas do site estourava o limite de consultas do login (10 por minuto), e aí os botões levavam ao cadastro sem o cupom e o cadastro apagava o LANCAMENTO em silêncio. A consulta do cupom saiu desse limite, e só a recusa do cupom (não existe, venceu, sem vagas) encerra a oferta na tela; falha passageira mantém o cupom, que a API confere de novo ao criar a conta.
+- **Cadastro mostra o que será cobrado:** no anual, cada plano mostra o total do ano; um resumo diz quanto será cobrado depois do teste (por mês ou por ano, com as Automações e o cupom aplicado). No Agenda, o desconto só aparece com as Automações, como na cobrança.
+- **Unidade em uso:** com "Todas as unidades" no alto, Agenda, Comandas e Caixa mostram "Unidade desta tela" e dizem que o que for lançado fica nela; a escolha vale ao passar de uma tela para outra.
+- **Avisos, bot e Automações lado a lado** na página de planos: o que vem em todo plano (confirmação e lembrete), o que marca pela conversa e o que o adicional libera.
+- **Login:** "Mostrar senha", como no cadastro; enviar vazio pede o e-mail e a senha, em vez de dizer "E-mail inválido".
+
 ### Adicionado (salário dos barbeiros nas despesas fixas)
 
 - **Financeiro → Despesas → "Copiar fixas do mês anterior"** agora traz também o salário de cada barbeiro que tem valor fixo em Equipe ("Mudar valor fixo"): uma linha "Salário: nome", na categoria "Salários e encargos", com o valor do cadastro para conferir ou mudar antes de gravar. Assim o salário entra nas despesas fixas e no resultado do mês. Nunca duplica: um salário por barbeiro e mês, e o lançado à mão com o nome dele vem desmarcado.

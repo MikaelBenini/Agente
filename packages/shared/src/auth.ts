@@ -6,6 +6,8 @@ export const emailSchema = z
   .string({ error: 'Informe o e-mail.' })
   .trim()
   .toLowerCase()
+  // Vazio pede o e-mail; só o preenchido errado é "inválido" (revisão de 16/11/2026).
+  .pipe(z.string().min(1, { error: 'Informe o e-mail.' }))
   .pipe(z.email({ error: 'E-mail inválido.' }));
 
 /** Senha: de 8 a 128 caracteres. Sem regra de símbolo: comprimento protege mais. */

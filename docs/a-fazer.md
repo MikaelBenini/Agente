@@ -595,18 +595,21 @@ de ganho para o barbeiro:
 
 ## 8e. Revisão do cadastro, da unidade e do login (lista do dono em 16/11, aprovada como próximo lote)
 
-- [ ] **Cupom no cadastro** (alta): o `cupom=LANCAMENTO` da URL não aparece no cadastro e some ao
+- [x] **Cupom no cadastro** (alta): o `cupom=LANCAMENTO` da URL não aparece no cadastro e some ao
   escolher o plano. Mostrar "Cupom LANCAMENTO aplicado" e o preço com desconto antes de criar a
   conta; conferir que o desconto chega à assinatura
-- [ ] **Anual no cadastro** (alta): mostrar o total do ano ao lado do equivalente mensal e o que será
+- [x] **Anual no cadastro** (alta): mostrar o total do ano ao lado do equivalente mensal e o que será
   cobrado depois do teste
-- [ ] **Unidade em uso** (alta): Agenda, Comandas e Caixa mostram "Todas as unidades" no alto e outra
+- [x] **Unidade em uso** (alta): Agenda, Comandas e Caixa mostram "Todas as unidades" no alto e outra
   unidade no seletor da tela; deixar claro qual unidade aparece e onde o agendamento, a comanda ou
   a abertura do caixa será registrado
-- [ ] **Avisos × bot × Automações** (média): quadro lado a lado com o que vem nos lembretes, o que
+- [x] **Avisos × bot × Automações** (média): quadro lado a lado com o que vem nos lembretes, o que
   marca pela conversa e o que o adicional do Agenda libera
-- [ ] **Login** (média): "Mostrar senha" como no cadastro; envio vazio com a mensagem certa para
+- [x] **Login** (média): "Mostrar senha" como no cadastro; envio vazio com a mensagem certa para
   cada campo
+- Feito em 16/11 (branch `feat/revisao-cadastro`, CHANGELOG e linha de desenvolvimento, Etapa
+  23.6). Causa do cupom: `GET /publico/cupom` usava o limite do login (10/min por IP) e toda
+  página do site confere a oferta
 
 ## 8f. Copiar configurações de outra unidade (aprovado pelo dono em 16/11, escolhendo os itens)
 

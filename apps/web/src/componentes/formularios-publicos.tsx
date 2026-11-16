@@ -20,6 +20,7 @@ import { useHidratado } from '@/lib/hidratado';
 import { entrarComPasskey, temPasskey, temSugestaoNoCampo } from '@/lib/passkey';
 import { destinoSeguro } from '@/lib/seguranca';
 import { Aviso } from './aviso';
+import { CampoSenha } from './campo-senha';
 
 const link =
   'font-medium text-tinta underline decoration-borda-forte underline-offset-4 hover:decoration-modulo';
@@ -108,10 +109,9 @@ export function FormularioEntrar() {
         erro={formState.errors.email?.message}
         {...register('email')}
       />
-      <Campo
+      <CampoSenha
         id="senha"
         rotulo="Senha"
-        type="password"
         autoComplete="current-password"
         erro={formState.errors.senha?.message}
         {...register('senha')}
