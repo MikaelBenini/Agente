@@ -308,6 +308,12 @@ export function paginasDeBarbeariaNoGoogle(prisma: PrismaClient) {
     SELECT * FROM paginas_de_barbearia_no_google()`;
 }
 
+/** Sites publicados (/s/<site_slug>) das unidades que ligaram "Aparecer no Google" (sitemap). */
+export function sitesDeBarbeariaNoGoogle(prisma: PrismaClient) {
+  return prisma.$queryRaw<{ site_slug: string; publicado_em: Date }[]>`
+    SELECT * FROM sites_de_barbearia_no_google()`;
+}
+
 /** Admin F5: até quando o dono liberou o acesso de suporte (null = não liberou). */
 export async function suporteLiberadoDaConta(
   prisma: PrismaClient,

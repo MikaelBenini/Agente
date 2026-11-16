@@ -33,6 +33,18 @@ export async function paginasNoGoogle(): Promise<{ slug: string; atualizadoEm: s
   }
 }
 
+/** Sites publicados (/s/<slug>) que aparecem no Google, para o sitemap (sugestão de 16/11/2026). */
+export async function sitesNoGoogle(): Promise<{ slug: string; atualizadoEm: string }[]> {
+  'use cache';
+  cacheLife('hours');
+  try {
+    const r = await fetch(`${urlDaApi()}/publico/sites`);
+    return r.ok ? ((await r.json()) as { slug: string; atualizadoEm: string }[]) : [];
+  } catch {
+    return [];
+  }
+}
+
 /**
  * Site publicado da barbearia (seção 7). Cache curto, com a etiqueta `site-<slug>` para o painel
  * renovar na hora em que o dono publica. null = sem site publicado (a página é a de agendamento).
