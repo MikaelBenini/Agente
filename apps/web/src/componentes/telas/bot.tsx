@@ -21,6 +21,7 @@ import {
   type MenuNo,
   type OpcaoMenu,
   type DiagnosticoSimulacao,
+  type FluxoAnuncioDoEscopo,
   type RespostaSimulacao,
   type SessaoBot,
   type TurnoBot,
@@ -47,7 +48,7 @@ import {
   Trash2,
   TriangleAlert,
 } from 'lucide-react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { createContext, useContext, useEffect, useState, type FormEvent } from 'react';
@@ -96,7 +97,7 @@ export function TelaBot() {
   const [escopo, setEscopo] = useState<string | null>(null);
   const bot = useBot(true, escopo);
   // O aviso de queda no topo do painel abre direto na aba Conexão.
-  const abaInicial = useSearchParams().get('aba') === 'conexao' ? 'conexao' : 'menu';
+  const abaInicial = useSearchParams().get('aba') === 'conexao' ? 'conexao' : 'respostas';
   const [aba, setAba] = useState(abaInicial);
   // Fora do editor: o editor é recriado quando a versão publicada muda e a confirmação continua.
   const [retorno, setRetorno] = useState<Retorno | null>(null);
@@ -114,53 +115,80 @@ export function TelaBot() {
             <EscopoCtx.Provider value={escopo ? `?unidadeId=${escopo}` : ''}>
               <div className="flex flex-col gap-6">
                 <EscolhaDoEscopo e={e} escopo={escopo} onEscopo={setEscopo} />
+                {/* Reorganizado em 16/11/2026 (pedido do dono): 4 abas na ordem de uso. */}
                 <Abas
                   rotulo="Bot"
                   atual={aba}
                   onTrocar={setAba}
                   abas={[
+                    { id: 'conexao', rotulo: '1. Conexão', conteudo: <Conexao e={e} /> },
                     {
-                      id: 'menu',
-                      rotulo: 'Menu',
+                      id: 'respostas',
+                      rotulo: '2. Respostas',
                       conteudo: (
-                        <EditorDoBot
-                          key={`${escopo ?? 'padrao'}:${e.publicado.publicadoEm ?? 'padrao'}`}
-                          e={e}
-                          retorno={retorno}
-                          onRetorno={setRetorno}
-                          onTestar={() => setAba('testar')}
+                        <SubAbas
+                          rotulo="Respostas do bot"
+                          abas={[
+                            {
+                              id: 'menu',
+                              rotulo: 'Menu e palavras-chave',
+                              conteudo: (
+                                <EditorDoBot
+                                  key={`${escopo ?? 'padrao'}:${e.publicado.publicadoEm ?? 'padrao'}`}
+                                  e={e}
+                                  retorno={retorno}
+                                  onRetorno={setRetorno}
+                                  onTestar={() => setAba('testar')}
+                                />
+                              ),
+                            },
+                            {
+                              id: 'mensagens',
+                              rotulo: 'Mensagens prontas',
+                              conteudo: <Mensagens key={escopo ?? 'padrao'} e={e} />,
+                            },
+                            {
+                              id: 'horario',
+                              rotulo: 'Horário do bot',
+                              conteudo: <Horarios e={e} />,
+                            },
+                          ]}
                         />
                       ),
                     },
                     {
-                      id: 'mensagens',
-                      rotulo: 'Mensagens prontas',
-                      conteudo: <Mensagens key={escopo ?? 'padrao'} e={e} />,
-                    },
-                    {
-                      id: 'anuncio',
-                      rotulo: 'Mensagens automáticas',
+                      id: 'automaticas',
+                      rotulo: '3. Automáticas',
                       conteudo: (
-                        <MensagensDeAnuncio
-                          key={escopo ?? 'padrao'}
-                          podeEditar={e.podeEditar}
-                          unidadeId={escopo}
-                          nome={e.escopo.nome}
+                        <SubAbas
+                          rotulo="Mensagens automáticas"
+                          abas={[
+                            {
+                              id: 'anuncio',
+                              rotulo: 'Quem vem de anúncio',
+                              conteudo: (
+                                <MensagensDeAnuncio
+                                  key={escopo ?? 'padrao'}
+                                  podeEditar={e.podeEditar}
+                                  unidadeId={escopo}
+                                  nome={e.escopo.nome}
+                                />
+                              ),
+                            },
+                            {
+                              id: 'retorno',
+                              rotulo: 'Retorno, aniversário e clube',
+                              conteudo: (
+                                <SoNoPlano recurso="automacoes">
+                                  <Automacoes podeEditar={e.podeEditar} />
+                                </SoNoPlano>
+                              ),
+                            },
+                          ]}
                         />
                       ),
                     },
-                    { id: 'horario', rotulo: 'Horário', conteudo: <Horarios e={e} /> },
-                    {
-                      id: 'automacoes',
-                      rotulo: 'Automações',
-                      conteudo: (
-                        <SoNoPlano recurso="automacoes">
-                          <Automacoes podeEditar={e.podeEditar} />
-                        </SoNoPlano>
-                      ),
-                    },
-                    { id: 'testar', rotulo: 'Testar', conteudo: <Simulador e={e} /> },
-                    { id: 'conexao', rotulo: 'Conexão', conteudo: <Conexao e={e} /> },
+                    { id: 'testar', rotulo: '4. Testar', conteudo: <Simulador e={e} /> },
                   ]}
                 />
               </div>
@@ -170,6 +198,18 @@ export function TelaBot() {
       </Estado>
     </div>
   );
+}
+
+/** Abas de segundo nível dentro de "Respostas" e "Automáticas", cada uma com o seu estado. */
+function SubAbas({
+  rotulo,
+  abas,
+}: {
+  rotulo: string;
+  abas: { id: string; rotulo: string; conteudo: React.ReactNode }[];
+}) {
+  const [atual, setAtual] = useState(abas[0]!.id);
+  return <Abas rotulo={rotulo} atual={atual} onTrocar={setAtual} abas={abas} />;
 }
 
 /** Consultas do estado do bot (padrão e unidades), sem a conexão de cada unidade. */
@@ -1167,6 +1207,13 @@ function Simulador({ e }: { e: EstadoBot }) {
   const [cliente, setCliente] = useState('João Silva');
   const [fechado, setFechado] = useState(false);
   const [doAnuncio, setDoAnuncio] = useState(false);
+  // Só dá para simular a chegada por anúncio com as mensagens de anúncio ligadas na unidade.
+  const anuncio = useQuery({
+    queryKey: [...chaveBot, 'anuncio', unidadeId || 'padrao'],
+    queryFn: () => api<FluxoAnuncioDoEscopo>(`bot/anuncio?unidadeId=${unidadeId}`),
+    enabled: !!unidadeId,
+  });
+  const anuncioLigado = anuncio.data?.ativo === true;
   // De onde veio o menu do teste (lista do dono em 16/11: "rascunho sem opções").
   const [diagnostico, setDiagnostico] = useState<DiagnosticoSimulacao | null>(null);
   const [falas, setFalas] = useState<Fala[]>([]);
@@ -1196,7 +1243,7 @@ function Simulador({ e }: { e: EstadoBot }) {
           cliente: cliente.trim() || null,
           foraDoHorario: fechado,
           // Só a primeira mensagem chega "pelo anúncio"; as respostas seguem a conversa.
-          doAnuncio: doAnuncio && sessao === null,
+          doAnuncio: anuncioLigado && doAnuncio && sessao === null,
         },
       });
       setSessao(r.sessao);
@@ -1279,18 +1326,25 @@ function Simulador({ e }: { e: EstadoBot }) {
           />
           Simular fora do horário
         </label>
-        <label className="flex min-h-11 items-center gap-2">
-          <input
-            type="checkbox"
-            checked={doAnuncio}
-            onChange={(ev) => {
-              setDoAnuncio(ev.target.checked);
-              reiniciar();
-            }}
-            className="size-5 accent-[var(--modulo)]"
-          />
-          Chegou por anúncio
-        </label>
+        {anuncioLigado ? (
+          <label className="flex min-h-11 items-center gap-2">
+            <input
+              type="checkbox"
+              checked={doAnuncio}
+              onChange={(ev) => {
+                setDoAnuncio(ev.target.checked);
+                reiniciar();
+              }}
+              className="size-5 accent-[var(--modulo)]"
+            />
+            Chegou por anúncio
+          </label>
+        ) : (
+          <p className="text-sm text-tinta-suave">
+            Para testar quem vem de anúncio, ligue as mensagens de anúncio desta unidade em
+            Mensagens automáticas.
+          </p>
+        )}
         <Botao variante="secundario" onClick={reiniciar}>
           <RotateCcw aria-hidden className="size-4" /> Recomeçar conversa
         </Botao>

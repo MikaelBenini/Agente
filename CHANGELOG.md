@@ -7,6 +7,13 @@ produção (`https://seupentefino.com.br`). Detalhes técnicos e o porquê de ca
 
 ## [Não publicado]
 
+### Corrigido e reorganizado (anúncio, tela do Bot e Saúde do sistema)
+
+- **Cliente comum não cai mais no fluxo de anúncio:** o que separa os dois é a marca que o próprio WhatsApp manda quando a pessoa toca no anúncio; sem ela, só a frase pronta do anúncio como **primeira** mensagem de uma conversa nova (antes, a frase em qualquer ponto de qualquer mensagem, a qualquer momento, contava).
+- **Testar:** "Chegou por anúncio" só aparece com as mensagens de anúncio ligadas para a unidade; desligadas, a tela diz onde ligar.
+- **Tela do Bot em 4 abas, na ordem de uso:** 1. Conexão · 2. Respostas (menu e palavras-chave, mensagens prontas, horário do bot) · 3. Automáticas (quem vem de anúncio; retorno, aniversário e clube) · 4. Testar.
+- **Saúde do sistema (administração):** no alto, "Tudo certo" ou a lista do que pede atenção, cada item levando à aba certa; embaixo, as abas Servidor · WhatsApp e rotinas · Erros e e-mails · Integrações.
+
 ### Mudado (salário como despesa fixa)
 
 - **O salário do barbeiro já aparece nas despesas fixas do mês**, a pagar, sem precisar do "Copiar fixas do mês anterior": basta o valor fixo em Equipe. Mudar o valor em Equipe atualiza o salário do mês ainda não pago, e zerar tira. Nunca duplica, e quem já lançou o salário à mão (categoria "Salários e encargos" com o nome do barbeiro) não ganha outro.

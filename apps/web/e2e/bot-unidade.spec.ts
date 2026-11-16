@@ -30,6 +30,7 @@ test('editar o padrão ou uma unidade; a unidade usa o padrão até personalizar
 test('mensagens prontas: o convite para receber lembretes liga e desliga', async ({ page }) => {
   await entrar(page);
   await page.goto('/bot');
+  await page.getByRole('tab', { name: '2. Respostas' }).click();
   await page.getByRole('tab', { name: 'Mensagens prontas' }).click();
   const chave = visivel(
     page.getByLabel('Mandar o convite para receber lembretes na primeira conversa'),
@@ -46,7 +47,7 @@ test('mensagens automáticas de anúncio: ligar, testar no simulador e desligar'
 }) => {
   await entrar(page);
   await page.goto('/bot');
-  await page.getByRole('tab', { name: 'Mensagens automáticas' }).click();
+  await page.getByRole('tab', { name: '3. Automáticas' }).click();
   await visivel(page.getByLabel('Ligar as mensagens automáticas de anúncio')).check();
   await visivel(page.getByLabel('Mensagem 1 (a primeira resposta)')).fill(
     'Que bom que veio pelo anúncio! Qual serviço?',
@@ -63,7 +64,7 @@ test('mensagens automáticas de anúncio: ligar, testar no simulador e desligar'
   await expect(page.getByText(/^Menu usado: /)).toBeVisible();
 
   // Volta a desligar, para não mudar o resto dos testes.
-  await page.getByRole('tab', { name: 'Mensagens automáticas' }).click();
+  await page.getByRole('tab', { name: '3. Automáticas' }).click();
   await visivel(page.getByLabel('Ligar as mensagens automáticas de anúncio')).uncheck();
   await visivel(page.getByRole('button', { name: 'Salvar mensagens automáticas' })).click();
   await expect(page.getByText('As mensagens de anúncio estão desligadas.')).toBeVisible();

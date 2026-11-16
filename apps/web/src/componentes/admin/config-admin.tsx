@@ -22,7 +22,7 @@ import {
   NOME_PLANO,
   PLANOS,
 } from '@pente-fino/shared';
-import { Botao, Campo, CampoTexto, Selecao } from '@pente-fino/ui';
+import { Abas, Botao, Campo, CampoTexto, Selecao } from '@pente-fino/ui';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { ErroApi } from '@/lib/api';
@@ -342,260 +342,353 @@ function ItemServidor({
   );
 }
 
+type AbaSaude = 'servidor' | 'whatsapp' | 'erros' | 'integracoes';
+
+/** O que pede atenção agora, com a aba onde está o detalhe (reorganizado em 16/11/2026). */
+function problemasDaSaude(d: SaudeDoSistema): { texto: string; aba: AbaSaude }[] {
+  const p: { texto: string; aba: AbaSaude }[] = [];
+  if (d.banco !== 'ok') p.push({ texto: 'Banco de dados com falha', aba: 'servidor' });
+  if (d.worker.parado)
+    p.push({ texto: 'Worker parado: o bot, os lembretes e as rotinas não saem', aba: 'servidor' });
+  if (!d.backup) p.push({ texto: 'O backup ainda não rodou', aba: 'servidor' });
+  else if (!d.backup.ok) p.push({ texto: 'O último backup falhou', aba: 'servidor' });
+  else if (d.backup.atrasado) p.push({ texto: 'Backup atrasado (mais de 26 h)', aba: 'servidor' });
+  if (d.servidor && (d.servidor.discoPct > 80 || d.servidor.memoriaPct > 90))
+    p.push({ texto: 'Disco ou memória quase cheios', aba: 'servidor' });
+  if (d.servidor?.tlsDias != null && d.servidor.tlsDias < 14)
+    p.push({ texto: 'Certificado HTTPS vence em menos de 14 dias', aba: 'servidor' });
+  if (d.ipsInternos.acessos > 0)
+    p.push({ texto: 'Acessos à administração com IP interno', aba: 'servidor' });
+  if (d.conexoesCaidas.length)
+    p.push({ texto: `${d.conexoesCaidas.length} WhatsApp desconectado(s)`, aba: 'whatsapp' });
+  const atrasadas = d.rotinas.filter((r) => r.atrasada).length;
+  if (atrasadas) p.push({ texto: `${atrasadas} rotina(s) atrasada(s)`, aba: 'whatsapp' });
+  if (d.errosRecentes.length)
+    p.push({ texto: `${d.errosRecentes.length} erro(s) nas últimas 24 h`, aba: 'erros' });
+  if (d.segredosCurtos.length) p.push({ texto: 'Segredo de webhook curto', aba: 'integracoes' });
+  if (d.buscadores && !d.buscadores.googleVerificado)
+    p.push({ texto: 'Google Search Console não verificado', aba: 'integracoes' });
+  return p;
+}
+
 export function SaudeAdmin() {
   const s = useQuery({
     queryKey: ['admin', 'saude'],
     queryFn: () => adminApi<SaudeDoSistema>('saude'),
     refetchInterval: 30_000,
   });
+  const [aba, setAba] = useState<AbaSaude>('servidor');
   return (
     <Estado consulta={s}>
       {() => {
         const d = s.data!;
+        const problemas = problemasDaSaude(d);
         return (
           <div className="flex flex-col gap-6">
-            <p className="flex items-center gap-2">
-              Banco de dados:{' '}
-              <Ficha tom={d.banco === 'ok' ? 'acao' : 'perigo'}>
-                {d.banco === 'ok' ? 'No ar' : 'Falha'}
-              </Ficha>
-            </p>
-            <p className="flex items-center gap-2">
-              Worker (bot, lembretes e rotinas):{' '}
-              <Ficha tom={d.worker.parado ? 'perigo' : 'acao'}>
-                {d.worker.parado ? 'Parado' : 'No ar'}
-              </Ficha>
-              {d.worker.ultimoBatimento && (
-                <span className="text-sm text-tinta-suave">
-                  último sinal {formatarDataHora(d.worker.ultimoBatimento)}
-                </span>
-              )}
-            </p>
-            {d.worker.parado && (
-              <Aviso tom="erro">
-                O worker não dá sinal há mais de 2 minutos: o bot não responde e lembretes e rotinas
-                não saem. Veja os logs do contêiner worker na VPS (docs/producao.md).
+            {/* Resumo: tudo certo, ou só o que pede atenção, com o caminho para o detalhe. */}
+            {problemas.length === 0 ? (
+              <Aviso tom="sucesso">
+                <p className="font-semibold">Tudo certo.</p>
+                <p className="mt-1">Banco, worker, backup, servidor e integrações sem problema.</p>
               </Aviso>
-            )}
-            <section aria-labelledby="titulo-servidor" className="flex flex-col gap-2">
-              <h2 id="titulo-servidor" className="text-lg font-semibold">
-                Servidor
-              </h2>
-              <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                <ItemServidor
-                  rotulo="Versão em produção"
-                  valor={d.versao.versao}
-                  detalhe={`no ar desde ${formatarDataHora(d.versao.iniciadaEm)}`}
-                />
-                <ItemServidor
-                  rotulo="Último backup"
-                  valor={
-                    !d.backup
-                      ? 'Ainda não rodou'
-                      : d.backup.ok
-                        ? `${formatarDataHora(d.backup.quando)}${d.backup.tamanho ? ` · ${d.backup.tamanho}` : ''}`
-                        : 'Falhou'
-                  }
-                  detalhe={
-                    !d.backup
-                      ? 'O backup.sh grava aqui a cada execução (docs/restaurar.md).'
-                      : !d.backup.ok
-                        ? (d.backup.erro ?? 'Veja o log do cron na VPS.')
-                        : d.backup.externo
-                          ? 'Cópia também no armazenamento externo'
-                          : 'Só na VPS (sem armazenamento externo)'
-                  }
-                  alerta={!d.backup || !d.backup.ok || d.backup.atrasado}
-                />
-                <ItemServidor
-                  rotulo="Webhook do Asaas"
-                  valor={
-                    d.webhookAsaas ? formatarDataHora(d.webhookAsaas.quando) : 'Nenhum aviso ainda'
-                  }
-                  detalhe={
-                    d.webhookAsaas
-                      ? `${d.webhookAsaas.evento} · ${d.webhookAsaas.resultado}`
-                      : 'Último aviso de cobrança que chegou do Asaas'
-                  }
-                />
-                <ItemServidor
-                  rotulo="Disco"
-                  valor={d.servidor ? `${d.servidor.discoPct}% usado` : 'Sem leitura'}
-                  detalhe={
-                    d.servidor
-                      ? `memória ${d.servidor.memoriaPct}% · lido ${formatarDataHora(d.servidor.quando)}`
-                      : 'O vigia.sh grava aqui a cada 5 minutos.'
-                  }
-                  alerta={!!d.servidor && (d.servidor.discoPct > 80 || d.servidor.memoriaPct > 90)}
-                />
-                <ItemServidor
-                  rotulo="Certificado HTTPS"
-                  valor={
-                    d.servidor?.tlsAte ? `até ${formatarData(d.servidor.tlsAte)}` : 'Sem leitura'
-                  }
-                  detalhe="O Caddy renova sozinho uns 30 dias antes."
-                  alerta={d.servidor?.tlsDias != null && d.servidor.tlsDias < 14}
-                />
-                {d.buscadores && (
-                  <ItemServidor
-                    rotulo="Google Search Console"
-                    valor={d.buscadores.googleVerificado ? 'Verificado' : 'Não verificado'}
-                    detalhe={
-                      d.buscadores.googleVerificado
-                        ? `${d.buscadores.dominio}: o Google lê o sitemap; o Bing pode importar dele.`
-                        : `Sem o TXT do Google no DNS de ${d.buscadores.dominio}. Passo a passo em docs/producao.md, "Buscadores".`
-                    }
-                    alerta={!d.buscadores.googleVerificado}
-                  />
-                )}
-              </dl>
-            </section>
-            {d.segredosCurtos.length > 0 && (
+            ) : (
               <Aviso tom="aviso">
-                Segredo de webhook com menos de 32 caracteres: {d.segredosCurtos.join(', ')}. Gere
-                um novo (openssl rand -hex 32), troque no .env do servidor e, no caso do Asaas,
-                também no webhook do painel do Asaas.
+                <p className="font-semibold">
+                  {problemas.length === 1
+                    ? '1 ponto pede atenção:'
+                    : `${problemas.length} pontos pedem atenção:`}
+                </p>
+                <ul className="mt-1 flex flex-col gap-1">
+                  {problemas.map((x) => (
+                    <li key={x.texto} className="flex flex-wrap items-center gap-2">
+                      <span>• {x.texto}</span>
+                      <button
+                        type="button"
+                        onClick={() => setAba(x.aba)}
+                        className="min-h-11 text-sm font-semibold underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-foco"
+                      >
+                        ver
+                      </button>
+                    </li>
+                  ))}
+                </ul>
               </Aviso>
             )}
-            {d.ipsInternos.acessos > 0 && (
-              <Aviso tom="aviso">
-                {d.ipsInternos.acessos} acesso(s) à administração nos últimos 7 dias chegaram com IP
-                interno (rede do Docker)
-                {d.ipsInternos.ultimo
-                  ? `, o último em ${formatarDataHora(d.ipsInternos.ultimo)}`
-                  : ''}
-                : a auditoria não guarda o IP real de quem entrou. Em geral, é acesso por IPv6 com a
-                rede do Docker só em IPv4. Veja &quot;IP real na auditoria&quot; em
-                docs/producao.md.
-              </Aviso>
-            )}
-            <Tabela rotulo="Filas">
-              <thead>
-                <tr className="border-b border-borda">
-                  {['Fila', 'Esperando', 'Agendados', 'Rodando', 'Falhas guardadas'].map((c) => (
-                    <th key={c} scope="col" className={th}>
-                      {c}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {d.filas.map((f) => (
-                  <tr key={f.fila} className="border-b border-borda">
-                    <th scope="row" className={`${td} font-semibold`}>
-                      {f.fila}
-                    </th>
-                    <td className={`${td} tabular-nums`}>{f.esperando}</td>
-                    <td className={`${td} tabular-nums`}>{f.agendados}</td>
-                    <td className={`${td} tabular-nums`}>{f.ativos}</td>
-                    <td className={`${td} tabular-nums`}>{f.falhas}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </Tabela>
-            <section aria-labelledby="titulo-caidas" className="flex flex-col gap-2">
-              <h2 id="titulo-caidas" className="text-lg font-semibold">
-                WhatsApp que caiu
-              </h2>
-              {d.conexoesCaidas.length === 0 ? (
-                <p className="text-sm text-tinta-suave">Nenhuma conexão caída.</p>
-              ) : (
-                <ul className="flex flex-col gap-1 text-sm" aria-label="Conexões caídas">
-                  {d.conexoesCaidas.map((c) => (
-                    <li
-                      key={`${c.contaId}-${c.unidade}`}
-                      className="flex justify-between gap-3 border-b border-borda py-1"
-                    >
-                      <span>
-                        {c.conta} · {c.unidade}
-                        {c.numero ? ` · ${c.numero}` : ''}
-                      </span>
-                      <span className="tabular-nums text-tinta-suave">
-                        desde {formatarDataHora(c.caiuEm)}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
-            <section aria-labelledby="titulo-erros" className="flex flex-col gap-2">
-              <h2 id="titulo-erros" className="text-lg font-semibold">
-                Erros das últimas 24 h
-              </h2>
-              {d.errosRecentes.length === 0 ? (
-                <p className="text-sm text-tinta-suave">Nenhum erro.</p>
-              ) : (
-                <ul className="flex flex-col gap-1 text-sm" aria-label="Erros recentes">
-                  {d.errosRecentes.map((e, i) => (
-                    <li key={i} className="flex flex-col border-b border-borda py-1">
-                      <span>
-                        <strong>{e.fila}</strong> · {e.tipo} ·{' '}
-                        <span className="tabular-nums text-tinta-suave">
-                          {formatarDataHora(e.quando)}
-                        </span>
-                      </span>
-                      <span className="text-tinta-suave">{e.motivo}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
-            <section aria-labelledby="titulo-rotinas" className="flex flex-col gap-2">
-              <h2 id="titulo-rotinas" className="text-lg font-semibold">
-                Rotinas automáticas
-              </h2>
-              <ul className="flex flex-col gap-1 text-sm" aria-label="Rotinas automáticas">
-                {d.rotinas.map((r) => (
-                  <li
-                    key={r.rotina}
-                    className="flex flex-wrap justify-between gap-x-3 border-b border-borda py-1"
-                  >
-                    <span className="flex items-center gap-2">
-                      {r.nome}
-                      {r.atrasada && <Ficha tom="perigo">Atrasada</Ficha>}
-                    </span>
-                    <span className="tabular-nums text-tinta-suave">
-                      {r.ultima
-                        ? `${formatarDataHora(r.ultima)}${r.resultado ? ` · ${r.resultado}` : ''}`
-                        : 'ainda não rodou desde a atualização'}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-            <section aria-labelledby="titulo-webhooks" className="flex flex-col gap-2">
-              <h2 id="titulo-webhooks" className="text-lg font-semibold">
-                Webhooks recusados
-              </h2>
-              <p className="text-sm text-tinta-suave">
-                Chamadas ao Asaas ou ao WhatsApp com o segredo errado nos últimos 7 dias:{' '}
-                <strong className="tabular-nums text-tinta">
-                  {d.webhooksRecusados.total7Dias}
-                </strong>
-                . Depois de 20 erros em 10 minutos, o endereço fica bloqueado por 10 minutos.
-              </p>
-              {d.webhooksRecusados.ultimos.length > 0 && (
-                <ul className="flex flex-col gap-1 text-sm" aria-label="Últimas recusas">
-                  {d.webhooksRecusados.ultimos.map((w, i) => (
-                    <li key={i} className="flex justify-between gap-3 border-b border-borda py-1">
-                      <span>
-                        {w.rota === 'asaas' ? 'Asaas' : 'WhatsApp'} · {w.ip ?? 'IP desconhecido'}
-                      </span>
-                      <span className="tabular-nums text-tinta-suave">
-                        {formatarDataHora(w.quando)}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
-            <EmailsQueNaoSairam />
-            <NotasNaSaude n={d.notasFiscais} />
-            <LimpezaNaSaude execucoes={d.limpeza} />
+            <Abas
+              rotulo="Saúde do sistema"
+              atual={aba}
+              onTrocar={(id) => setAba(id as AbaSaude)}
+              abas={[
+                { id: 'servidor', rotulo: 'Servidor', conteudo: <SaudeServidor d={d} /> },
+                {
+                  id: 'whatsapp',
+                  rotulo: 'WhatsApp e rotinas',
+                  conteudo: <SaudeWhatsappERotinas d={d} />,
+                },
+                { id: 'erros', rotulo: 'Erros e e-mails', conteudo: <SaudeErros d={d} /> },
+                { id: 'integracoes', rotulo: 'Integrações', conteudo: <SaudeIntegracoes d={d} /> },
+              ]}
+            />
           </div>
         );
       }}
     </Estado>
+  );
+}
+
+/** Banco, worker, versão, backup, disco e certificado. */
+function SaudeServidor({ d }: { d: SaudeDoSistema }) {
+  return (
+    <div className="flex flex-col gap-4">
+      <p className="flex items-center gap-2">
+        Banco de dados:{' '}
+        <Ficha tom={d.banco === 'ok' ? 'acao' : 'perigo'}>
+          {d.banco === 'ok' ? 'No ar' : 'Falha'}
+        </Ficha>
+      </p>
+      <p className="flex flex-wrap items-center gap-2">
+        Worker (bot, lembretes e rotinas):{' '}
+        <Ficha tom={d.worker.parado ? 'perigo' : 'acao'}>
+          {d.worker.parado ? 'Parado' : 'No ar'}
+        </Ficha>
+        {d.worker.ultimoBatimento && (
+          <span className="text-sm text-tinta-suave">
+            último sinal {formatarDataHora(d.worker.ultimoBatimento)}
+          </span>
+        )}
+      </p>
+      {d.worker.parado && (
+        <Aviso tom="erro">
+          O worker não dá sinal há mais de 2 minutos: o bot não responde e lembretes e rotinas não
+          saem. Veja os logs do contêiner worker na VPS (docs/producao.md).
+        </Aviso>
+      )}
+      <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <ItemServidor
+          rotulo="Versão em produção"
+          valor={d.versao.versao}
+          detalhe={`no ar desde ${formatarDataHora(d.versao.iniciadaEm)}`}
+        />
+        <ItemServidor
+          rotulo="Último backup"
+          valor={
+            !d.backup
+              ? 'Ainda não rodou'
+              : d.backup.ok
+                ? `${formatarDataHora(d.backup.quando)}${d.backup.tamanho ? ` · ${d.backup.tamanho}` : ''}`
+                : 'Falhou'
+          }
+          detalhe={
+            !d.backup
+              ? 'O backup.sh grava aqui a cada execução (docs/restaurar.md).'
+              : !d.backup.ok
+                ? (d.backup.erro ?? 'Veja o log do cron na VPS.')
+                : d.backup.externo
+                  ? 'Cópia também no armazenamento externo'
+                  : 'Só na VPS (sem armazenamento externo)'
+          }
+          alerta={!d.backup || !d.backup.ok || d.backup.atrasado}
+        />
+        <ItemServidor
+          rotulo="Disco"
+          valor={d.servidor ? `${d.servidor.discoPct}% usado` : 'Sem leitura'}
+          detalhe={
+            d.servidor
+              ? `memória ${d.servidor.memoriaPct}% · lido ${formatarDataHora(d.servidor.quando)}`
+              : 'O vigia.sh grava aqui a cada 5 minutos.'
+          }
+          alerta={!!d.servidor && (d.servidor.discoPct > 80 || d.servidor.memoriaPct > 90)}
+        />
+        <ItemServidor
+          rotulo="Certificado HTTPS"
+          valor={d.servidor?.tlsAte ? `até ${formatarData(d.servidor.tlsAte)}` : 'Sem leitura'}
+          detalhe="O Caddy renova sozinho uns 30 dias antes."
+          alerta={d.servidor?.tlsDias != null && d.servidor.tlsDias < 14}
+        />
+      </dl>
+      {d.ipsInternos.acessos > 0 && (
+        <Aviso tom="aviso">
+          {d.ipsInternos.acessos} acesso(s) à administração nos últimos 7 dias chegaram com IP
+          interno (rede do Docker)
+          {d.ipsInternos.ultimo ? `, o último em ${formatarDataHora(d.ipsInternos.ultimo)}` : ''}: a
+          auditoria não guarda o IP real de quem entrou. Em geral, é acesso por IPv6 com a rede do
+          Docker só em IPv4. Veja &quot;IP real na auditoria&quot; em docs/producao.md.
+        </Aviso>
+      )}
+      <LimpezaNaSaude execucoes={d.limpeza} />
+    </div>
+  );
+}
+
+/** WhatsApp que caiu, rotinas automáticas, filas e webhooks recusados. */
+function SaudeWhatsappERotinas({ d }: { d: SaudeDoSistema }) {
+  return (
+    <div className="flex flex-col gap-6">
+      <section aria-labelledby="titulo-caidas" className="flex flex-col gap-2">
+        <h2 id="titulo-caidas" className="text-lg font-semibold">
+          WhatsApp que caiu
+        </h2>
+        {d.conexoesCaidas.length === 0 ? (
+          <p className="text-sm text-tinta-suave">Nenhuma conexão caída.</p>
+        ) : (
+          <ul className="flex flex-col gap-1 text-sm" aria-label="Conexões caídas">
+            {d.conexoesCaidas.map((c) => (
+              <li
+                key={`${c.contaId}-${c.unidade}`}
+                className="flex justify-between gap-3 border-b border-borda py-1"
+              >
+                <span>
+                  {c.conta} · {c.unidade}
+                  {c.numero ? ` · ${c.numero}` : ''}
+                </span>
+                <span className="tabular-nums text-tinta-suave">
+                  desde {formatarDataHora(c.caiuEm)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+      <section aria-labelledby="titulo-rotinas" className="flex flex-col gap-2">
+        <h2 id="titulo-rotinas" className="text-lg font-semibold">
+          Rotinas automáticas
+        </h2>
+        <ul className="flex flex-col gap-1 text-sm" aria-label="Rotinas automáticas">
+          {d.rotinas.map((r) => (
+            <li
+              key={r.rotina}
+              className="flex flex-wrap justify-between gap-x-3 border-b border-borda py-1"
+            >
+              <span className="flex items-center gap-2">
+                {r.nome}
+                {r.atrasada && <Ficha tom="perigo">Atrasada</Ficha>}
+              </span>
+              <span className="tabular-nums text-tinta-suave">
+                {r.ultima
+                  ? `${formatarDataHora(r.ultima)}${r.resultado ? ` · ${r.resultado}` : ''}`
+                  : 'ainda não rodou desde a atualização'}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+      <Tabela rotulo="Filas">
+        <thead>
+          <tr className="border-b border-borda">
+            {['Fila', 'Esperando', 'Agendados', 'Rodando', 'Falhas guardadas'].map((c) => (
+              <th key={c} scope="col" className={th}>
+                {c}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {d.filas.map((f) => (
+            <tr key={f.fila} className="border-b border-borda">
+              <th scope="row" className={`${td} font-semibold`}>
+                {f.fila}
+              </th>
+              <td className={`${td} tabular-nums`}>{f.esperando}</td>
+              <td className={`${td} tabular-nums`}>{f.agendados}</td>
+              <td className={`${td} tabular-nums`}>{f.ativos}</td>
+              <td className={`${td} tabular-nums`}>{f.falhas}</td>
+            </tr>
+          ))}
+        </tbody>
+      </Tabela>
+      <section aria-labelledby="titulo-webhooks" className="flex flex-col gap-2">
+        <h2 id="titulo-webhooks" className="text-lg font-semibold">
+          Webhooks recusados
+        </h2>
+        <p className="text-sm text-tinta-suave">
+          Chamadas ao Asaas ou ao WhatsApp com o segredo errado nos últimos 7 dias:{' '}
+          <strong className="tabular-nums text-tinta">{d.webhooksRecusados.total7Dias}</strong>.
+          Depois de 20 erros em 10 minutos, o endereço fica bloqueado por 10 minutos.
+        </p>
+        {d.webhooksRecusados.ultimos.length > 0 && (
+          <ul className="flex flex-col gap-1 text-sm" aria-label="Últimas recusas">
+            {d.webhooksRecusados.ultimos.map((w, i) => (
+              <li key={i} className="flex justify-between gap-3 border-b border-borda py-1">
+                <span>
+                  {w.rota === 'asaas' ? 'Asaas' : 'WhatsApp'} · {w.ip ?? 'IP desconhecido'}
+                </span>
+                <span className="tabular-nums text-tinta-suave">{formatarDataHora(w.quando)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </div>
+  );
+}
+
+/** Erros das filas nas últimas 24 h e os e-mails que não saíram. */
+function SaudeErros({ d }: { d: SaudeDoSistema }) {
+  return (
+    <div className="flex flex-col gap-6">
+      <section aria-labelledby="titulo-erros" className="flex flex-col gap-2">
+        <h2 id="titulo-erros" className="text-lg font-semibold">
+          Erros das últimas 24 h
+        </h2>
+        {d.errosRecentes.length === 0 ? (
+          <p className="text-sm text-tinta-suave">Nenhum erro.</p>
+        ) : (
+          <ul className="flex flex-col gap-1 text-sm" aria-label="Erros recentes">
+            {d.errosRecentes.map((e, i) => (
+              <li key={i} className="flex flex-col border-b border-borda py-1">
+                <span>
+                  <strong>{e.fila}</strong> · {e.tipo} ·{' '}
+                  <span className="tabular-nums text-tinta-suave">
+                    {formatarDataHora(e.quando)}
+                  </span>
+                </span>
+                <span className="text-tinta-suave">{e.motivo}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+      <EmailsQueNaoSairam />
+    </div>
+  );
+}
+
+/** Asaas, Google Search Console, nota fiscal e segredos dos webhooks. */
+function SaudeIntegracoes({ d }: { d: SaudeDoSistema }) {
+  return (
+    <div className="flex flex-col gap-6">
+      <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <ItemServidor
+          rotulo="Webhook do Asaas"
+          valor={d.webhookAsaas ? formatarDataHora(d.webhookAsaas.quando) : 'Nenhum aviso ainda'}
+          detalhe={
+            d.webhookAsaas
+              ? `${d.webhookAsaas.evento} · ${d.webhookAsaas.resultado}`
+              : 'Último aviso de cobrança que chegou do Asaas'
+          }
+        />
+        {d.buscadores && (
+          <ItemServidor
+            rotulo="Google Search Console"
+            valor={d.buscadores.googleVerificado ? 'Verificado' : 'Não verificado'}
+            detalhe={
+              d.buscadores.googleVerificado
+                ? `${d.buscadores.dominio}: o Google lê o sitemap; o Bing pode importar dele.`
+                : `Sem o TXT do Google no DNS de ${d.buscadores.dominio}. Passo a passo em docs/producao.md, "Buscadores".`
+            }
+            alerta={!d.buscadores.googleVerificado}
+          />
+        )}
+      </dl>
+      {d.segredosCurtos.length > 0 && (
+        <Aviso tom="aviso">
+          Segredo de webhook com menos de 32 caracteres: {d.segredosCurtos.join(', ')}. Gere um novo
+          (openssl rand -hex 32), troque no .env do servidor e, no caso do Asaas, também no webhook
+          do painel do Asaas.
+        </Aviso>
+      )}
+      <NotasNaSaude n={d.notasFiscais} />
+    </div>
   );
 }
 

@@ -3,7 +3,13 @@
 // recebe uma conversa própria, sem o menu do bot: as perguntas em sequência, a mensagem final e a
 // passagem para a equipe, que vê as respostas e a marca "Veio de anúncio" na tela Conversas.
 import { z } from 'zod';
-import { EXPIRACAO_ATENDENTE_MIN, normalizar, preencher, type SessaoBot } from './bot.js';
+import {
+  EXPIRACAO_ATENDENTE_MIN,
+  EXPIRACAO_SESSAO_MIN,
+  normalizar,
+  preencher,
+  type SessaoBot,
+} from './bot.js';
 
 /** Origem do cliente que chegou por anúncio (`cliente.origem_lead`). */
 export const ORIGEM_ANUNCIO = 'anuncio';
@@ -62,7 +68,9 @@ export function ehFraseDeAnuncio(fluxo: FluxoAnuncio, entrada: string): boolean 
     !!t &&
     fluxo.frases.some((f) => {
       const n = normalizar(f);
-      return !!n && (t === n || t.startsWith(`${n} `) || t.includes(n));
+      // A mensagem COMEÇA com a frase (a do anúncio vem pronta no início); no meio de um texto
+      // qualquer não conta (16/11/2026: "quero saber mais" de cliente comum caía no anúncio).
+      return !!n && (t === n || t.startsWith(`${n} `));
     })
   );
 }
@@ -136,7 +144,13 @@ export function responderAnuncio(
 
   // Já com a equipe: quem responde é a recepção.
   if (sessaoAnterior?.comAtendente) return null;
-  if (!doAnuncio && !ehFraseDeAnuncio(fluxo, entrada)) return null;
+  // O que separa o cliente de anúncio do comum: a marca que o próprio WhatsApp manda quando a
+  // pessoa toca no anúncio; ou, sem ela, a frase pronta do anúncio como PRIMEIRA mensagem de
+  // uma conversa nova (no meio de uma conversa, a frase não muda nada).
+  const conversaNova =
+    !sessaoAnterior ||
+    agora.getTime() - Date.parse(sessaoAnterior.ultimaEm) > EXPIRACAO_SESSAO_MIN * 60_000;
+  if (!doAnuncio && !(conversaNova && ehFraseDeAnuncio(fluxo, entrada))) return null;
   return {
     respostas: [texto(fluxo.etapas[0]!)],
     sessao: {
