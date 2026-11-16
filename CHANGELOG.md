@@ -7,6 +7,10 @@ produção (`https://seupentefino.com.br`). Detalhes técnicos e o porquê de ca
 
 ## [Não publicado]
 
+### Mudado (salário como despesa fixa)
+
+- **O salário do barbeiro já aparece nas despesas fixas do mês**, a pagar, sem precisar do "Copiar fixas do mês anterior": basta o valor fixo em Equipe. Mudar o valor em Equipe atualiza o salário do mês ainda não pago, e zerar tira. Nunca duplica, e quem já lançou o salário à mão (categoria "Salários e encargos" com o nome do barbeiro) não ganha outro.
+
 ### Adicionado (sites no sitemap, Search Console na Saúde e quem respondeu)
 
 - **Sites das barbearias no sitemap:** o site publicado (/s/…) das unidades com "Aparecer no Google" entra no `sitemap.xml` (antes, só a página de agendamento).

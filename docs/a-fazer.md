@@ -622,7 +622,7 @@ tem "Copiar catálogo de outra unidade".
   visual da página de agendamento e metas do mês (16/11, junto do lote 8e, branch
   `feat/revisao-cadastro`; CHANGELOG e linha de desenvolvimento). O link do Google ficou de fora:
   cada endereço tem a própria ficha no Google
-- [ ] Opcional, a decidir: mensagens do WhatsApp próprias por unidade (o banco já aceita; a tela não)
+- [x] Mensagens do WhatsApp próprias por unidade (feito no #235: menu e mensagens por unidade, com o padrão)
 
 ## 8g. Bot do WhatsApp mais esperto (lista do dono em 16/11, aprovada inteira como próximo lote)
 
@@ -682,6 +682,12 @@ descrição, OpenGraph (título, descrição e imagem 1200×630) e o cartão do 
 - [x] Saúde do sistema: "Google Search Console" verificado ou não (TXT do Google no DNS)
 - [x] Conversas: quem da equipe respondeu (pelo painel, com o nome, ou pelo celular) e há quanto tempo
 - Feito em 16/11 na branch `feat/seo-e-celular` (CHANGELOG, linha de desenvolvimento Etapa 23.6)
+
+## 8k. Salário como despesa fixa sem copiar (pedido do dono em 16/11, depois do #233)
+
+- [x] O salário de cada barbeiro com valor fixo em Equipe entra sozinho nas despesas fixas do mês
+  (a pagar); mudar o valor em Equipe ajusta o do mês ainda não pago; zerar tira; nunca duplica, e
+  o lançado à mão com o nome dele vale no lugar (16/11, branch `fix/salario-automatico`)
 
 ## 9. Por último: verificação final do ecossistema
 
