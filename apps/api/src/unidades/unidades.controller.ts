@@ -730,7 +730,13 @@ export class UnidadesController {
               if (!sv?.unidadeIds.includes(id)) continue;
             }
             await tx.meta.create({
-              data: { unidadeId: id, mes, tipo: m.tipo, servicoId: m.servicoId, objetivo: m.objetivo },
+              data: {
+                unidadeId: id,
+                mes,
+                tipo: m.tipo,
+                servicoId: m.servicoId,
+                objetivo: m.objetivo,
+              },
             });
             r.metas++;
           }

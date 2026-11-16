@@ -28,7 +28,9 @@ async function cupomFora(page: Page) {
   );
 }
 
-test('falha passageira na conferência não apaga o cupom do link nem dos botões', async ({ page }) => {
+test('falha passageira na conferência não apaga o cupom do link nem dos botões', async ({
+  page,
+}) => {
   await cupomFora(page);
   await page.goto('/cadastro?cupom=LANCAMENTO');
   await expect(page.getByText('Não deu para conferir o cupom agora.')).toBeVisible();
@@ -42,7 +44,9 @@ test('falha passageira na conferência não apaga o cupom do link nem dos botõe
 
 test('planos: avisos, bot e Automações lado a lado', async ({ page }) => {
   await page.goto('/planos');
-  const quadro = page.getByRole('region', { name: 'Avisos, bot e Automações: o que vem em cada um' });
+  const quadro = page.getByRole('region', {
+    name: 'Avisos, bot e Automações: o que vem em cada um',
+  });
   await expect(quadro.getByRole('heading', { name: 'Avisos no WhatsApp' })).toBeVisible();
   await expect(quadro.getByText('Todos os planos')).toBeVisible();
   await expect(quadro.getByRole('heading', { name: 'Bot que marca pela conversa' })).toBeVisible();
@@ -77,7 +81,9 @@ test('com "Todas as unidades" no alto, a agenda diz qual unidade mostra e a esco
   await page.goto('/agenda');
   const seletor = page.getByLabel('Unidade desta tela');
   await expect(seletor).toBeVisible();
-  await expect(page.getByText(/No alto está "Todas as unidades"; esta tela mostra a /)).toBeVisible();
+  await expect(
+    page.getByText(/No alto está "Todas as unidades"; esta tela mostra a /),
+  ).toBeVisible();
   const opcoes = await seletor.locator('option').allTextContents();
   const outra = opcoes[opcoes.length - 1]!;
   await seletor.selectOption({ label: outra });
@@ -93,7 +99,9 @@ test('com "Todas as unidades" no alto, a agenda diz qual unidade mostra e a esco
   );
 });
 
-test('Configurações → Unidades: copiar de outra unidade, escolhendo o que vem', async ({ page }) => {
+test('Configurações → Unidades: copiar de outra unidade, escolhendo o que vem', async ({
+  page,
+}) => {
   await page.goto('/entrar');
   await page.getByLabel('E-mail').fill('dono@demo.pentefino.dev');
   await page.getByLabel('Senha', { exact: true }).fill('pentefino123');

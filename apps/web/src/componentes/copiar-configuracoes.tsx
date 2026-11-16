@@ -117,8 +117,8 @@ export function CopiarConfiguracoes({
           </fieldset>
           <p className="text-sm text-tinta-suave">
             Nunca vêm: endereço, endereço do site, domínio, link do Google e o WhatsApp (cada
-            unidade conecta o próprio número). Mensagens do WhatsApp, menu do bot, equipe e clube
-            já valem para todas as unidades. O catálogo tem a cópia própria em Serviços.
+            unidade conecta o próprio número). Mensagens do WhatsApp, menu do bot, equipe e clube já
+            valem para todas as unidades. O catálogo tem a cópia própria em Serviços.
           </p>
           {erro && <Aviso tom="erro">{erro}</Aviso>}
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">

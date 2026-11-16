@@ -66,9 +66,7 @@ describe('copiar configurações de outra unidade', () => {
       turnos,
     );
     // Regras não foram marcadas: B continua com as dela.
-    expect((await dono.get(`/unidades/${B}/regras-agendamento`).expect(200)).body).toEqual(
-      regrasB,
-    );
+    expect((await dono.get(`/unidades/${B}/regras-agendamento`).expect(200)).body).toEqual(regrasB);
     const cal = (
       await dono.get(`/unidades/${B}/calendario?de=2027-12-01&ate=2027-12-31`).expect(200)
     ).body as { data: string; trabalha: boolean; motivo: string | null }[];
