@@ -31,6 +31,15 @@ function haQuanto(iso: string, agora = Date.now()): string {
 
 const nomeDa = (c: ConversaResumo) => c.cliente ?? formatarTelefone(c.telefone);
 
+/** Chegou por anúncio (pedido do dono em 16/11/2026), com o título quando o WhatsApp manda. */
+function FichaAnuncio({ c }: { c: ConversaResumo }) {
+  return (
+    <span title={c.anuncio?.titulo ?? undefined}>
+      <Ficha tom="aviso">Veio de anúncio</Ficha>
+    </span>
+  );
+}
+
 function FichaSituacao({ c }: { c: ConversaResumo }) {
   if (c.situacao === 'aguardando')
     return <Ficha tom="aviso">Esperando {c.aguardandoDesde && haQuanto(c.aguardandoDesde)}</Ficha>;
@@ -182,8 +191,12 @@ function GrupoConversas({
                     {c.ultimaMensagem.texto || '(áudio, foto ou figurinha)'}
                   </span>
                 )}
+                {c.pedido && (
+                  <span className="truncate text-sm font-medium text-tinta">Pediu: {c.pedido}</span>
+                )}
                 <span className="flex flex-wrap items-center gap-2 text-xs">
                   <FichaSituacao c={c} />
+                  {c.anuncio && <FichaAnuncio c={c} />}
                   {nomeUnidade && (
                     <span className="text-tinta-suave">{nomeUnidade(c.unidadeId)}</span>
                   )}
@@ -264,8 +277,14 @@ function Conversa({
             </p>
           </div>
         </div>
+        {c.pedido && (
+          <p className="w-full text-sm">
+            <span className="font-semibold">O que o cliente já pediu:</span> {c.pedido}
+          </p>
+        )}
         <div className="flex flex-wrap items-center gap-2">
           <FichaSituacao c={c} />
+          {c.anuncio && <FichaAnuncio c={c} />}
           {!conectado && gestao && (
             <Link href="/bot?aba=conexao" className="text-sm font-semibold underline">
               Conectar
