@@ -109,6 +109,12 @@ describe('oferta de lançamento', () => {
     await http().get('/publico/cupom/FUNDADOR').expect(400);
   });
 
+  // Revisão de 16/11/2026: toda página do site confere a oferta; com o limite do login (10/min)
+  // quem navegava levava 429 e o cupom sumia dos links e do cadastro.
+  it('conferir o cupom não usa o limite do login: várias páginas seguidas continuam com 200', async () => {
+    for (let i = 0; i < 15; i++) await http().get('/publico/cupom/LANCAMENTO').expect(200);
+  });
+
   it('quem se cadastrou com o cupom assina com 30%; a vaga só conta depois de pagar', async () => {
     const antes = (await http().get(`/publico/cupom/${CUPOM}`).expect(200)).body.restantes;
     const { c, dono } = await contaEmTeste(CUPOM, 3000);

@@ -199,9 +199,10 @@ export class PublicoController {
     return lerConfiguracaoPublica(await configuracaoDoSistema(this.banco.prisma)).contatoSite;
   }
 
+  // Sem o limite do login (10/min): toda página do site confere a oferta, e quem navegava
+  // estourava o limite e perdia o cupom (revisão de 16/11/2026). Fica o limite geral por IP.
   @Get('cupom/:codigo')
   @Publico()
-  @LimiteAutenticacao()
   @ApiOperation({ summary: 'Conferir um cupom antes de se cadastrar (desconto ou o motivo)' })
   async cupom(
     @Param('codigo') codigo: string,

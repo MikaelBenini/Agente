@@ -15,7 +15,7 @@ import { useQuery } from '@tanstack/react-query';
 import { X } from 'lucide-react';
 import Link from 'next/link';
 import { useSyncExternalStore, type ComponentProps } from 'react';
-import { api } from '@/lib/api';
+import { api, cupomRecusado } from '@/lib/api';
 import { LinkBotao } from './link-botao';
 
 const DATA = formatarData(`${OFERTA_LANCAMENTO.ate}T12:00:00Z`);
@@ -32,11 +32,15 @@ export function useOfertaAtiva(): { ativa: boolean | undefined; restantes: numbe
     queryKey: ['oferta-lancamento'],
     queryFn: () => api<{ restantes: number | null }>(`publico/cupom/${OFERTA_LANCAMENTO.codigo}`),
     enabled: noPrazo,
-    retry: false,
+    // Falha passageira (limite, rede): tenta de novo; cupom recusado pela API: não insiste.
+    retry: (vezes, e) => !cupomRecusado(e) && vezes < 2,
     staleTime: 10 * 60_000,
   });
   if (!noPrazo) return { ativa: false, restantes: null };
-  if (cupom.isError) return { ativa: false, restantes: null };
+  // Só a recusa da API encerra a oferta; sem resposta, os links continuam levando o cupom (o
+  // cadastro confere de novo).
+  if (cupom.isError)
+    return { ativa: cupomRecusado(cupom.error) ? false : undefined, restantes: null };
   return { ativa: cupom.data ? true : undefined, restantes: cupom.data?.restantes ?? null };
 }
 
