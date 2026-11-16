@@ -589,9 +589,11 @@ de ganho para o barbeiro:
 - [x] PR #231 do Dependabot (ferramentas de desenvolvimento): o axe novo cobra a WCAG 2.5.3; nomes
   dos botões e links corrigidos (sino, unidade, agenda, dia, mês dia a dia, planos, chat do site)
 - [ ] Merge do #231 pelo dono, com o CI verde
-- [ ] Salário fixo dos barbeiros nas despesas fixas: aguardando a resposta do dono sobre o formato
+- [ ] **Salário fixo dos barbeiros nas despesas fixas** (decisão do dono em 16/11): no "Copiar
+  fixas do mês anterior", uma linha por barbeiro com valor fixo (categoria "Salários e encargos"),
+  editável e marcável antes de gravar; nunca duplica
 
-## 8e. Revisão do cadastro, da unidade e do login (lista do dono em 16/11)
+## 8e. Revisão do cadastro, da unidade e do login (lista do dono em 16/11, aprovada como próximo lote)
 
 - [ ] **Cupom no cadastro** (alta): o `cupom=LANCAMENTO` da URL não aparece no cadastro e some ao
   escolher o plano. Mostrar "Cupom LANCAMENTO aplicado" e o preço com desconto antes de criar a
@@ -606,7 +608,7 @@ de ganho para o barbeiro:
 - [ ] **Login** (média): "Mostrar senha" como no cadastro; envio vazio com a mensagem certa para
   cada campo
 
-## 8f. Copiar configurações de outra unidade (análise de 16/11, aguardando o dono)
+## 8f. Copiar configurações de outra unidade (aprovado pelo dono em 16/11, escolhendo os itens)
 
 Já valem para a conta inteira (nada a copiar): mensagens do WhatsApp, menu do bot, pesquisa,
 equipe e clube. A conexão do WhatsApp não se copia: cada unidade lê o próprio QR. O catálogo já
