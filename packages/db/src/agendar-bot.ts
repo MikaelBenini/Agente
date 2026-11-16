@@ -2,6 +2,7 @@
 // Usa as mesmas regras da agenda do balcão e do site (agenda.ts) e grava com origem "bot".
 import {
   agendaNova,
+  normalizar,
   dataLocal,
   DIAS_POR_VEZ,
   formatarDiaPorExtenso,
@@ -22,6 +23,7 @@ import {
   textoServicos,
   textoMaisServico,
   type AgendaNaConversa,
+  type PedidoNatural,
   type RegrasAgendamento,
   type ResumoAgendamento,
   type ServicoParaAgendar,
@@ -190,6 +192,7 @@ async function resumo(tx: Tx, a: AgendaNaConversa, d: DadosDaConversa): Promise<
     diaRotulo: rotuloDoDia(dia, dataLocal(d.agora)),
     inicio,
     total,
+    trocarProfissional: (await profissionaisDaUnidade(tx, d.unidadeId)).length > 1,
   };
 }
 
@@ -308,6 +311,43 @@ async function irParaHorarios(
       !a.remarcarId,
     ),
   ]);
+}
+
+/** A lista de serviços de novo (mantém a remarcação, se houver). */
+async function listaDeServicos(tx: Tx, a: AgendaNaConversa, d: DadosDaConversa, hoje: string) {
+  const servicos = await servicosParaAgendar(tx, d.unidadeId, hoje);
+  return seguir({ ...agendaNova(), remarcarId: a.remarcarId, opcoes: servicos.map((s) => s.id) }, [
+    textoServicos(servicos, d.link),
+  ]);
+}
+
+/** VOLTAR: o passo anterior, sem perder o que já foi escolhido antes dele. */
+async function voltarUmPasso(
+  tx: Tx,
+  a: AgendaNaConversa,
+  d: DadosDaConversa,
+  hoje: string,
+): Promise<PassoDaAgenda> {
+  switch (a.passo) {
+    case 'mais_servico':
+    case 'profissional':
+      return listaDeServicos(tx, a, d, hoje);
+    case 'dia':
+      // Com um profissional só, o passo dele não aparece: volta aos serviços.
+      if ((await profissionaisDaUnidade(tx, d.unidadeId)).length > 1)
+        return irParaProfissional(tx, { ...a, profissionalId: null }, d);
+      return listaDeServicos(tx, a, d, hoje);
+    case 'horario':
+      return irParaDias(tx, a, d);
+    case 'confirmar':
+      return irParaHorarios(tx, { ...a, escolha: null }, d, a.dia!, 0);
+    case 'acao':
+    case 'cancelar':
+      return iniciarMeusHorarios(tx, d);
+    default:
+      // No primeiro passo, voltar é sair para o menu.
+      return sair([]);
+  }
 }
 
 /** Resposta que não serviu: repete o pedido uma vez; na segunda, volta ao menu. */
@@ -465,6 +505,11 @@ export async function passoDaAgenda(
       textoServicos(servicos, d.link),
     ]);
   }
+
+  // Lista do dono (16/11): MENU vai para o início e VOLTAR volta um passo, em qualquer passo.
+  const pedido = normalizar(entrada ?? '');
+  if (pedido === 'menu' || pedido === 'inicio') return sair([]);
+  if (pedido === 'voltar') return voltarUmPasso(tx, agenda, d, hoje);
 
   const numeros = lerNumeros(entrada ?? '');
   const um = numeros.length === 1 ? numeros[0]! : null;
@@ -696,10 +741,13 @@ export async function passoDaAgenda(
     case 'confirmar': {
       if (um === 0) return sair(['Tudo bem, não marquei nada.']);
       if (um === 2) return irParaHorarios(tx, agenda, d, agenda.dia!, 0);
+      // Troca só o profissional: o serviço fica (lista do dono em 16/11).
+      if (um === 3 && (await profissionaisDaUnidade(tx, d.unidadeId)).length > 1)
+        return irParaProfissional(tx, { ...agenda, escolha: null, profissionalId: null }, d);
       if (um !== 1)
         return naoServiu(
           agenda,
-          'Responda 1 para confirmar, 2 para outro horário ou 0 para cancelar.',
+          'Responda 1 para confirmar, 2 para outro horário, 3 para trocar o profissional ou 0 para cancelar.',
         );
       const r = await resumo(tx, agenda, d);
       if (d.simulacao)
@@ -858,4 +906,78 @@ async function primeiroHorarioDoDia(tx: Tx, d: DadosDaConversa, a: AgendaNaConve
         (p) => p.id,
       );
   return primeiroHorarioPossivel(tx, d.unidadeId, profs, dia, d.agora, d.regras.antecedenciaMin);
+}
+
+/**
+ * "Quero cortar amanhã às 15h" (lista do dono em 16/11/2026): já com serviço, dia e hora, pula
+ * direto para o que falta. Hora livre: vai para a confirmação. Ocupada: os livres mais perto
+ * dela. Sem hora: os horários do dia. As mesmas travas do começo (faltas, horários demais) valem.
+ */
+export async function agendarPeloPedido(
+  tx: Tx,
+  pedido: PedidoNatural,
+  d: DadosDaConversa,
+): Promise<PassoDaAgenda> {
+  // O começo normal confere as travas; o canal do site não entra (o cliente já está conversando).
+  const inicio = await passoDaAgenda(tx, null, null, { ...d, canalPreferido: 'conversa' });
+  if (!inicio.agenda) return inicio;
+  const hoje = dataLocal(d.agora);
+  const nomes = (await servicosParaAgendar(tx, d.unidadeId, hoje))
+    .filter((s) => pedido.servicoIds.includes(s.id))
+    .map((s) => s.nome);
+  if (nomes.length === 0) return inicio;
+  const base: AgendaNaConversa = {
+    ...agendaNova(),
+    servicoIds: pedido.servicoIds,
+    profissionalId: null,
+  };
+  const anotado = `Anotei: ${nomes.join(' + ')}${pedido.dia ? `, ${rotuloDoDia(pedido.dia, hoje)}` : ''}.`;
+  if (!pedido.dia || pedido.dia < hoje) return irParaDias(tx, base, d, anotado);
+  const todos = await horariosDoDia(tx, base, d, pedido.dia);
+  if (todos.length === 0)
+    return irParaDias(
+      tx,
+      base,
+      d,
+      `${anotado} Nesse dia não tenho horário livre. Estes dias têm:`,
+    );
+  if (pedido.minuto === null)
+    return irParaHorarios(tx, base, d, pedido.dia, 0, anotado);
+  const exato = todos.find((h) => minutoLocal(new Date(h.inicio)) === pedido.minuto);
+  if (exato) {
+    const a: AgendaNaConversa = {
+      ...base,
+      passo: 'confirmar',
+      dia: pedido.dia,
+      escolha: { inicio: exato.inicio, profissionalId: exato.profissionalId },
+    };
+    return seguir(a, [textoConfirmar(await resumo(tx, a, d))]);
+  }
+  // Ocupado: os horários livres mais perto do pedido, em ordem.
+  const pertos = [...todos]
+    .sort(
+      (x, y) =>
+        Math.abs(minutoLocal(new Date(x.inicio)) - pedido.minuto!) -
+        Math.abs(minutoLocal(new Date(y.inicio)) - pedido.minuto!),
+    )
+    .slice(0, HORARIOS_POR_VEZ)
+    .sort((x, y) => x.inicio.localeCompare(y.inicio));
+  const prox: AgendaNaConversa = {
+    ...base,
+    passo: 'horario',
+    dia: pedido.dia,
+    pagina: 0,
+    opcoes: pertos.map((h) => `${h.inicio}|${h.profissionalId}`),
+    temMais: false,
+  };
+  const pedida = `${Math.floor(pedido.minuto / 60)}h${pedido.minuto % 60 ? String(pedido.minuto % 60).padStart(2, '0') : ''}`;
+  return seguir(prox, [
+    `${anotado} Às ${pedida} já está ocupado. Os horários livres mais perto:`,
+    textoHorarios(
+      rotuloDoDia(pedido.dia, hoje),
+      pertos.map((h) => h.inicio),
+      false,
+      true,
+    ),
+  ]);
 }

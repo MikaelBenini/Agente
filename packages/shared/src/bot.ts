@@ -528,6 +528,11 @@ export interface SessaoBot {
   lembrete?: { agendamentoId: string; tipo: '24h' | '2h' };
   /** Oferta da lista de espera enviada: a próxima resposta 1/2 vale para ela. */
   oferta?: { esperaId: string };
+  /**
+   * O que o cliente já tinha escolhido quando pediu atendente (serviço, profissional, dia e
+   * horário): a equipe vê na conversa (lista do dono em 16/11/2026).
+   */
+  pedido?: AgendaNaConversa;
 }
 
 export type PassoPesquisa = 'atendimento' | 'barbearia' | 'comentario';

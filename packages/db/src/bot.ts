@@ -37,14 +37,17 @@ import {
   type DataISO,
   type VagaLiberada,
   caminhoAssinarClube,
+  lerPedidoNatural,
   linkDeAgendamento,
 } from '@pente-fino/shared';
 import { Prisma, type PrismaClient } from './generated/prisma/client.js';
 import { naConta } from './index.js';
 import {
+  agendarPeloPedido,
   mudarHorarioDoLembrete,
   passoDaAgenda,
   podeAgendarPelaConversa,
+  servicosParaAgendar,
   type DadosDaConversa,
   type PassoDaAgenda,
 } from './agendar-bot.js';
@@ -389,7 +392,9 @@ export async function responderComAgenda(
     !venceu(d.sessao, d.dados.agora) &&
     texto !== 'sair' &&
     texto !== 'receber' &&
-    !(lerNumeros(d.entrada).length === 0 && grupoDaPalavraChave(d.menu, d.entrada));
+    // VOLTAR e MENU são do passo a passo (lista do dono em 16/11), mesmo sendo palavras-chave.
+    (['voltar', 'menu', 'inicio'].includes(texto) ||
+      !(lerNumeros(d.entrada).length === 0 && grupoDaPalavraChave(d.menu, d.entrada)));
 
   if (emAndamento) {
     const p = await passoDaAgenda(tx, agenda, d.entrada, d.dados);
@@ -416,9 +421,39 @@ export async function responderComAgenda(
     };
   }
 
+  // "Quero cortar amanhã às 15h": serviço, dia e hora na frase (lista do dono em 16/11).
+  if (d.ctx.agendarPelaConversa && !base?.comAtendente && !base?.pesquisa) {
+    const hoje = dataLocal(d.dados.agora);
+    const local = new Date(d.dados.agora.getTime() - 3 * 3_600_000);
+    const pedido = lerPedidoNatural(
+      d.entrada,
+      await servicosParaAgendar(tx, d.dados.unidadeId, hoje),
+      hoje,
+      local.getUTCHours() * 60 + local.getUTCMinutes(),
+    );
+    if (pedido) {
+      const p = await agendarPeloPedido(tx, pedido, d.dados);
+      const sessao: SessaoBot = {
+        ...(base ?? {}),
+        caminho: [],
+        comAtendente: false,
+        ultimaEm: agoraIso,
+        erros: 0,
+        ...(p.agenda ? { agenda: p.agenda } : {}),
+      };
+      if (p.voltarAoMenu) {
+        const menu = responder(d.menu, d.mensagens, sessao, '0', d.ctx);
+        return { ...menu, respostas: [...p.respostas, ...menu.respostas] };
+      }
+      return { respostas: p.respostas, sessao, acao: 'agendar', consentimento: null, avaliacao: null };
+    }
+  }
+
   // "Prefere pelo WhatsApp?" do site: começa o agendamento já pela conversa.
   const porAqui = texto === normalizar(TEXTO_AGENDAR_POR_AQUI);
   const r = responder(d.menu, d.mensagens, base, porAqui ? 'agendar' : d.entrada, d.ctx);
+  // Pediu atendente no meio do agendamento: o que já escolheu fica para a equipe ver.
+  if (r.acao === 'falar_com_atendente' && agenda) r.sessao.pedido = agenda;
   if ((r.acao !== 'agendar' && r.acao !== 'meus_horarios') || !d.ctx.agendarPelaConversa) return r;
   if (porAqui && d.dados.clienteId && !d.dados.simulacao)
     await tx.cliente.update({

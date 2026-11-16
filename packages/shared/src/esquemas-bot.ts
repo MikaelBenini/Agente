@@ -187,6 +187,11 @@ export interface ConversaResumo {
   conectado: boolean;
   ultimaMensagem: { texto: string; direcao: 'entrada' | 'saida'; criadoEm: string } | null;
   atualizadoEm: string;
+  /**
+   * O que o cliente já tinha escolhido no bot quando pediu atendente ("Corte + Barba · com
+   * Diego · sábado às 15h"); null quando não estava marcando (lista do dono em 16/11/2026).
+   */
+  pedido: string | null;
 }
 
 export interface ListaConversas {

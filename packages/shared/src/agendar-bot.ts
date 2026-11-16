@@ -165,6 +165,8 @@ export function textoServicos(
     lista(linhas),
     '0. Voltar ao menu',
     ...(link ? ['', `Prefere marcar pelo site? ${link}`] : []),
+    '',
+    DICA_VOLTAR_MENU,
   ].join('\n');
 }
 
@@ -226,7 +228,12 @@ export interface ResumoAgendamento {
   diaRotulo: string;
   inicio: string;
   total: number;
+  /** A unidade tem mais de um profissional: dá para trocar mantendo o serviço. */
+  trocarProfissional?: boolean;
 }
+
+/** Dica dos comandos que valem em qualquer passo (lista do dono em 16/11/2026). */
+export const DICA_VOLTAR_MENU = 'Escreva VOLTAR para o passo anterior ou MENU para o início.';
 
 const quando = (r: ResumoAgendamento) => `${r.diaRotulo}, às ${formatarHora(r.inicio)}`;
 
@@ -241,6 +248,7 @@ export function textoConfirmar(r: ResumoAgendamento): string {
     '',
     '1. Confirmar',
     '2. Escolher outro horário',
+    ...(r.trocarProfissional ? ['3. Trocar o profissional'] : []),
     '0. Cancelar',
   ].join('\n');
 }

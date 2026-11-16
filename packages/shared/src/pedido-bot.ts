@@ -150,3 +150,31 @@ export function proximaAbertura(turnos: readonly TurnoBot[], agora: Date): strin
   }
   return null;
 }
+
+/** O pedido guardado na sessão, em uma linha para a equipe. */
+export function descreverPedido(
+  a: {
+    servicoIds: readonly string[];
+    profissionalId: string | null;
+    dia: string | null;
+    escolha: { inicio: string; profissionalId: string } | null;
+  },
+  nomes: ReadonlyMap<string, string>,
+  hoje: string,
+): string | null {
+  const partes: string[] = [];
+  const servicos = a.servicoIds.map((id) => nomes.get(id)).filter(Boolean);
+  if (servicos.length) partes.push(servicos.join(' + '));
+  const prof = a.escolha?.profissionalId ?? a.profissionalId;
+  if (prof && nomes.get(prof)) partes.push(`com ${nomes.get(prof)}`);
+  if (a.escolha) {
+    const local = new Date(new Date(a.escolha.inicio).getTime() - 3 * 3_600_000);
+    const dia = local.toISOString().slice(0, 10);
+    const quando = dia === hoje ? 'hoje' : `${NOME_DIA[local.getUTCDay()]}, ${dia.slice(8, 10)}/${dia.slice(5, 7)}`;
+    partes.push(`${quando} às ${horaTexto(local.getUTCHours() * 60 + local.getUTCMinutes())}`);
+  } else if (a.dia) {
+    const d = new Date(`${a.dia}T12:00:00Z`);
+    partes.push(`${a.dia === hoje ? 'hoje' : NOME_DIA[d.getUTCDay()]}, ${a.dia.slice(8, 10)}/${a.dia.slice(5, 7)}`);
+  }
+  return partes.length ? partes.join(' · ') : null;
+}
