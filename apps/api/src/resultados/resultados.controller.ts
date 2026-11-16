@@ -149,7 +149,11 @@ export class ResultadosController {
       gte: new Date(`${p.de}T00:00:00-03:00`),
       lt: new Date(new Date(`${p.ate}T00:00:00-03:00`).getTime() + 86_400_000),
     };
-    const daUnidade = 'unidadeId' in filtro ? { unidadeOrigemId: filtro.unidadeId } : {};
+    // O mesmo filtro de unidade, aplicado à unidade onde o cliente chegou.
+    const daUnidade =
+      'unidadeId' in filtro
+        ? { unidadeOrigemId: filtro.unidadeId as string | { in: string[] } }
+        : {};
     return this.banco.daConta(async (tx) => {
       const conversas = await tx.botSessao.findMany({
         where: { ...filtro, anuncioEm: periodo },
