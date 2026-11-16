@@ -11,10 +11,13 @@ cd "$(dirname "$0")"
 
 # Valor do .env com "$" (a chave do Asaas começa com "$aact_") vira uma variável para o Compose:
 # ele troca por vazio e escreve o valor inteiro no aviso, que vai para o log público do deploy.
-# Aqui o aviso sai sem o valor, e a conferência abaixo diz qual variável corrigir.
+# Aqui o aviso sai sem o valor, e a conferência abaixo diz qual variável corrigir. O aviso vem
+# como msg="The \"<valor>\" variable is not set...", com as aspas escapadas.
+esconder_valor() {
+  sed -E 's/The \\?"[^"\\]*\\?" variable is not set\. Defaulting to a blank string\./Um valor do .env tem "$" sem aspas simples: o Compose leu vazio (valor escondido)./'
+}
 compose() {
-  docker compose --env-file .env -f docker-compose.prod.yml "$@" \
-    2> >(sed -E 's/The "[^"]*" variable is not set\. Defaulting to a blank string\./Um valor do .env tem "$" sem aspas simples: o Compose leu vazio (valor escondido)./' >&2)
+  docker compose --env-file .env -f docker-compose.prod.yml "$@" 2> >(esconder_valor >&2)
 }
 # Nomes (nunca os valores) das variáveis com "$" fora de aspas simples e sem "$$".
 cifroes="$(grep -E '^[A-Z0-9_]+=' .env | grep -vE "^[A-Z0-9_]+='.*'$" | awk -F= '{ v = substr($0, index($0, "=") + 1); gsub(/\$\$/, "", v); if (v ~ /\$/) print $1 }' || true)"
