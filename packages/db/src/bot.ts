@@ -37,6 +37,8 @@ import {
   type DataISO,
   type VagaLiberada,
   caminhoAssinarClube,
+  avisoContatoAnuncio,
+  formatarTelefone,
   lerFluxoAnuncio,
   ORIGEM_ANUNCIO,
   lerFuncionamento,
@@ -56,6 +58,7 @@ import {
   type DadosDaConversa,
   type PassoDaAgenda,
 } from './agendar-bot.js';
+import { gravarAviso } from './central-avisos.js';
 import { atenderEquipe, avisarEquipeSobreHorario } from './equipe-whatsapp.js';
 import { notificacaoDoHorario } from './push.js';
 import { responderOferta } from './espera.js';
@@ -552,6 +555,8 @@ export type ResultadoAtendimento =
       notificacao?: TrabalhoNotificacao;
       /** Horário que vagou (cancelou ou antecipou pela conversa): o worker oferece para a lista. */
       vaga?: VagaLiberada;
+      /** Avisos da central (contato novo de anúncio): o worker põe as notificações na fila. */
+      notificacoes?: TrabalhoNotificacao[];
     };
 
 const NOME_PADRAO_CLIENTE = 'Cliente do WhatsApp';
@@ -756,7 +761,7 @@ export async function atenderMensagem(
           anuncioEm: deAnuncio ? (salva?.anuncioEm ?? agora) : (salva?.anuncioEm ?? null),
           anuncioTitulo: evento.anuncio?.titulo ?? salva?.anuncioTitulo ?? null,
         };
-        await tx.botSessao.upsert({
+        const gravada = await tx.botSessao.upsert({
           where: { unidadeId_telefone: { unidadeId, telefone: evento.telefone } },
           create: {
             unidadeId,
@@ -768,6 +773,23 @@ export async function atenderMensagem(
           },
           update: { clienteId: cliente.id, sessao: json(r.sessao), atendenteDesde, ...anuncio },
         });
+        // Primeira vez que este número chega por anúncio: aviso na central (pedido de 16/11/2026).
+        const notificacoes =
+          deAnuncio && !salva?.anuncioEm && anuncio.anuncioEm
+            ? await gravarAviso(
+                tx,
+                contaId,
+                unidadeId,
+                avisoContatoAnuncio({
+                  sessaoId: gravada.id,
+                  desde: anuncio.anuncioEm.toISOString(),
+                  cliente: clienteNovo
+                    ? (evento.nome ?? formatarTelefone(evento.telefone))
+                    : cliente.nome,
+                  titulo: anuncio.anuncioTitulo,
+                }),
+              )
+            : [];
         if (r.consentimento !== null) {
           await tx.cliente.update({
             where: { id: cliente.id },
@@ -818,6 +840,7 @@ export async function atenderMensagem(
           ...(r.agendamento ? { agendamento: r.agendamento } : {}),
           ...(notificacao ? { notificacao } : {}),
           ...(r.vaga ? { vaga: r.vaga } : {}),
+          ...(notificacoes.length ? { notificacoes } : {}),
           ...(notaBaixa
             ? { notaBaixa: { avaliacaoId: notaBaixa.id, concluida: r.avaliacao!.concluida } }
             : {}),

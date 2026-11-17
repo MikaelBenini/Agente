@@ -2,6 +2,10 @@
 // do celular (push) para o worker mandar. A regra de quem recebe está em packages/shared.
 import {
   avisoCaixaSemFechar,
+  avisoClienteEsperando,
+  avisoNotaBaixa,
+  ESPERA_PARA_AVISAR_MIN,
+  formatarTelefone,
   avisoComandasPendentes,
   avisoResumoDoDia,
   emailResumoDoDia,
@@ -157,6 +161,65 @@ async function comandasPendentes(tx: Tx, contaId: string, unidadeId: string, ago
  * ritmo do mês; por e-mail para quem escolheu) e, se o caixa recebeu e não foi fechado, o
  * aviso para fechar. Cada um sai uma vez por dia (chave do aviso).
  */
+/**
+ * Quem pediu atendente no WhatsApp e espera há mais de ESPERA_PARA_AVISAR_MIN sem resposta
+ * (pedido do dono em 16/11/2026). Um aviso por pedido (a chave leva o início da espera).
+ */
+async function clientesEsperando(tx: Tx, contaId: string, unidadeId: string, agora: Date) {
+  const limite = new Date(agora.getTime() - ESPERA_PARA_AVISAR_MIN * 60_000);
+  const sessoes = await tx.botSessao.findMany({
+    where: { unidadeId, atendenteDesde: { lte: limite } },
+    include: { cliente: { select: { nome: true } } },
+  });
+  const saida: TrabalhoNotificacao[] = [];
+  for (const s of sessoes) {
+    const aviso = avisoClienteEsperando({
+      unidadeId,
+      sessaoId: s.id,
+      cliente: s.cliente?.nome ?? formatarTelefone(s.telefone),
+      desde: s.atendenteDesde!.toISOString(),
+      minutos: Math.round((agora.getTime() - s.atendenteDesde!.getTime()) / 60_000),
+    });
+    saida.push(...(await gravarAviso(tx, contaId, unidadeId, aviso)));
+  }
+  return saida;
+}
+
+/**
+ * Nota 1 ou 2 também na central de avisos (com a notificação do celular), além da mensagem para a
+ * equipe no WhatsApp. Uma vez por avaliação (a chave é a avaliação).
+ */
+export async function avisoCentralNotaBaixa(
+  prisma: PrismaClient,
+  contaId: string,
+  avaliacaoId: string,
+): Promise<TrabalhoNotificacao[]> {
+  return naConta(prisma, contaId, async (tx) => {
+    const av = await tx.avaliacao.findUnique({
+      where: { id: avaliacaoId },
+      include: {
+        cliente: { select: { nome: true } },
+        profissional: { include: { usuario: { select: { nome: true } } } },
+      },
+    });
+    if (!av) return [];
+    const nota = Math.min(av.notaAtendimento ?? 5, av.notaBarbearia ?? 5);
+    if (nota > 2) return [];
+    return gravarAviso(
+      tx,
+      contaId,
+      av.unidadeId,
+      avisoNotaBaixa({
+        avaliacaoId,
+        cliente: av.cliente.nome,
+        profissional: av.profissional.usuario.nome.trim().split(/\s+/)[0]!,
+        nota,
+        comentario: av.comentario,
+      }),
+    );
+  });
+}
+
 async function fimDoDia(
   tx: Tx,
   contaId: string,
@@ -247,8 +310,10 @@ export async function rotinaDosAvisos(
       const turnos = daUnidade.length
         ? daUnidade
         : u.profissionais.flatMap((p) => p.horarios.filter((h) => h.diaSemana === ds));
-      if (podeAvisarAgora(turnos, minuto))
+      if (podeAvisarAgora(turnos, minuto)) {
         saida.notificacoes.push(...(await comandasPendentes(tx, contaId, u.id, agora)));
+        saida.notificacoes.push(...(await clientesEsperando(tx, contaId, u.id, agora)));
+      }
       const fim = fimDoDiaDaUnidade(turnos);
       if (fim !== null && minuto >= fim) {
         const r = await fimDoDia(tx, contaId, u, agora, appUrl);
