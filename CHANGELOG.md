@@ -7,6 +7,11 @@ produção (`https://seupentefino.com.br`). Detalhes técnicos e o porquê de ca
 
 ## [Não publicado]
 
+### Corrigido (aviso na unidade certa e reserva com o serviço escolhido)
+
+- **Aviso abre a unidade e o dia certos:** o link de cada aviso leva a unidade dele, e o painel passa para ela ao abrir (só se a pessoa tiver acesso). O resumo do dia abre o Resumo daquele dia, não o Início de hoje. Vale também para os avisos antigos e para a notificação do celular.
+- **Agendar pelo site com o serviço já marcado:** "Agendar corte infantil" (e os outros serviços) abre a reserva com aquele serviço escolhido, e os horários já saem pela duração dele; "Agendar com <barbeiro>" abre com o barbeiro escolhido.
+
 ### Adicionado (central de avisos mais útil)
 
 - **Avisos novos:** cliente esperando resposta no WhatsApp há mais de 10 minutos (para a recepção; sem recepção, o gestor; sem ele, o dono; só no expediente), contato novo que veio de anúncio (recepção, gestor e dono) e avaliação baixa (nota 1 ou 2, para dono e gestor, com o comentário). Os três vão também para o celular, e cada um pode ser desligado no Perfil.

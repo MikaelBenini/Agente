@@ -705,6 +705,13 @@ descrição, OpenGraph (título, descrição e imagem 1200×630) e o cartão do 
 - [x] Tela: "Só os não lidos", filtro por assunto, grupos por dia e etiqueta do assunto
 - Feito em 16/11 na branch `feat/avisos-melhores` (CHANGELOG e linha de desenvolvimento)
 
+## 8n. Revisão de 16/11: aviso na unidade certa e reserva com o serviço (P1 e P2)
+
+- [x] P1: `linkDoAviso` (unidade no link e o dia no resumo, também nos avisos antigos e no
+  celular) e o painel trocando para a unidade do `?unidade=` quando a pessoa tem acesso
+- [x] P2: `?servico=` e `?profissional=` nos botões do site e a reserva já marcada
+- Feito em 17/11 na branch `fix/aviso-unidade-e-servico` (CHANGELOG e linha de desenvolvimento)
+
 ## 9. Por último: verificação final do ecossistema
 
 - [x] Rodar a [verificação final](verificacao-final.md) (feita em 15/11: números, segurança e produção conferidos; correções C1 a C6; ficam com o dono o backup no Kuma, uma restauração de teste e o Tag Assistant) (pedido do dono em 11/11/2026): rotinas

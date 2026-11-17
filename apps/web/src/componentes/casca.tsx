@@ -40,6 +40,8 @@ import { FaixaAvisoGeral } from './faixa-aviso-geral';
 import { usePushAparelho } from './notificacoes-aparelho';
 import { useFilaOffline } from '@/lib/fila';
 import {
+  escolherUnidade,
+  lerUnidade,
   NOME_PAPEL,
   papeisAtivos,
   resolverUnidade,
@@ -83,6 +85,23 @@ export function Casca({ children }: { children: ReactNode }) {
   const router = useRouter();
   // Plano Agenda: o menu esconde o que vem do Básico em diante (comanda, caixa, resultados...).
   const situacao = useSituacaoConta(usuario.isSuccess).data;
+  // Link com ?unidade= (um aviso, por exemplo): abre naquela unidade, se a pessoa tem acesso a
+  // ela (a lista vem da API, que confere de novo cada consulta). Depois sai do endereço, para não
+  // desfazer uma troca de unidade feita à mão (revisão de 16/11/2026).
+  useEffect(() => {
+    if (!unidades.data) return;
+    const url = new URL(window.location.href);
+    const pedida = url.searchParams.get('unidade');
+    if (!pedida) return;
+    if (unidades.data.some((u) => u.id === pedida) && pedida !== lerUnidade())
+      escolherUnidade(pedida);
+    url.searchParams.delete('unidade');
+    window.history.replaceState(
+      window.history.state,
+      '',
+      `${url.pathname}${url.search}${url.hash}`,
+    );
+  }, [pathname, unidades.data]);
 
   const contexto = useMemo<ContextoApp | null>(() => {
     if (!usuario.data || !unidades.data) return null;

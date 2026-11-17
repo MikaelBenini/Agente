@@ -35,7 +35,7 @@ export type UnidadeAtiva = string | 'todas';
 const CHAVE = 'pf-unidade';
 const ouvintes = new Set<() => void>();
 
-function lerUnidade(): string | null {
+export function lerUnidade(): string | null {
   try {
     return localStorage.getItem(CHAVE);
   } catch {

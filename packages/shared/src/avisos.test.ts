@@ -246,3 +246,34 @@ describe('resumo do fechamento do caixa (seção 7)', () => {
     expect(a?.texto).toContain('recebidos em 18 comandas');
   });
 });
+
+describe('link do aviso com a unidade e o dia (revisão de 16/11/2026)', () => {
+  it('leva a unidade e, no resumo, o dia do resumo (também nos avisos antigos)', async () => {
+    const { linkDoAviso } = await import('./avisos.js');
+    const u = '0193a5b2-7c1d-7e8f-9a0b-1c2d3e4f5a6b';
+    expect(
+      linkDoAviso({
+        tipo: 'resumo_dia',
+        link: '/inicio',
+        chave: `resumo:${u}:2026-11-16`,
+        unidadeId: u,
+      }),
+    ).toBe(`/dia?dia=2026-11-16&unidade=${u}`);
+    expect(
+      linkDoAviso({
+        tipo: 'caixa_fechado',
+        link: '/caixa?dia=2026-11-16',
+        chave: 'x',
+        unidadeId: u,
+      }),
+    ).toBe(`/caixa?dia=2026-11-16&unidade=${u}`);
+    expect(
+      linkDoAviso({ tipo: 'comandas_pendentes', link: '/comandas', chave: 'x', unidadeId: u }),
+    ).toBe(`/comandas?unidade=${u}`);
+    // Sem unidade ou sem link: como está.
+    expect(linkDoAviso({ tipo: 'x', link: '/conversas', chave: 'x', unidadeId: null })).toBe(
+      '/conversas',
+    );
+    expect(linkDoAviso({ tipo: 'x', link: null, chave: 'x', unidadeId: u })).toBeNull();
+  });
+});

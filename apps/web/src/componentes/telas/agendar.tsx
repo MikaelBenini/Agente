@@ -329,8 +329,16 @@ function Formulario({
   });
   const [usarLink, setUsarLink] = useState(true);
   const cliente = usarLink ? doLink.data : undefined;
-  const [servicos, setServicos] = useState<string[]>([]);
-  const [profissional, setProfissional] = useState<string>('');
+  // Veio do site com o serviço ou o barbeiro escolhido (?servico=, ?profissional=): já vem
+  // marcado, e os horários saem pela duração dele (revisão de 16/11/2026).
+  const params = useSearchParams();
+  const [servicos, setServicos] = useState<string[]>(() =>
+    (params.get('servico') ?? '').split(',').filter((id) => u.servicos.some((s) => s.id === id)),
+  );
+  const [profissional, setProfissional] = useState<string>(() => {
+    const id = params.get('profissional') ?? '';
+    return u.profissionais.some((p) => p.id === id) ? id : '';
+  });
   const [dia, setDia] = useState(dataLocal(new Date()));
   const [horario, setHorario] = useState<{ inicio: string; profissionalId: string } | null>(null);
   const [nomeDigitado, setNome] = useState<string | null>(null);

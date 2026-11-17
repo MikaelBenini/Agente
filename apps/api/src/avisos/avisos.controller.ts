@@ -18,6 +18,7 @@ import {
   type CaixaDeAvisos,
   type PreferenciasAvisos,
   type TipoAviso,
+  linkDoAviso,
 } from '@pente-fino/shared';
 import { Corpo } from '../comum/validacao.js';
 import { Papeis } from '../auth/decoradores.js';
@@ -54,7 +55,8 @@ export class AvisosController {
           tipo: a.tipo as TipoAviso,
           titulo: a.titulo,
           texto: a.texto,
-          link: a.link,
+          // Com a unidade do aviso (e o dia, no resumo): abre a tela certa (revisão de 16/11).
+          link: linkDoAviso(a),
           criadoEm: a.criadoEm.toISOString(),
           lidoEm: a.lidoEm?.toISOString() ?? null,
         })),
