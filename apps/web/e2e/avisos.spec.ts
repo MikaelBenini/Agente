@@ -71,7 +71,8 @@ test('caixa com diferença: o gestor recebe o aviso e abre o caixa pelo link', a
   await expect(gestor.getByRole('heading', { name: 'Avisos' })).toBeVisible();
   const ddmm = `${dia.slice(8, 10)}/${dia.slice(5, 7)}`;
   const aviso = gestor
-    .getByRole('list', { name: 'Meus avisos' })
+    // Avisos agrupados por dia desde 16/11/2026: o de hoje fica em "Hoje".
+    .getByRole('region', { name: 'Hoje' })
     .getByRole('link', { name: new RegExp(`Caixa de ${ddmm} fechado com diferença`) })
     .first();
   await expect(aviso).toContainText(/sobram R\$\s12,34/);
@@ -81,7 +82,8 @@ test('caixa com diferença: o gestor recebe o aviso e abre o caixa pelo link', a
   // Abrir pelo link marca como lido.
   await gestor.goto('/avisos');
   const lido = gestor
-    .getByRole('list', { name: 'Meus avisos' })
+    // Avisos agrupados por dia desde 16/11/2026: o de hoje fica em "Hoje".
+    .getByRole('region', { name: 'Hoje' })
     .getByRole('link', { name: new RegExp(`Caixa de ${ddmm} fechado com diferença`) })
     .first();
   await expect(lido).not.toContainText('não lido');

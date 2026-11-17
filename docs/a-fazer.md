@@ -698,6 +698,13 @@ descrição, OpenGraph (título, descrição e imagem 1200×630) e o cartão do 
   Erros e e-mails, Integrações
 - Feito em 16/11 na branch `fix/anuncio-ajustes` (CHANGELOG e linha de desenvolvimento)
 
+## 8m. Central de avisos mais útil (pedido do dono em 16/11)
+
+- [x] Avisos novos: cliente esperando no WhatsApp (mais de 10 min, no expediente), contato novo de
+  anúncio e avaliação baixa, também no celular
+- [x] Tela: "Só os não lidos", filtro por assunto, grupos por dia e etiqueta do assunto
+- Feito em 16/11 na branch `feat/avisos-melhores` (CHANGELOG e linha de desenvolvimento)
+
 ## 8n. Revisão de 16/11: aviso na unidade certa e reserva com o serviço (P1 e P2)
 
 - [x] P1: `linkDoAviso` (unidade no link e o dia no resumo, também nos avisos antigos e no

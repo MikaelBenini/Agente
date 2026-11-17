@@ -140,7 +140,11 @@ describe('preferências de avisos', () => {
   });
 
   it('cada papel vê só os seus tipos', () => {
-    expect(tiposDoPapel(['recepcao'])).toEqual(['comandas_pendentes']);
+    expect(tiposDoPapel(['recepcao'])).toEqual([
+      'comandas_pendentes',
+      'cliente_esperando',
+      'contato_anuncio',
+    ]);
     expect(tiposDoPapel(['barbeiro'])).toEqual([]);
     expect(tiposDoPapel(['gestor'])).toEqual([
       'comandas_pendentes',
@@ -150,7 +154,48 @@ describe('preferências de avisos', () => {
       'resumo_dia',
       'clube_online',
       'whatsapp_caiu',
+      'cliente_esperando',
+      'contato_anuncio',
+      'nota_baixa',
     ]);
+  });
+
+  it('avisos novos (16/11/2026): cliente esperando, contato de anúncio e nota baixa', async () => {
+    const { avisoClienteEsperando, avisoContatoAnuncio, avisoNotaBaixa, destinatariosDoAviso } =
+      await import('./avisos.js');
+    expect(
+      avisoClienteEsperando({
+        unidadeId: 'u',
+        sessaoId: 's',
+        cliente: 'João',
+        desde: '2026-11-16T12:00:00.000Z',
+        minutos: 12,
+      }),
+    ).toMatchObject({
+      tipo: 'cliente_esperando',
+      link: '/conversas',
+      chave: 'esperando:s:2026-11-16T12:00:00.000Z',
+    });
+    expect(
+      avisoContatoAnuncio({ sessaoId: 's', desde: 'd', cliente: 'Ana', titulo: 'Corte R$ 50' })
+        .texto,
+    ).toContain('"Corte R$ 50"');
+    expect(
+      avisoNotaBaixa({
+        avaliacaoId: 'a',
+        cliente: 'Ana',
+        profissional: 'Diego',
+        nota: 1,
+        comentario: null,
+      }),
+    ).toMatchObject({ titulo: 'Nota 1 de Ana', chave: 'nota:a' });
+    // Cliente esperando: a recepção; sem recepção, o gestor.
+    const pessoas = [
+      { usuarioId: 'g', papeis: ['gestor' as const] },
+      { usuarioId: 'r', papeis: ['recepcao' as const] },
+    ];
+    expect(destinatariosDoAviso('cliente_esperando', pessoas)).toEqual(['r']);
+    expect(destinatariosDoAviso('cliente_esperando', [pessoas[0]!])).toEqual(['g']);
   });
 });
 

@@ -12,6 +12,7 @@ import {
   iniciarPesquisa,
   lembretesDoAgendamento,
   avisarNotaBaixa,
+  avisoCentralNotaBaixa,
   oferecerVaga,
   remarcacaoPorAtraso,
   contasParaAvisos,
@@ -322,6 +323,13 @@ export class WhatsappProcessor implements OnModuleInit, OnApplicationShutdown {
             { contaId: a.contaId, instancia: a.instancia, saidas: a.mensagemIds },
             { relogio, adicionar },
           );
+        // Também na central de avisos, com o celular (pedido do dono em 16/11/2026).
+        for (const n of await avisoCentralNotaBaixa(
+          this.banco.prisma,
+          job.data.contaId,
+          job.data.avaliacaoId,
+        ))
+          await filaNotificacoes.add('push', n);
         return `nota baixa: ${avisos.length} aviso(s)`;
       }
       // Pedido de atendente sem resposta em 2 h: o bot volta e avisa o cliente.
@@ -493,6 +501,8 @@ export class WhatsappProcessor implements OnModuleInit, OnApplicationShutdown {
           });
       }
       if (r.notificacao) await filaNotificacoes.add('push', r.notificacao);
+      // Contato novo de anúncio: a central de avisos manda para o celular de quem recebe.
+      for (const n of r.notificacoes ?? []) await filaNotificacoes.add('push', n);
       // Vagou um horário pela conversa: oferecer para a lista de espera.
       if (r.vaga)
         await filaEntrada.add('vaga', r.vaga, {

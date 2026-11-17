@@ -475,7 +475,7 @@ Todas as tabelas abaixo têm `id` (UUID), `conta_id`, `criado_em` e `atualizado_
 | modelo\_mensagem | unidade\_id, tipo (lembrete, confirmacao, retorno, aniversario, avaliacao, boas\_vindas, fora\_horario), texto com variáveis |  |
 | avaliacao | comanda\_id, profissional\_id, cliente\_id, nota (1 a 5), comentario, enviada\_em, respondida\_em, tratada\_em | Uma por comanda |
 | lista\_espera | unidade\_id, cliente\_id, profissional\_id, data, faixa\_inicio, faixa\_fim, status | Oferecida em ordem quando vaga um horário |
-| aviso | usuario\_id, tipo, texto, link, lido\_em | Central de avisos e notificações |
+| aviso | usuario\_id, tipo, texto, link, lido\_em | Central de avisos e notificações (comandas pendentes, caixa, resumo do dia, clube, WhatsApp caído, cliente esperando resposta, contato de anúncio e avaliação baixa) |
 
 ### Relacionamentos-chave
 

@@ -442,7 +442,8 @@ describe('agenda e comanda: agendar → atender → confirmar → fechar', () =>
       celular: {},
       resumoPorEmail: false,
       agendaNoCelular: true,
-      tipos: ['comandas_pendentes'],
+      // Avisos novos de 16/11/2026: cliente esperando no WhatsApp e contato de anúncio.
+      tipos: ['comandas_pendentes', 'cliente_esperando', 'contato_anuncio'],
       profissional: false,
     });
     await gestor

@@ -231,3 +231,31 @@ describe('fim do dia pelo horário de funcionamento (seção 7)', () => {
     expect(await resumosDaJardins()).toHaveLength(1);
   });
 });
+
+// Pedido do dono em 16/11/2026: mais coisa útil na central.
+describe('cliente esperando resposta no WhatsApp', () => {
+  it('passou de 10 min sem resposta, no expediente: a recepção é avisada uma vez por pedido', async () => {
+    const tel = '5511977774321';
+    const desde = new Date(agora.getTime() - 20 * 60_000);
+    await naMinhaConta((tx) =>
+      tx.botSessao.create({
+        data: {
+          unidadeId,
+          telefone: tel,
+          sessao: { caminho: [], comAtendente: true, ultimaEm: desde.toISOString() },
+          atendenteDesde: desde,
+        },
+      }),
+    );
+    const esperando = async () =>
+      (await avisosDe(recepcaoId)).filter((a) => a.tipo === 'cliente_esperando');
+    await rotinaDosAvisos(prisma, conta, agora);
+    const primeira = await esperando();
+    expect(primeira).toHaveLength(1);
+    expect(primeira[0]).toMatchObject({ link: '/conversas' });
+    expect(primeira[0]!.texto).toContain('há 20 min');
+    // A rotina seguinte não repete o mesmo pedido.
+    await rotinaDosAvisos(prisma, conta, new Date(agora.getTime() + 15 * 60_000));
+    expect(await esperando()).toHaveLength(1);
+  });
+});

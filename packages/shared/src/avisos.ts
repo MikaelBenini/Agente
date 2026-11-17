@@ -14,6 +14,10 @@ export const TIPOS_AVISO = [
   'resumo_dia',
   'clube_online',
   'whatsapp_caiu',
+  // Pedido do dono em 16/11/2026 ("dá para pôr mais coisa útil?"):
+  'cliente_esperando',
+  'contato_anuncio',
+  'nota_baixa',
 ] as const;
 export type TipoAviso = (typeof TIPOS_AVISO)[number];
 
@@ -25,6 +29,23 @@ export const NOME_TIPO_AVISO: Readonly<Record<TipoAviso, string>> = {
   resumo_dia: 'Resumo do dia da unidade',
   clube_online: 'Cliente que assinou o clube pelo link',
   whatsapp_caiu: 'WhatsApp da unidade desconectado (o bot parou)',
+  cliente_esperando: 'Cliente esperando resposta no WhatsApp',
+  contato_anuncio: 'Contato novo que veio de anúncio',
+  nota_baixa: 'Avaliação baixa (nota 1 ou 2)',
+};
+
+/** Assunto curto de cada aviso, para a etiqueta e o filtro da tela. */
+export const ASSUNTO_AVISO: Readonly<Record<TipoAviso, string>> = {
+  comandas_pendentes: 'Comandas',
+  caixa_divergente: 'Caixa',
+  caixa_sem_fechar: 'Caixa',
+  caixa_fechado: 'Caixa',
+  resumo_dia: 'Resumo',
+  clube_online: 'Clube',
+  whatsapp_caiu: 'WhatsApp',
+  cliente_esperando: 'WhatsApp',
+  contato_anuncio: 'Anúncio',
+  nota_baixa: 'Avaliação',
 };
 
 /**
@@ -39,6 +60,10 @@ export const QUEM_RECEBE: Readonly<Record<TipoAviso, readonly (readonly Papel[])
   resumo_dia: [['dono', 'gestor']],
   clube_online: [['dono', 'gestor']],
   whatsapp_caiu: [['dono', 'gestor']],
+  // Quem responde as conversas: a recepção; sem ela, o gestor; sem ele, o dono.
+  cliente_esperando: [['recepcao'], ['gestor'], ['dono']],
+  contato_anuncio: [['recepcao', 'gestor', 'dono']],
+  nota_baixa: [['dono', 'gestor']],
 };
 
 /** A rotina das comandas pendentes roda a cada 15 minutos. */
@@ -176,6 +201,61 @@ export function linkDoAviso(a: {
   }
   if (!link || !a.unidadeId || /[?&]unidade=/.test(link)) return link;
   return `${link}${link.includes('?') ? '&' : '?'}unidade=${a.unidadeId}`;
+}
+
+/** Esperando resposta da equipe há este tempo, o aviso sai (a rotina roda a cada 15 min). */
+export const ESPERA_PARA_AVISAR_MIN = 10;
+
+/** Cliente pediu atendente no WhatsApp e ninguém respondeu ainda. */
+export function avisoClienteEsperando(d: {
+  unidadeId: string;
+  sessaoId: string;
+  cliente: string;
+  desde: string;
+  minutos: number;
+}): AvisoNovo {
+  return {
+    tipo: 'cliente_esperando',
+    titulo: `${d.cliente} espera resposta no WhatsApp`,
+    texto: `Pediu atendente há ${d.minutos} min e ninguém respondeu ainda. Responda em Conversas.`,
+    link: '/conversas',
+    chave: `esperando:${d.sessaoId}:${d.desde}`,
+  };
+}
+
+/** Alguém chegou pelo anúncio (o WhatsApp marcou, ou a frase do anúncio abriu a conversa). */
+export function avisoContatoAnuncio(d: {
+  sessaoId: string;
+  desde: string;
+  cliente: string;
+  titulo: string | null;
+}): AvisoNovo {
+  return {
+    tipo: 'contato_anuncio',
+    titulo: `Contato novo de anúncio: ${d.cliente}`,
+    texto: d.titulo
+      ? `Chegou pelo anúncio "${d.titulo}". Acompanhe em Conversas.`
+      : 'Chegou por um anúncio. Acompanhe em Conversas.',
+    link: '/conversas',
+    chave: `anuncio:${d.sessaoId}:${d.desde}`,
+  };
+}
+
+/** Nota 1 ou 2 depois do atendimento. */
+export function avisoNotaBaixa(d: {
+  avaliacaoId: string;
+  cliente: string;
+  profissional: string;
+  nota: number;
+  comentario: string | null;
+}): AvisoNovo {
+  return {
+    tipo: 'nota_baixa',
+    titulo: `Nota ${d.nota} de ${d.cliente}`,
+    texto: `Atendimento com ${d.profissional}.${d.comentario ? ` "${d.comentario.slice(0, 140)}"` : ' Sem comentário.'} Vale falar com o cliente.`,
+    link: '/resultados',
+    chave: `nota:${d.avaliacaoId}`,
+  };
 }
 
 export interface AvisoDetalhe {
