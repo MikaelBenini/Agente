@@ -2,6 +2,7 @@
 // do celular (push) para o worker mandar. A regra de quem recebe está em packages/shared.
 import {
   avisoCaixaSemFechar,
+  linkDoAviso,
   avisoComandasPendentes,
   avisoResumoDoDia,
   emailResumoDoDia,
@@ -91,7 +92,7 @@ export async function gravarAviso(
       usuarioId: c.usuarioId,
       titulo: aviso.titulo,
       corpo: aviso.texto,
-      url: aviso.link ?? '/avisos',
+      url: linkDoAviso({ ...aviso, unidadeId }) ?? '/avisos',
       etiqueta: `aviso-${c.id}`,
     }));
 }

@@ -99,6 +99,14 @@ const linkAgendar = (dados: SitePublico) =>
   (dados.slugAgendamento ? caminhoDoAgendamento(dados.slugAgendamento) : '');
 /** O site pode estar no ar sem o link de agendamento ligado (decisão do dono, 13/11). */
 const temAgendamento = (dados: SitePublico) => linkAgendar(dados) !== '';
+/**
+ * O link de agendar já com o serviço ou o barbeiro escolhido no site (revisão de 16/11/2026:
+ * "Agendar corte infantil" abria a reserva com tudo desmarcado).
+ */
+const linkAgendarCom = (dados: SitePublico, chave: 'servico' | 'profissional', id: string) => {
+  const base = linkAgendar(dados);
+  return `${base}${base.includes('?') ? '&' : '?'}${chave}=${encodeURIComponent(id)}`;
+};
 
 /**
  * Botão principal: "Agendar horário" com o link ligado; sem ele, "Falar no WhatsApp" (telefone
@@ -586,7 +594,7 @@ function ServicosDestaque({
               <p className={`${TITULO} text-[2.25rem] leading-none`}>{formatarMoeda(s.preco)}</p>
               {temAgendamento(dados) && (
                 <Link
-                  href={linkAgendar(dados)}
+                  href={linkAgendarCom(dados, 'servico', s.id)}
                   className="mt-1 font-semibold text-[var(--site-link)] underline-offset-4 hover:underline"
                 >
                   Agendar {s.nome.toLowerCase()}
@@ -885,7 +893,7 @@ function TabelaServicos({ dados }: { dados: SitePublico }) {
                   </span>
                   {temAgendamento(dados) && (
                     <Link
-                      href={linkAgendar(dados)}
+                      href={linkAgendarCom(dados, 'servico', s.id)}
                       aria-label={`Agendar ${s.nome}`}
                       className={`${BOTAO} border border-[var(--site-link)] px-4 py-2 text-[var(--site-link)] focus-visible:outline-[var(--site-link)]`}
                     >
@@ -950,7 +958,7 @@ function Barbeiros({ dados }: { dados: SitePublico }) {
             )}
             {temAgendamento(dados) && (
               <Link
-                href={linkAgendar(dados)}
+                href={linkAgendarCom(dados, 'profissional', p.id)}
                 className={`${BOTAO} self-start bg-[var(--site-escuro)] text-[var(--site-claro)] focus-visible:outline-[var(--site-escuro)]`}
               >
                 Agendar com {p.nome}

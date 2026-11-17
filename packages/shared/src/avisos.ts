@@ -157,6 +157,27 @@ export function avisoCaixaDivergente(d: {
   };
 }
 
+/**
+ * O link que o aviso abre, já na unidade dele (revisão de 16/11/2026: o resumo da segunda unidade
+ * abria o Início da unidade que estava selecionada). Vale também para os avisos antigos: o resumo
+ * que apontava para /inicio passa a abrir o dia do resumo. O painel troca para a unidade do
+ * `?unidade=` só se a pessoa tem acesso a ela; a API confere de novo em cada consulta.
+ */
+export function linkDoAviso(a: {
+  tipo: string;
+  link: string | null;
+  chave: string;
+  unidadeId: string | null;
+}): string | null {
+  let link = a.link;
+  if (a.tipo === 'resumo_dia' && (link === '/inicio' || link === null)) {
+    const dia = /:(\d{4}-\d{2}-\d{2})$/.exec(a.chave)?.[1];
+    link = dia ? `/dia?dia=${dia}` : '/inicio';
+  }
+  if (!link || !a.unidadeId || /[?&]unidade=/.test(link)) return link;
+  return `${link}${link.includes('?') ? '&' : '?'}unidade=${a.unidadeId}`;
+}
+
 export interface AvisoDetalhe {
   id: string;
   tipo: TipoAviso;
@@ -215,7 +236,8 @@ export function avisoResumoDoDia(d: {
     tipo: 'resumo_dia',
     titulo: `Resumo de ${ddmm(d.dia)} · ${d.resumo.unidade}`,
     texto: linhasDoResumo(d.resumo).join(' '),
-    link: '/inicio',
+    // O resumo daquele dia, não o de hoje (revisão de 16/11/2026).
+    link: `/dia?dia=${d.dia}`,
     chave: `resumo:${d.unidadeId}:${d.dia}`,
   };
 }
